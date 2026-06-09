@@ -109,7 +109,13 @@
           h("div", null,
             window.Kicker(null, "My Collection"),
             h("h1", { style: { margin: "14px 0 0", font: "700 clamp(34px,5vw,52px)/1 " + MONO, color: INK } }, w.connected ? "Your cards" : "Your collection")),
-          w.connected ? PlayingWith() : null),
+          w.connected ? h("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "10px" } },
+            PlayingWith(),
+            h("a", { href: window.HCX.OPENSEA, target: "_blank", rel: "noopener noreferrer",
+              style: { font: "600 10.5px/1 " + MONO, letterSpacing: ".12em", color: DIM, textDecoration: "none" },
+              onMouseEnter: function (e) { e.currentTarget.style.color = COPPER; },
+              onMouseLeave: function (e) { e.currentTarget.style.color = DIM; } },
+              "VIEW ON OPENSEA ↗")) : null),
         body));
     }
     render();
@@ -126,7 +132,12 @@
         window.Kicker(null, "No wallet connected"),
         h("h2", { style: { margin: "16px 0 10px", font: "700 clamp(24px,4vw,34px)/1.1 " + MONO, color: INK, maxWidth: "16ch" } }, "Connect to see your collection"),
         h("p", { style: { margin: "0 0 24px", maxWidth: "380px", font: "400 14px/1.6 " + SANS, color: DIM } }, "Your owned cards are read straight from the blockchain. This is a preview of how they'll sit."),
-        window.Btn({ onClick: onConnect }, "Connect Wallet")));
+        window.Btn({ onClick: onConnect }, "Connect Wallet"),
+        h("a", { href: window.HCX.OPENSEA, target: "_blank", rel: "noopener noreferrer",
+          style: { marginTop: "16px", font: "600 11px/1 " + MONO, letterSpacing: ".12em", color: DIM, textDecoration: "none" },
+          onMouseEnter: function (e) { e.currentTarget.style.color = COPPER; },
+          onMouseLeave: function (e) { e.currentTarget.style.color = DIM; } },
+          "OR BROWSE ON OPENSEA ↗")));
   }
 
   // ---- Roster ----

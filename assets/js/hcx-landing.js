@@ -32,10 +32,14 @@
           h("div", { style: { font: "600 9px/1 " + MONO, letterSpacing: ".16em", color: DIM, marginBottom: "7px" } }, it[0].toUpperCase()),
           h("div", { style: { font: "600 12.5px/1 " + MONO, color: INK } }, it[1]));
       }),
-      h("a", { href: "#", onClick: function (e) { e.preventDefault(); }, title: "View on Etherscan (demo)",
-        style: { padding: "13px 20px", textDecoration: "none", flex: "1 1 150px" } },
+      h("a", { href: "https://etherscan.io/address/" + H.CA, target: "_blank", rel: "noopener noreferrer", title: "View on Etherscan",
+        style: { padding: "13px 20px", textDecoration: "none", flex: "1 1 150px", borderRight: "1px solid " + RULE } },
         h("div", { style: { font: "600 9px/1 " + MONO, letterSpacing: ".16em", color: DIM, marginBottom: "7px" } }, "ORIGINAL CONTRACT"),
-        h("div", { style: { font: "600 12.5px/1 " + MONO, color: COPPER } }, window.CARD.shortAddr(H.CA) + " ↗")));
+        h("div", { style: { font: "600 12.5px/1 " + MONO, color: COPPER } }, window.CARD.shortAddr(H.CA) + " ↗")),
+      h("a", { href: H.OPENSEA, target: "_blank", rel: "noopener noreferrer", title: "Wrapped HumanityCards on OpenSea",
+        style: { padding: "13px 20px", textDecoration: "none", flex: "1 1 130px" } },
+        h("div", { style: { font: "600 9px/1 " + MONO, letterSpacing: ".16em", color: DIM, marginBottom: "7px" } }, "MARKETPLACE"),
+        h("div", { style: { font: "600 12.5px/1 " + MONO, color: COPPER } }, "OpenSea ↗")));
   }
 
   function StatBar() {

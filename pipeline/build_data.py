@@ -373,6 +373,7 @@ def emit_data(figures):
   var CA = "0xbc9B96E7Aa6AFEA664f9D5fdDa168518eE20f2Cc";          // original (mining)
   var WRAPPER = "0xf6f722590AF5F791f68d0ED88D27b72dDe1C70CA";       // ERC-721 wrapper (ownership, checksummed)
   var DEP = "13 MAR 2018";
+  var OPENSEA = "https://opensea.io/collection/wrappedhumanitycards";
 
   // [humanId, name, maxSupply, mintedSnapshot, born, died(null=living),
   //  influence, intellect, dominion, legacy, controversy]
@@ -431,7 +432,7 @@ def emit_data(figures):
   var TIMELINE_TODAY = ["Cleopatra","Da Vinci","Newton","Napoleon","Einstein"].map(byName).filter(Boolean);
 
   window.HCX = {
-    CA: CA, WRAPPER: WRAPPER, DEP: DEP,
+    CA: CA, WRAPPER: WRAPPER, DEP: DEP, OPENSEA: OPENSEA,
     HUMANS_TOTAL: FIGURES.length,
     FIGURES: FIGURES,
     OWNED: OWNED,
