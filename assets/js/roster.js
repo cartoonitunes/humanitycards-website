@@ -9,8 +9,8 @@
  *   max   maxSupply (drives rarity)
  *   mined cards mined as of the roster snapshot (drives weighted pack odds)
  *   born  birth year, negative = BCE (used by Timeline; approximate where uncertain)
- *   inf   influence / historical impact 1-100 (Top Trumps stat)
- *   con   controversy 1-100 (Top Trumps stat)
+ *   inf   influence / historical impact 1-100 (Battle stat)
+ *   con   controversy 1-100 (Battle stat)
  *
  * Derived stats (rarity, era, legacy) are computed in HC helpers below so the
  * numbers stay consistent with the on-chain supply rather than hand-tuned twice.

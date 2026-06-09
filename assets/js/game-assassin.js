@@ -27,10 +27,18 @@
     var victims = HC.shuffle(Object.keys(victimIds).map(function (id) { return HC.byId[+id]; }));
     var famous = HC.shuffle(HC.ROSTER.filter(function (h) { return h.inf >= 70; }));
 
-    // Your hand: a few proven assassins + strong filler.
+    // Your hand: your collection if you hold cards, otherwise a fun loaner hand
+    // seeded with proven assassins so direct kills are always possible.
+    var owned = HC.ownedHumans();
     hand = [];
-    assassins.slice(0, 3).forEach(function (h) { if (hand.indexOf(h) === -1) hand.push(h); });
-    var fi = 0; while (hand.length < HAND) { var h = famous[fi++]; if (hand.indexOf(h) === -1) hand.push(h); }
+    if (owned.length) {
+      owned.slice(0, HAND).forEach(function (h) { hand.push(h); });
+      var pi = 0; while (hand.length < HAND) { var f = famous[pi++]; if (hand.indexOf(f) === -1) hand.push(f); }
+    } else {
+      assassins.slice(0, 3).forEach(function (h) { if (hand.indexOf(h) === -1) hand.push(h); });
+      var fi = 0; while (hand.length < HAND) { var h = famous[fi++]; if (hand.indexOf(h) === -1) hand.push(h); }
+    }
+    HC.modeBadge(document.getElementById("mode-badge"), { isCollection: owned.length > 0, ownedCount: Math.min(owned.length, HAND) });
 
     // AI target deck: mostly people you can kill, plus some tough randoms.
     aiDeck = [];
@@ -138,5 +146,12 @@
 
   document.getElementById("next-btn").addEventListener("click", nextTarget);
   document.getElementById("new-btn").addEventListener("click", newGame);
+
+  var inited = false;
+  HC.wallet.onChange(function () {
+    if (!inited) { inited = true; return; }
+    HC.toast("Collection updated. Dealing a new hand.");
+    newGame();
+  });
   newGame();
 })();

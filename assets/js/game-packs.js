@@ -42,6 +42,26 @@
     });
   }
 
+  // ---- chase cards (rarest figures + live pull odds) ----
+  function renderChase() {
+    var box = document.getElementById("chase-cards");
+    if (!box) return;
+    var totalRemaining = HC.ROSTER.reduce(function (s, h) { return s + h.remaining; }, 0);
+    var chase = HC.ROSTER.filter(function (h) { return h.max <= 5; })
+      .sort(function (a, b) { return a.max - b.max || a.name.localeCompare(b.name); });
+    box.innerHTML = "";
+    chase.forEach(function (h) {
+      var node = HC.card.mini(h);
+      var pct = h.remaining > 0 ? (h.remaining / totalRemaining * 100) : 0;
+      var label = h.remaining > 0
+        ? (pct < 0.1 ? pct.toFixed(2) : pct.toFixed(1)) + "% pull"
+        : "CLAIMED";
+      var style = "top:auto;bottom:11px;right:11px;" + (h.remaining > 0 ? "color:var(--accent);border-color:var(--accent)" : "color:var(--mute)");
+      node.appendChild(HC.el("div", { class: "mini-count", style: style, text: label }));
+      box.appendChild(node);
+    });
+  }
+
   // ---- confetti / rays ----
   function confetti(colorSeed) {
     var c = el("div", { class: "confetti" });
@@ -204,4 +224,5 @@
   bindPack();
   renderStats();
   renderCollection();
+  renderChase();
 })();

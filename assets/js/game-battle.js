@@ -1,5 +1,6 @@
-/* Top Trumps Battle. You see your card, pick a stat, then the AI card is
- * revealed and compared. Winner takes both cards. Empty the AI deck to win. */
+/* Battle. You see your card, pick a stat, then the AI card is revealed and
+ * compared. Winner takes both cards. Empty the AI deck to win. When a wallet
+ * holds cards, your deck is drawn from your collection. */
 (function () {
   "use strict";
   var HC = window.HC, el = HC.el;
@@ -26,20 +27,23 @@
     logBox.insertBefore(p, logBox.firstChild);
   }
 
+  var dealInfo = null;
+
   function newMatch() {
-    var rand = Math.random;
-    var pool = HC.shuffle(HC.ROSTER.filter(function (h) { return h.inf >= 45; }), rand);
-    // If the player holds cards, seed their deck with them first.
-    var owned = (HC.wallet.state.owned || []).map(function (id) { return HC.byId[id]; }).filter(Boolean);
-    var yours = [];
-    owned.slice(0, DECK_EACH).forEach(function (h) { yours.push(h); });
-    var idx = 0;
-    while (yours.length < DECK_EACH) { var h = pool[idx++]; if (yours.indexOf(h) === -1) yours.push(h); }
-    var ai = [];
-    while (ai.length < DECK_EACH) { var c = pool[idx++]; if (yours.indexOf(c) === -1 && ai.indexOf(c) === -1) ai.push(c); }
+    var battlePool = HC.ROSTER.filter(function (h) { return h.inf >= 45; });
+    // Your deck: drawn from your collection first, padded with random loaners.
+    var deal = HC.dealHand(DECK_EACH, { pool: battlePool });
+    dealInfo = deal;
+    var yours = deal.hand.slice();
+    // AI deck: random, never overlapping yours.
+    var pool = HC.shuffle(battlePool.filter(function (h) { return yours.indexOf(h) === -1; }));
+    var ai = pool.slice(0, DECK_EACH);
     youDeck = yours; aiDeck = ai; round = 1; revealed = false;
     logBox.innerHTML = "";
-    log(owned.length ? "Match start. " + owned.length + " of your owned cards are in play." : "Match start. Pick a stat to attack.");
+    HC.modeBadge(document.getElementById("mode-badge"), deal);
+    log(deal.isCollection
+      ? "Match start. " + deal.ownedCount + " of your owned card" + (deal.ownedCount > 1 ? "s are" : " is") + " in play."
+      : "Match start. Random loaner deck. Connect a wallet with cards to play your own.");
     document.getElementById("new-match-btn").style.display = "none";
     renderRound();
   }
@@ -134,6 +138,12 @@
 
   document.getElementById("next-btn").addEventListener("click", renderRound);
   document.getElementById("new-match-btn").addEventListener("click", newMatch);
-  HC.wallet.onChange(function () {/* owned cards fold into the next match */});
+  // When ownership changes, start a fresh match so the new collection is dealt.
+  var inited = false;
+  HC.wallet.onChange(function () {
+    if (!inited) { inited = true; return; }
+    HC.toast("Collection updated. Dealing a new match.");
+    newMatch();
+  });
   newMatch();
 })();

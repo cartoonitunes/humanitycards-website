@@ -151,5 +151,47 @@
     return wrap;
   }
 
-  HC.card = { svg: svg, backSvg: backSvg, node: node, titleSize: titleSize };
+  // Compact card for dense grids (Roster, Collection). Lighter than the full
+  // SVG; clicking opens the full card in a modal by default.
+  function mini(h, opts) {
+    opts = opts || {};
+    var wrap = HC.el("div", { class: "mini-card tier-" + h.tier });
+    wrap.style.setProperty("--accent", h.accent);
+    wrap.style.setProperty("--glow", h.accentGlow);
+    var pct = Math.round(h.mined / h.max * 100);
+    wrap.appendChild(HC.el("div", { class: "mini-bar" }));
+    wrap.appendChild(HC.el("div", { class: "mini-body" }, [
+      HC.el("div", { class: "mini-tier", text: h.tierLabel }),
+      HC.el("div", { class: "mini-name", text: h.name }),
+      HC.el("div", { class: "mini-meta", text: "1 of " + h.max + " · #" + h.id }),
+      HC.el("div", { class: "mini-supply" }, [HC.el("i", { style: "width:" + pct + "%" })]),
+      HC.el("div", { class: "mini-sub", text: h.mined + " / " + h.max + " mined · " + HC.yearLabel(h.born) })
+    ]));
+    if (opts.owned) wrap.appendChild(HC.el("div", { class: "hc-owned-badge", text: opts.ownedLabel || "OWNED" }));
+    if (opts.count && opts.count > 1) wrap.appendChild(HC.el("div", { class: "mini-count", text: "x" + opts.count }));
+    wrap.classList.add("clickable");
+    var handler = opts.onClick || function () { showModal(h); };
+    wrap.addEventListener("click", function () { handler(h, wrap); });
+    return wrap;
+  }
+
+  // Full-card modal overlay (shared singleton).
+  function showModal(h) {
+    var back = document.getElementById("hc-card-modal");
+    if (!back) {
+      back = HC.el("div", { id: "hc-card-modal", class: "modal-back card-modal" });
+      back.addEventListener("click", function (e) { if (e.target === back) back.classList.remove("show"); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") back.classList.remove("show"); });
+      document.body.appendChild(back);
+    }
+    back.innerHTML = "";
+    var inner = HC.el("div", { class: "card-modal-inner" });
+    inner.appendChild(HC.card.node(h, { cardNumber: 1 }));
+    inner.appendChild(HC.el("button", { class: "btn btn-ghost", style: "margin-top:16px", text: "Close",
+      onclick: function () { back.classList.remove("show"); } }));
+    back.appendChild(inner);
+    back.classList.add("show");
+  }
+
+  HC.card = { svg: svg, backSvg: backSvg, node: node, mini: mini, showModal: showModal, titleSize: titleSize };
 })();

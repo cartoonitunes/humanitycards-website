@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/hc.css?v=1">
+  <link rel="stylesheet" href="assets/css/hc.css?v=2">
 </head>
 <body>
   <header data-hc-nav></header>
@@ -23,7 +23,8 @@
     <div class="panel" style="text-align:center">
       <div class="mono mute" style="font-size:12px;letter-spacing:2px">TODAY'S CATEGORY</div>
       <h2 class="mono" id="cat-title" style="font-size:26px;margin:6px 0 2px;color:var(--accent)">…</h2>
-      <p class="mute" id="cat-desc" style="margin:0">…</p>
+      <p class="mute" id="cat-desc" style="margin:0 0 12px">…</p>
+      <div class="center"><div id="mode-badge"></div></div>
     </div>
 
     <div class="panel" style="margin-top:18px">
@@ -40,7 +41,7 @@
 
     <div class="panel" style="margin-top:18px">
       <h3 class="mono" style="font-size:15px">Draft pool</h3>
-      <p class="mute" style="margin-top:0;font-size:13px">Scores shown are for today's category. The AI drafts from what you leave behind.</p>
+      <p class="mute" style="margin-top:0;font-size:13px">Scores shown are for today's category. Cards you own are tagged and only you can draft them. The AI drafts from the shared pool you leave behind.</p>
       <div class="draft-pool" id="pool" style="margin-top:10px"></div>
     </div>
   </main>
@@ -48,12 +49,12 @@
   <footer class="hc-footer">HumanityCards · Draft</footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
-  <script src="assets/js/config.js?v=1"></script>
-  <script src="assets/js/roster.js?v=1"></script>
-  <script src="assets/js/hc.js?v=1"></script>
-  <script src="assets/js/card.js?v=1"></script>
-  <script src="assets/js/relationships.js?v=1"></script>
-  <script src="assets/js/wallet.js?v=1"></script>
-  <script src="assets/js/game-draft.js?v=1"></script>
+  <script src="assets/js/config.js?v=2"></script>
+  <script src="assets/js/roster.js?v=2"></script>
+  <script src="assets/js/hc.js?v=2"></script>
+  <script src="assets/js/card.js?v=2"></script>
+  <script src="assets/js/relationships.js?v=2"></script>
+  <script src="assets/js/wallet.js?v=2"></script>
+  <script src="assets/js/game-draft.js?v=2"></script>
 </body>
 </html>

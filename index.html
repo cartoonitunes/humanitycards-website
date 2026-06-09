@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HumanityCards | Play History On-Chain</title>
-  <meta name="description" content="239 historical figures, minted on a 2018 pre-standard ERC721 contract. Play five games: Timeline, Battle, Pack Opening, Draft, and Assassination.">
+  <title>HumanityCards | Collect &amp; Play History On-Chain</title>
+  <meta name="description" content="239 historical figures, minted on a 2018 pre-standard ERC721 contract. Collect them by opening packs, then play five games with your cards.">
   <meta name="theme-color" content="#0c0d0f">
-  <meta property="og:title" content="HumanityCards | Play History On-Chain">
-  <meta property="og:description" content="239 historical figures as on-chain cards. Five games. Open packs, battle, build councils.">
+  <meta property="og:title" content="HumanityCards | Collect & Play History On-Chain">
+  <meta property="og:description" content="239 historical figures as on-chain cards. Open packs to collect, then play five games.">
   <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/hc.css?v=1">
+  <link rel="stylesheet" href="assets/css/hc.css?v=2">
 </head>
 <body>
   <header data-hc-nav></header>
 
   <section class="hero">
     <div class="kicker">239 humans · on-chain since 2018</div>
-    <h1>Play <span class="grad">history</span>.</h1>
-    <p class="lead">HumanityCards are 239 historical figures minted on a pre-standard ERC721 contract, with art generated entirely on-chain. Five games. Open packs, race the timeline, settle old scores.</p>
+    <h1>Collect &amp; play <span class="grad">history</span>.</h1>
+    <p class="lead">HumanityCards are 239 historical figures minted on a pre-standard ERC721 contract, with art generated entirely on-chain. Open packs to collect them, then put your cards to work across five games.</p>
     <div class="stats">
       <div class="s"><b id="stat-humans">239</b><span>Humans</span></div>
       <div class="s"><b id="stat-minted">394</b><span>Cards Mined</span></div>
@@ -30,13 +30,21 @@
   </section>
 
   <main class="hc-main">
-    <div class="game-grid" id="game-grid"></div>
+    <div class="split">
+      <section class="split-col collect">
+        <div class="split-eyebrow">Collect</div>
+        <h2>Build your collection</h2>
+        <p>Mine cards from the original contract, see what you own, and browse the full cast of 239.</p>
+        <div class="split-list" id="collect-list"></div>
+      </section>
 
-    <section style="margin-top:48px" class="panel">
-      <h2 class="mono" style="font-size:18px">Rarest in the deck</h2>
-      <p class="mute" style="margin-top:0">The lowest-supply figures, rendered in the on-chain card style. The redder and more saturated the accent, the rarer the human.</p>
-      <div class="row" id="rare-showcase" style="justify-content:center;margin-top:18px"></div>
-    </section>
+      <section class="split-col play">
+        <div class="split-eyebrow">Play</div>
+        <h2>Put them in the game</h2>
+        <p>Five games you can play right now. Connect a wallet and your owned cards feed straight into them.</p>
+        <div class="split-list" id="play-list"></div>
+      </section>
+    </div>
   </main>
 
   <footer class="hc-footer">
@@ -46,44 +54,46 @@
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
-  <script src="assets/js/config.js?v=1"></script>
-  <script src="assets/js/roster.js?v=1"></script>
-  <script src="assets/js/hc.js?v=1"></script>
-  <script src="assets/js/card.js?v=1"></script>
-  <script src="assets/js/relationships.js?v=1"></script>
-  <script src="assets/js/wallet.js?v=1"></script>
+  <script src="assets/js/config.js?v=2"></script>
+  <script src="assets/js/roster.js?v=2"></script>
+  <script src="assets/js/hc.js?v=2"></script>
+  <script src="assets/js/card.js?v=2"></script>
+  <script src="assets/js/relationships.js?v=2"></script>
+  <script src="assets/js/wallet.js?v=2"></script>
   <script>
     HC.mountNav("index.html");
 
-    var GAMES = [
-      ["timeline.html", "⌛", "Timeline", "Order 5 figures by birth year. One daily puzzle for everyone, streaks, and harder modes if you hold cards.", "Daily · Solo"],
-      ["battle.html", "⚔️", "Top Trumps Battle", "Pick a stat, beat the AI. Influence, era, rarity, controversy, legacy. Field your own cards if you own them.", "vs AI"],
-      ["packs.html", "📦", "Pack Opening", "The mining loop, reframed. Tear a pack, flip the card, chase a legendary. Real odds, real on-chain mint optional.", "Core loop"],
-      ["draft.html", "🏛️", "Draft Battles", "Build a council of 3 to 5 figures for the day's category. Best scientists, most controversial, oldest civilizations.", "Daily · vs AI"],
-      ["assassin.html", "🗡️", "Assassination", "Play a card with a historical edge to end the opponent's. Brutus felled Caesar. Scipio broke Hannibal.", "vs AI"]
+    var COLLECT = [
+      ["packs.html", "📦", "Pack Opening", "Tear a pack, flip the card, chase a legendary. The mining loop, dressed up.", "Core loop"],
+      ["collection.html", "🗃️", "My Collection", "See the cards your wallet holds plus everything you have pulled.", "Your cards"],
+      ["roster.html", "📖", "Roster", "Browse all 239 figures by rarity, era, and supply.", "Browse"]
+    ];
+    var PLAY = [
+      ["timeline.html", "⌛", "Timeline", "Order five figures by birth year. One daily puzzle for everyone.", "Daily · Solo"],
+      ["battle.html", "⚔️", "Battle", "Pick a stat, beat the AI. Field your own cards if you own them.", "vs AI"],
+      ["draft.html", "🏛️", "Draft Battles", "Build a council for the day's category and outscore the AI.", "Daily · vs AI"],
+      ["assassin.html", "🗡️", "Assassination", "Play a figure with a historical edge to end the opponent's card.", "vs AI"]
     ];
 
-    var grid = document.getElementById("game-grid");
-    GAMES.forEach(function (g) {
-      var a = HC.el("a", { href: g[0], class: "game-card" }, [
-        HC.el("div", { class: "gc-glow" }),
-        HC.el("div", { class: "gc-icon", text: g[1] }),
-        HC.el("h3", { text: g[2] }),
-        HC.el("p", { text: g[3] }),
-        HC.el("div", { class: "gc-tag", text: g[4] })
-      ]);
-      grid.appendChild(a);
-    });
+    function fill(id, items) {
+      var host = document.getElementById(id);
+      items.forEach(function (g) {
+        host.appendChild(HC.el("a", { href: g[0], class: "split-item" }, [
+          HC.el("div", { class: "si-icon", text: g[1] }),
+          HC.el("div", {}, [
+            HC.el("h3", { text: g[2] }),
+            HC.el("p", { text: g[3] }),
+            HC.el("span", { class: "si-tag", text: g[4] })
+          ])
+        ]));
+      });
+    }
+    fill("collect-list", COLLECT);
+    fill("play-list", PLAY);
 
-    // Live stats from the roster.
     document.getElementById("stat-humans").textContent = HC.ROSTER.length;
     document.getElementById("stat-minted").textContent = HC.ROSTER.reduce(function (s, h) { return s + h.mined; }, 0);
     document.getElementById("stat-legendary").textContent = HC.ROSTER.filter(function (h) { return h.max <= 3; }).length;
-
-    // Showcase the four rarest, framed as real cards.
-    var rare = HC.ROSTER.slice().sort(function (a, b) { return a.max - b.max || a.name.localeCompare(b.name); }).slice(0, 4);
-    var show = document.getElementById("rare-showcase");
-    rare.forEach(function (h) { show.appendChild(HC.card.node(h, { cardNumber: 1 })); });
   </script>
 </body>
 </html>

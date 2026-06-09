@@ -3,22 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Top Trumps Battle | HumanityCards</title>
+  <title>Battle | HumanityCards</title>
   <meta name="description" content="Pick a stat, beat the AI. Influence, era, rarity, controversy and legacy across 239 historical figures.">
   <meta name="theme-color" content="#0c0d0f">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/hc.css?v=1">
+  <link rel="stylesheet" href="assets/css/hc.css?v=2">
 </head>
 <body>
   <header data-hc-nav></header>
   <main class="hc-main">
     <div class="hc-page-head">
       <div class="eyebrow">vs AI</div>
-      <h1>Top Trumps Battle</h1>
+      <h1>Battle</h1>
       <p>You hold the top card. Choose the stat you think wins. Higher value takes the round and both cards. Empty the AI's deck to win the match.</p>
     </div>
+
+    <div class="center" style="margin-bottom:18px"><div id="mode-badge"></div></div>
 
     <div class="scoreboard">
       <div class="score-chip hot"><b id="sb-you">0</b><span>Your cards</span></div>
@@ -49,7 +51,6 @@
         <button class="btn btn-primary btn-lg" id="next-btn" style="display:none">Next round</button>
         <button class="btn" id="new-match-btn" style="display:none">New match</button>
       </div>
-      <div id="unlock-slot" style="text-align:center"></div>
     </div>
 
     <div class="panel" style="margin-top:18px">
@@ -60,12 +61,12 @@
   <footer class="hc-footer">HumanityCards · Battle</footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
-  <script src="assets/js/config.js?v=1"></script>
-  <script src="assets/js/roster.js?v=1"></script>
-  <script src="assets/js/hc.js?v=1"></script>
-  <script src="assets/js/card.js?v=1"></script>
-  <script src="assets/js/relationships.js?v=1"></script>
-  <script src="assets/js/wallet.js?v=1"></script>
-  <script src="assets/js/game-battle.js?v=1"></script>
+  <script src="assets/js/config.js?v=2"></script>
+  <script src="assets/js/roster.js?v=2"></script>
+  <script src="assets/js/hc.js?v=2"></script>
+  <script src="assets/js/card.js?v=2"></script>
+  <script src="assets/js/relationships.js?v=2"></script>
+  <script src="assets/js/wallet.js?v=2"></script>
+  <script src="assets/js/game-battle.js?v=2"></script>
 </body>
 </html>

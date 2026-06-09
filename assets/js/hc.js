@@ -55,7 +55,7 @@
     return clamp(Math.round((Math.log(age + 50) / Math.log(5150)) * 100), 4, 100);
   }
   function rarityScore(max) {
-    // Map tier rank 0..6 onto a 1-100 stat for Top Trumps.
+    // Map tier rank 0..6 onto a 1-100 stat for Battle.
     var t = tierOf(max);
     return [22, 40, 55, 70, 84, 94, 100][t.rank];
   }
@@ -189,29 +189,64 @@
     toast._t = setTimeout(function () { t.classList.remove("show"); }, ms || 2600);
   }
 
-  // Shared top navigation, injected into every page's <header data-hc-nav>.
-  var NAV = [
-    ["index.html", "Home"],
-    ["timeline.html", "Timeline"],
-    ["battle.html", "Battle"],
-    ["packs.html", "Packs"],
-    ["draft.html", "Draft"],
-    ["assassin.html", "Assassin"]
+  // Shared top navigation, grouped into Collect and Play sections.
+  var NAV_GROUPS = [
+    { label: null, links: [["index.html", "Home"]] },
+    { label: "Collect", links: [["packs.html", "Packs"], ["collection.html", "Collection"], ["roster.html", "Roster"]] },
+    { label: "Play", links: [["timeline.html", "Timeline"], ["battle.html", "Battle"], ["draft.html", "Draft"], ["assassin.html", "Assassin"]] }
   ];
   function mountNav(active) {
     var host = document.querySelector("[data-hc-nav]");
     if (!host) return;
-    var links = NAV.map(function (n) {
-      var a = el("a", { href: n[0], class: "hc-nav-link" + (n[0] === active ? " active" : "") }, [n[1]]);
-      return a;
-    });
     var brand = el("a", { href: "index.html", class: "hc-brand" }, [
       el("span", { class: "hc-brand-mark", text: "H" }), "HumanityCards"
     ]);
-    var nav = el("nav", { class: "hc-nav" }, links);
+    var nav = el("nav", { class: "hc-nav" });
+    NAV_GROUPS.forEach(function (g) {
+      var grp = el("div", { class: "hc-nav-group" });
+      if (g.label) grp.appendChild(el("span", { class: "hc-nav-group-label", text: g.label }));
+      g.links.forEach(function (n) {
+        grp.appendChild(el("a", { href: n[0], class: "hc-nav-link" + (n[0] === active ? " active" : "") }, [n[1]]));
+      });
+      nav.appendChild(grp);
+    });
     var walletBtn = el("button", { id: "hc-wallet-btn", class: "hc-wallet-btn", type: "button" }, ["Connect Wallet"]);
     host.className = "hc-header";
     host.appendChild(el("div", { class: "hc-header-inner" }, [brand, nav, walletBtn]));
+  }
+
+  // ---- Ownership-aware dealing -------------------------------------------
+  // The connected wallet's owned humans, de-duplicated (empty when no wallet).
+  function ownedHumans() {
+    var ids = (window.HC.wallet && window.HC.wallet.state.owned) || [];
+    var seen = {}, out = [];
+    ids.forEach(function (id) { if (!seen[id] && byId[id]) { seen[id] = 1; out.push(byId[id]); } });
+    return out;
+  }
+  // Deal a hand of n cards. Uses the player's collection first, padding with
+  // random loaners. Returns { hand, ownedCount, isCollection }.
+  function dealHand(n, opts) {
+    opts = opts || {};
+    var owned = ownedHumans();
+    var hand = [];
+    owned.slice(0, n).forEach(function (h) { hand.push(h); });
+    var ownedCount = hand.length;
+    var pool = shuffle((opts.pool || ROSTER).filter(function (h) { return hand.indexOf(h) === -1; }), opts.rand);
+    var i = 0;
+    while (hand.length < n && i < pool.length) hand.push(pool[i++]);
+    return { hand: hand, ownedCount: ownedCount, isCollection: ownedCount > 0 };
+  }
+  // Render a "Playing with your collection / random cards" badge into host.
+  function modeBadge(host, info) {
+    if (!host) return;
+    host.innerHTML = "";
+    var coll = info && info.isCollection;
+    var txt = coll
+      ? "Playing with your collection · " + info.ownedCount + " card" + (info.ownedCount > 1 ? "s" : "")
+      : "Playing with random loaner cards";
+    host.appendChild(el("div", { class: "mode-badge " + (coll ? "coll" : "rand") }, [
+      el("span", { class: "mode-dot" }), txt
+    ]));
   }
 
   window.HC = {
@@ -220,6 +255,7 @@
     clamp: clamp, hashStr: hashStr, rng: rng, shuffle: shuffle, sample: sample,
     todayKey: todayKey, yearLabel: yearLabel, weightedDraw: weightedDraw,
     load: load, save: save, el: el, toast: toast, mountNav: mountNav,
+    ownedHumans: ownedHumans, dealHand: dealHand, modeBadge: modeBadge,
     YEAR_NOW: YEAR_NOW
   };
 })();

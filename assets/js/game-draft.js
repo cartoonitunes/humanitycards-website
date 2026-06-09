@@ -1,5 +1,6 @@
 /* Draft Battles. A daily category sets the scoring rule. Draft a council from a
- * shared pool; the AI drafts greedily from whatever you leave behind. */
+ * shared pool; the AI drafts greedily from whatever you leave behind. Cards you
+ * own are added to your side of the pool, tagged, and only you can draft them. */
 (function () {
   "use strict";
   var HC = window.HC, el = HC.el;
@@ -24,27 +25,42 @@
 
   // Shared daily pool (same for everyone).
   var rand = HC.rng(HC.hashStr("draft:" + HC.todayKey()));
-  var pool = HC.sample(HC.ROSTER.filter(function (h) { return h.inf >= 52; }), POOL_SIZE, rand);
+  var sharedPool = HC.sample(HC.ROSTER.filter(function (h) { return h.inf >= 52; }), POOL_SIZE, rand);
 
-  var council = [];   // chosen humans
+  var ownedExtra = [];   // your cards not already in the shared pool
+  var draftable = [];    // sharedPool + ownedExtra (your draftable cards)
+  var council = [];      // chosen humans
   var locked = false;
 
   var poolBox = document.getElementById("pool");
   var councilBox = document.getElementById("council");
   var resultBox = document.getElementById("draft-result");
 
+  function isOwned(h) { return ownedExtra.indexOf(h) !== -1 || HC.wallet.ownsHuman(h.id); }
   function score(h) { return cat.score(h); }
+
+  function rebuildDraftable() {
+    var owned = HC.ownedHumans();
+    ownedExtra = owned.filter(function (h) { return sharedPool.indexOf(h) === -1; });
+    draftable = sharedPool.concat(ownedExtra);
+    HC.modeBadge(document.getElementById("mode-badge"), { isCollection: owned.length > 0, ownedCount: owned.length });
+  }
 
   function renderPool() {
     poolBox.innerHTML = "";
-    pool.forEach(function (h) {
+    draftable.forEach(function (h) {
       var picked = council.indexOf(h) !== -1;
+      var owned = ownedExtra.indexOf(h) !== -1;
       var card = el("div", { class: "pool-card" + (picked ? " picked" : "") }, [
         el("div", { class: "pc-score", style: "color:" + h.accentGlow, text: score(h) }),
         el("div", { class: "pc-name", text: h.name }),
         el("div", { class: "pc-meta", text: h.tierLabel + " · " + HC.yearLabel(h.born) })
       ]);
       card.style.setProperty("--accent", h.accent);
+      if (owned) {
+        card.style.borderColor = "var(--good)";
+        card.appendChild(el("div", { class: "hc-owned-badge", style: "background:var(--good)", text: "OWNED" }));
+      }
       if (!locked && !picked) card.addEventListener("click", function () { pick(h); });
       poolBox.appendChild(card);
     });
@@ -57,7 +73,7 @@
       if (h) {
         var slot = el("div", { class: "council-slot filled" }, [
           el("div", { class: "mono", style: "font-weight:700;font-size:12px", text: h.name }),
-          el("div", { class: "mono mute", style: "font-size:11px", text: score(h) + " pts" })
+          el("div", { class: "mono mute", style: "font-size:11px", text: score(h) + " pts" + (ownedExtra.indexOf(h) !== -1 ? " · yours" : "") })
         ]);
         slot.style.setProperty("--accent", h.accent);
         (function (hh) { if (!locked) slot.addEventListener("click", function () { unpick(hh); }); })(h);
@@ -85,8 +101,8 @@
   document.getElementById("lock-btn").addEventListener("click", function () {
     if (council.length !== COUNCIL || locked) return;
     locked = true;
-    // AI drafts greedily from the remainder.
-    var remaining = pool.filter(function (h) { return council.indexOf(h) === -1; });
+    // AI drafts greedily from the SHARED pool only (never your owned cards).
+    var remaining = sharedPool.filter(function (h) { return council.indexOf(h) === -1; });
     var ai = remaining.sort(function (a, b) { return score(b) - score(a); }).slice(0, COUNCIL);
     var you = council.reduce(function (s, h) { return s + score(h); }, 0);
     var aiTot = ai.reduce(function (s, h) { return s + score(h); }, 0);
@@ -109,9 +125,17 @@
 
   function reset() {
     council = []; locked = false; resultBox.innerHTML = "";
-    renderPool(); renderCouncil();
+    rebuildDraftable(); renderPool(); renderCouncil();
   }
 
+  var inited = false;
+  HC.wallet.onChange(function () {
+    if (!inited) { inited = true; return; }
+    if (!locked) { council = []; }
+    rebuildDraftable(); renderPool(); renderCouncil();
+  });
+
+  rebuildDraftable();
   renderPool();
   renderCouncil();
 })();
