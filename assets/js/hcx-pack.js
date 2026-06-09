@@ -253,7 +253,7 @@
         var cost = (data && data.total && window.HCX_CHAIN) ? window.HCX_CHAIN.fmtEth(data.total) : null;
         statusPanel(h("div", null,
           statusLine("Confirm in your wallet…", true),
-          cost ? h("div", { style: { marginTop: "10px", font: "400 12px/1.5 " + SANS, color: DIM } }, "Approve about " + cost + " Ξ (mint + gas) in the popup.") : null));
+          cost ? h("div", { style: { marginTop: "10px", font: "400 12px/1.5 " + SANS, color: DIM } }, "Confirm about " + cost + " Ξ (mint + gas) in your wallet.") : null));
       } else if (state === "mining") {
         statusPanel(h("div", null, statusLine("Mining your card…", true),
           h("div", { style: { marginTop: "8px", font: "400 12px/1.5 " + SANS, color: DIM } }, "Waiting for the transaction to confirm."),

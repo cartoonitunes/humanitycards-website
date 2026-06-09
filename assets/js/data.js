@@ -5,7 +5,7 @@
    Scarcity is spoken in SUPPLY COUNTS only — never tiers.                  */
 (function () {
   var CA = "0xbc9B96E7Aa6AFEA664f9D5fdDa168518eE20f2Cc";          // original (mining)
-  var WRAPPER = "0xf6f722590af5f791f68d0ed88d27b72dde1c70ca";       // ERC-721 wrapper (ownership)
+  var WRAPPER = "0xf6f722590AF5F791f68d0ED88D27b72dDe1C70CA";       // ERC-721 wrapper (ownership, checksummed)
   var DEP = "13 MAR 2018";
 
   // [humanId, name, maxSupply, mintedSnapshot, bornYear(-=BCE), influence, controversy]

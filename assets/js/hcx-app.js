@@ -35,6 +35,9 @@
       var fn = ROUTES[router.route] || ROUTES.home;
       mainHost.innerHTML = "";
       mainHost.appendChild(fn());
+      // After paint (non-blocking), pull live minted counts — one batched
+      // Multicall3 call, TTL-cached so navigation doesn't refetch.
+      setTimeout(function () { if (window.HCX_CHAIN) window.HCX_CHAIN.ensureMinted(); }, 0);
     }
     function renderAll() { renderChrome(); renderPage(); }
 

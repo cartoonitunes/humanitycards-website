@@ -17,9 +17,16 @@
   "use strict";
   var H = window.HCX, wallet = window.useWallet();
 
-  var RPC = "https://ethereum-rpc.publicnode.com";
+  // Read RPCs: primary first, then public fallbacks (failover via FallbackProvider).
+  var RPCS = [
+    "https://ethereum-rpc.publicnode.com",
+    "https://eth.llamarpc.com",
+    "https://cloudflare-eth.com"
+  ];
   var CHAIN_ID = 1;
   var ORIG = H.CA, WRAPPER = H.WRAPPER, MC3 = "0xcA11bde05977b3631167028862bE2a173976CA11";
+  var MAX_GAS = 1000000;            // hard cap so a malformed estimate can't set millions
+  var MINTED_TTL = 60000, PRICE_TTL = 30000;
 
   var ABI = {
     original: [
@@ -38,24 +45,57 @@
   function ethers() { return window.ethers; }
   function ready() { return !!ethers(); }
 
-  var _read = null;
-  function readProvider() {
-    if (!_read && ready()) _read = new (ethers().providers.JsonRpcProvider)(RPC, CHAIN_ID);
-    return _read;
+  // StaticJsonRpcProvider with a pinned network: no per-call eth_chainId probe,
+  // so a slow/unreachable endpoint can't stall reads. Manual failover (below)
+  // switches to the next RPC only when the active one errors.
+  var _providers = null, _readIdx = 0;
+  function providers() {
+    if (!_providers && ready()) {
+      var E = ethers(), Ctor = E.providers.StaticJsonRpcProvider || E.providers.JsonRpcProvider;
+      _providers = RPCS.map(function (url) { return new Ctor(url, CHAIN_ID); });
+    }
+    return _providers || [];
   }
-  function origRead() { return new (ethers().Contract)(ORIG, ABI.original, readProvider()); }
-  function mc3() { return new (ethers().Contract)(MC3, ABI.mc3, readProvider()); }
+  function readProvider() { var ps = providers(); return ps[_readIdx] || ps[0] || null; }
+  // Run fn(provider) against the active RPC; on failure advance to the next and
+  // retry, up to one full pass over the endpoint list.
+  function withFailover(fn) {
+    var ps = providers();
+    if (!ps.length) return Promise.reject(new Error("no provider"));
+    var tries = 0;
+    function attempt() {
+      var idx = (_readIdx + tries) % ps.length;
+      return Promise.resolve().then(function () { return fn(ps[idx]); }).then(
+        function (res) { _readIdx = idx; return res; },
+        function (err) { tries++; if (tries >= ps.length) throw err; return attempt(); });
+    }
+    return attempt();
+  }
+  function origAt(p) { return new (ethers().Contract)(ORIG, ABI.original, p); }
+  function mc3At(p) { return new (ethers().Contract)(MC3, ABI.mc3, p); }
   function iface(which) { return new (ethers().utils.Interface)(ABI[which]); }
 
-  // cache of the last full card scan (cardId -> {human, owner})
-  var _cardMined = null;
+  var _cardMined = null;          // total minted (sum of getHumanInfo.mined)
+  var _mintedAt = 0;              // last successful refresh (ms) for TTL caching
+  var _inFlight = null;           // dedupe concurrent refreshes
+
+  // Refresh minted counts only if the cache is stale (or forced). One batched
+  // Multicall3 call — never 239 separate requests. Non-blocking; the UI renders
+  // from the snapshot in data.js and updates when this resolves.
+  function ensureMinted(force) {
+    if (!force && _mintedAt && (now() - _mintedAt) < MINTED_TTL) return Promise.resolve();
+    if (_inFlight) return _inFlight;
+    _inFlight = refreshMinted().then(function () { _inFlight = null; }, function () { _inFlight = null; });
+    return _inFlight;
+  }
+  function now() { return new Date().getTime(); }
 
   // ---- live minted counts -------------------------------------------------
   function refreshMinted() {
     if (!ready()) return Promise.resolve();
-    var oi = iface("original"), mc = mc3(), figs = H.FIGURES;
+    var oi = iface("original"), figs = H.FIGURES;
     var calls = figs.map(function (f) { return { target: ORIG, allowFailure: true, callData: oi.encodeFunctionData("getHumanInfo", [f.humanId]) }; });
-    return chunkedAggregate(mc, calls, 120).then(function (res) {
+    return withFailover(function (p) { return chunkedAggregate(mc3At(p), calls, 120); }).then(function (res) {
       var total = 0;
       figs.forEach(function (f, i) {
         var r = res[i]; if (!r || !r.success) { total += f.minted; return; }
@@ -67,6 +107,7 @@
         } catch (e) { total += f.minted; }
       });
       _cardMined = total;
+      _mintedAt = now();
       H.recomputeStats();
       wallet.notify();
     }).catch(function () { /* keep snapshot */ });
@@ -90,7 +131,7 @@
     if (!ready() || !addr) { H.OWNED = []; return Promise.resolve([]); }
     addr = addr.toLowerCase();
     wallet.set({ loadingOwned: true });
-    var oi = iface("original"), wi = iface("wrapper"), mc = mc3();
+    var oi = iface("original"), wi = iface("wrapper");
     var startCardMined = _cardMined;
     var pre = startCardMined != null ? Promise.resolve() : refreshMinted();
     return pre.then(function () {
@@ -98,7 +139,7 @@
       if (!cardMined) return [];
       var calls = [];
       for (var t = 0; t < cardMined; t++) calls.push({ target: ORIG, allowFailure: true, callData: oi.encodeFunctionData("getCardInfo", [t]) });
-      return chunkedAggregate(mc, calls, 200).then(function (res) {
+      return withFailover(function (p) { return chunkedAggregate(mc3At(p), calls, 200); }).then(function (res) {
         var owned = [], wrappedIds = [];
         res.forEach(function (r, t) {
           if (!r || !r.success) return;
@@ -114,7 +155,7 @@
         if (!wrappedIds.length) return finalize(owned);
         // resolve wrapped tokens through the wrapper
         var wcalls = wrappedIds.map(function (w) { return { target: WRAPPER, allowFailure: true, callData: wi.encodeFunctionData("ownerOf", [w.tokenId]) }; });
-        return chunkedAggregate(mc, wcalls, 200).then(function (wres) {
+        return withFailover(function (p) { return chunkedAggregate(mc3At(p), wcalls, 200); }).then(function (wres) {
           wres.forEach(function (r, i) {
             if (!r || !r.success) return;
             var o;
@@ -136,13 +177,20 @@
     }
   }
 
-  function getCardPrice() {
+  var _price = null, _priceAt = 0;
+  function getCardPrice(force) {
     if (!ready()) return Promise.reject(new Error("ethers unavailable"));
-    return origRead().getCardPrice();
+    if (!force && _price && (now() - _priceAt) < PRICE_TTL) return Promise.resolve(_price);
+    return withFailover(function (p) { return origAt(p).getCardPrice(); }).then(function (pr) { _price = pr; _priceAt = now(); return pr; });
   }
 
-  // ---- wallet connect (real injected provider) ----------------------------
-  function injected() { return window.ethereum || null; }
+  // ---- wallet connect (any EIP-1193 injected provider) --------------------
+  // Standard window.ethereum works across MetaMask, Coinbase Wallet, Rainbow,
+  // Rabby, Trust, Brave, Frame and any EIP-1193 wallet. When several wallets are
+  // installed they expose window.ethereum.providers[]; the default window.ethereum
+  // is used (no wallet-specific code, no WalletConnect/heavy SDK).
+  function injected() { return (window.ethereum) || null; }
+  function isMobile() { return /Android|iPhone|iPad|iPod|Mobile|Silk/i.test((navigator && navigator.userAgent) || ""); }
   var _web3 = null;
   function web3() {
     if (!_web3 && injected() && ready()) _web3 = new (ethers().providers.Web3Provider)(injected(), "any");
@@ -151,7 +199,12 @@
 
   function connect() {
     if (!ready()) { window.toast("Wallet library failed to load.", "error"); return Promise.resolve(); }
-    if (!injected()) { window.toast("No Ethereum wallet found. Install MetaMask to connect.", "error", 4200); return Promise.resolve(); }
+    if (!injected()) {
+      window.toast(isMobile()
+        ? "No wallet detected. Open this page in your wallet's in-app browser to connect."
+        : "No wallet detected. Install an Ethereum wallet extension, then reload.", "error", 5000);
+      return Promise.resolve();
+    }
     if (wallet.connecting) return Promise.resolve();
     wallet.set({ connecting: true });
     var prov = web3();
@@ -238,6 +291,7 @@
             throw mintErr("would-revert", "This transaction would fail on-chain. The price may have changed or the last cards just minted out.");
           }).then(function (est) {
             var gasLimit = est.mul(120).div(100);                 // +20% buffer
+            if (gasLimit.gt(E.BigNumber.from(MAX_GAS))) gasLimit = E.BigNumber.from(MAX_GAS); // cap
             var gasCost = gasLimit.mul(gasPrice), maxCost = price.add(gasCost);
             if (bal.lt(maxCost)) throw mintErr("insufficient", "Not enough ETH. You need about " + fmtEth(maxCost) + " Ξ (mint " + fmtEth(price) + " + gas).");
             status("confirm", { price: price, gasCost: gasCost, total: maxCost });
@@ -274,9 +328,9 @@
     });
   }
 
-  // ---- init: eager reconnect (no popup) + live minted refresh -------------
+  // ---- init: eager reconnect only (no popup). Minted counts are loaded
+  // lazily via ensureMinted() once the UI has painted — not eagerly on load. ---
   function init() {
-    refreshMinted();
     var eth = injected();
     if (eth && ready()) {
       try {
@@ -296,7 +350,7 @@
 
   window.HCX_CHAIN = {
     connect: connect, disconnect: disconnect, ensureMainnet: ensureMainnet,
-    getCardPrice: getCardPrice, refreshMinted: refreshMinted, loadOwned: loadOwned,
+    getCardPrice: getCardPrice, refreshMinted: refreshMinted, ensureMinted: ensureMinted, loadOwned: loadOwned,
     mint: mint, isUserReject: isUserReject, fmtEth: fmtEth, init: init,
     etherscanTx: function (h) { return "https://etherscan.io/tx/" + h; }
   };
