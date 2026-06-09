@@ -1,99 +1,213 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HumanityCards | Collect &amp; Play History On-Chain</title>
-  <meta name="description" content="239 historical figures, minted on a 2018 pre-standard ERC721 contract. Collect them by opening packs, then play five games with your cards.">
-  <meta name="theme-color" content="#0c0d0f">
-  <meta property="og:title" content="HumanityCards | Collect & Play History On-Chain">
-  <meta property="og:description" content="239 historical figures as on-chain cards. Open packs to collect, then play five games.">
-  <meta property="og:type" content="website">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/hc.css?v=2">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>HumanityCards — Play history.</title>
+<meta name="description" content="Among the oldest NFT collections on Ethereum: 239 historical figures minted to a single contract in March 2018, before ERC-721. Collect them by opening packs, then play history."/>
+<meta name="theme-color" content="#0b0b0e"/>
+<meta property="og:title" content="HumanityCards — Play history."/>
+<meta property="og:description" content="239 historical figures, minted fully on-chain in 2018. Open packs to collect, then play four games."/>
+<meta property="og:type" content="website"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #0b0b0e; color: #ece7d8;
+    font-family: 'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  ::selection { background: #c98a4b55; }
+  a { -webkit-tap-highlight-color: transparent; }
+  .ledger-svg svg, .hc-card svg { display: block; }
+  .hc-card:hover .hc-hover { opacity: 1 !important; }
+  /* subtle scrollbars */
+  .phone-scroll::-webkit-scrollbar { width: 0; }
+
+  /* ---------- keyframes ---------- */
+  @keyframes floaty {
+    0%,100% { transform: translateY(0) rotate(var(--r,0deg)); }
+    50% { transform: translateY(-12px) rotate(var(--r,0deg)); }
+  }
+  @keyframes rise {
+    0% { transform: translateY(0) scale(1); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-440px) scale(.4); opacity: 0; }
+  }
+  @keyframes riseIn {
+    0% { transform: translateY(70px) scale(.9); opacity: 0; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  @keyframes fadeUp {
+    0% { transform: translateY(10px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes burst {
+    0% { transform: translate(-50%,-50%) scale(.2); opacity: 0; }
+    25% { opacity: .95; }
+    100% { transform: translate(-50%,-50%) scale(3.2); opacity: 0; }
+  }
+  .burst { animation: burst 1s cubic-bezier(.2,.7,.2,1) forwards; }
+  @keyframes flash {
+    0% { opacity: 0; } 12% { opacity: .92; } 100% { opacity: 0; }
+  }
+  .flash { animation: flash 1s ease forwards; }
+  @keyframes confetti {
+    0% { transform: translate(0,0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--cx,0), 105vh) rotate(720deg); opacity: 1; }
+  }
+  @keyframes shower {
+    0% { transform: translateY(-40px); opacity: 0; }
+    20% { opacity: .9; }
+    100% { transform: translateY(640px); opacity: 0; }
+  }
+  @keyframes raysSpin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+  .rays { animation: raysSpin 22s linear infinite; }
+  @keyframes shimmer {
+    0% { transform: translateX(-120%) skewX(-18deg); }
+    100% { transform: translateX(220%) skewX(-18deg); }
+  }
+  .shimmer-sweep {
+    position: absolute; top: 0; bottom: 0; width: 60%;
+    background: linear-gradient(100deg, transparent, #ffffff44, transparent);
+    animation: shimmer 1.6s ease-in-out .15s infinite; pointer-events: none;
+  }
+  @keyframes foilshift {
+    0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; }
+  }
+  /* ---- sealed booster pack ---- */
+  .pack-body {
+    position: absolute; left: 0; right: 0; top: 6.6%; bottom: 0;
+    border: 1px solid #3a342b; border-radius: 3px 3px 9px 9px; overflow: hidden;
+    box-shadow: inset 0 1px 0 #ffffff16, inset 0 -10px 26px #000a, inset 0 0 60px #0006;
+  }
+  .pack-face { position: absolute; inset: 0; }
+  .pack-foil {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  }
+  .pack-foil::before {
+    content: ""; position: absolute; top: -25%; bottom: -25%; left: -40%; width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(231,201,142,.32) 38%, rgba(255,243,214,.6) 50%, rgba(231,201,142,.3) 62%, transparent);
+    filter: blur(3px); transform: skewX(-16deg); mix-blend-mode: screen;
+    animation: foilsweep 5.2s ease-in-out infinite;
+  }
+  @keyframes foilsweep {
+    0% { left: -45%; } 55%, 100% { left: 125%; }
+  }
+  .pack-crinkle {
+    position: absolute; inset: 0; pointer-events: none; opacity: .26; mix-blend-mode: screen;
+    background:
+      linear-gradient(74deg, transparent 38%, rgba(255,255,255,.16) 42%, transparent 45%),
+      linear-gradient(96deg, transparent 60%, rgba(255,255,255,.1) 64%, transparent 67%),
+      linear-gradient(60deg, transparent 74%, rgba(255,236,200,.1) 77%, transparent 80%);
+  }
+  .pack-sheen {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 60% at 30% 0%, rgba(255,240,210,.1), transparent 55%);
+  }
+  /* heat-sealed serrated foil top */
+  .pack-cap {
+    position: absolute; left: -1px; right: -1px; top: 0; height: 8.4%;
+    background: linear-gradient(180deg, #3a3220 0%, #2a2312 46%, #1a150d 100%);
+    z-index: 3; transform-origin: center bottom;
+    clip-path: polygon(0 100%, 0 26%,
+      3.57% 0, 7.14% 26%, 10.71% 0, 14.28% 26%, 17.85% 0, 21.42% 26%, 25% 0,
+      28.57% 26%, 32.14% 0, 35.71% 26%, 39.28% 0, 42.85% 26%, 46.42% 0, 50% 26%,
+      53.57% 0, 57.14% 26%, 60.71% 0, 64.28% 26%, 67.85% 0, 71.42% 26%, 75% 0,
+      78.57% 26%, 82.14% 0, 85.71% 26%, 89.28% 0, 92.85% 26%, 96.42% 0, 100% 26%,
+      100% 100%);
+    box-shadow: inset 0 -9px 16px #000a;
+  }
+  .pack-crimp {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,.5) 0 1px, transparent 1px 5px);
+    opacity: .6;
+  }
+  .pack-weld {
+    position: absolute; left: 0; right: 0; bottom: 2px; height: 4px;
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.5));
+    box-shadow: 0 1px 0 rgba(0,0,0,.6);
+  }
+  .pack-skeleton, .hc-skeleton { animation: shimmerbg 1.4s ease-in-out infinite; }
+  @keyframes shimmerbg { to { background-position: -200% 0; } }
+  .caret { animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0 !important; } }
+
+  /* pack tear */
+  .pack-wrap.is-tearing .pack-cap {
+    animation: capPeel .9s cubic-bezier(.5,0,.3,1) forwards;
+  }
+  .pack-wrap.is-tearing .pack-body {
+    animation: bodyFade .9s ease .25s forwards;
+  }
+  @keyframes capPeel {
+    0% { transform: translateY(0) rotateX(0); opacity: 1; }
+    100% { transform: translateY(-60px) rotateX(80deg); opacity: 0; }
+  }
+  @keyframes bodyFade {
+    0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+    40% { filter: brightness(2.2); }
+    100% { transform: scale(1.08); opacity: 0; filter: brightness(3); }
+  }
+  .reveal-card.is-big { animation: bigPop .7s cubic-bezier(.2,.8,.2,1) forwards !important; }
+  @keyframes bigPop {
+    0% { transform: scale(1); } 100% { transform: scale(1.18) translateY(-10px); }
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 980px) {
+    .nav-links { display: none !important; }
+    .nav-burger { display: inline-flex !important; }
+    .tile-grid-3, .tile-grid-4 { grid-template-columns: 1fr 1fr !important; }
+    .play-grid { grid-template-columns: 1fr !important; }
+    .chase-grid { grid-template-columns: repeat(4,1fr) !important; }
+    .story-grid { grid-template-columns: 1fr 1fr !important; }
+    .detail-modal { grid-template-columns: 1fr !important; }
+    .battle-row { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 620px) {
+    .tile-grid-3, .tile-grid-4, .chase-grid, .story-grid { grid-template-columns: 1fr !important; }
+    .tl-row { grid-template-columns: 1fr 1fr !important; }
+    .hero-cards { transform: scale(.78); }
+  }
+  /* mobile context: force single-column inside phone frames */
+  .mobile-ctx .tile-grid-3, .mobile-ctx .tile-grid-4, .mobile-ctx .play-grid,
+  .mobile-ctx .chase-grid, .mobile-ctx .story-grid { grid-template-columns: 1fr !important; }
+  .mobile-ctx .nav-links { display: none !important; }
+  .mobile-ctx [style*="repeat(4,1fr)"] { grid-template-columns: 1fr 1fr !important; }
+  /* clamp() vw units track the real viewport, not the phone frame — pin sizes */
+  .mobile-ctx h1 { font-size: 46px !important; line-height: .98 !important; }
+  .mobile-ctx h2 { font-size: 27px !important; }
+  .mobile-ctx .hero-cards { transform: scale(.62); height: 320px !important; }
+  .mobile-ctx .chase-grid { grid-template-columns: repeat(3,1fr) !important; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
+  }
+</style>
 </head>
 <body>
-  <header data-hc-nav></header>
+<div id="root"></div>
 
-  <section class="hero">
-    <div class="kicker">239 humans · on-chain since 2018</div>
-    <h1>Collect &amp; play <span class="grad">history</span>.</h1>
-    <p class="lead">HumanityCards are 239 historical figures minted on a pre-standard ERC721 contract, with art generated entirely on-chain. Open packs to collect them, then put your cards to work across five games.</p>
-    <div class="stats">
-      <div class="s"><b id="stat-humans">239</b><span>Humans</span></div>
-      <div class="s"><b id="stat-minted">394</b><span>Cards Mined</span></div>
-      <div class="s"><b id="stat-legendary">8</b><span>1-of-1 &amp; Mythic</span></div>
-      <div class="s"><b>2018</b><span>Genesis</span></div>
-    </div>
-  </section>
+<!-- on-chain-safe data + card generators (plain JS, reused from the design bundle) -->
+<script src="assets/js/card-helpers.js"></script>
+<script src="assets/js/card-variants.js"></script>
+<script src="assets/js/bios.js"></script>
+<script src="assets/js/data.js"></script>
 
-  <main class="hc-main">
-    <div class="split">
-      <section class="split-col collect">
-        <div class="split-eyebrow">Collect</div>
-        <h2>Build your collection</h2>
-        <p>Mine cards from the original contract, see what you own, and browse the full cast of 239.</p>
-        <div class="split-list" id="collect-list"></div>
-      </section>
-
-      <section class="split-col play">
-        <div class="split-eyebrow">Play</div>
-        <h2>Put them in the game</h2>
-        <p>Five games you can play right now. Connect a wallet and your owned cards feed straight into them.</p>
-        <div class="split-list" id="play-list"></div>
-      </section>
-    </div>
-  </main>
-
-  <footer class="hc-footer">
-    <div>HumanityCards · original contract <span class="addr">0xbc9B96E7Aa6AFEA664f9D5fdDa168518eE20f2Cc</span></div>
-    <div style="margin-top:6px">Wrapper (wHCX) <span class="addr">0xf6f722590af5f791f68d0ed88d27b72dde1c70ca</span></div>
-    <div style="margin-top:10px">A fan-built game. Not affiliated with the original creators. Cards are read-only here unless you choose to mint.</div>
-  </footer>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
-  <script src="assets/js/config.js?v=2"></script>
-  <script src="assets/js/roster.js?v=2"></script>
-  <script src="assets/js/hc.js?v=2"></script>
-  <script src="assets/js/card.js?v=2"></script>
-  <script src="assets/js/relationships.js?v=2"></script>
-  <script src="assets/js/wallet.js?v=2"></script>
-  <script>
-    HC.mountNav("index.html");
-
-    var COLLECT = [
-      ["packs.html", "📦", "Pack Opening", "Tear a pack, flip the card, chase a legendary. The mining loop, dressed up.", "Core loop"],
-      ["collection.html", "🗃️", "My Collection", "See the cards your wallet holds plus everything you have pulled.", "Your cards"],
-      ["roster.html", "📖", "Roster", "Browse all 239 figures by rarity, era, and supply.", "Browse"]
-    ];
-    var PLAY = [
-      ["timeline.html", "⌛", "Timeline", "Order five figures by birth year. One daily puzzle for everyone.", "Daily · Solo"],
-      ["battle.html", "⚔️", "Battle", "Pick a stat, beat the AI. Field your own cards if you own them.", "vs AI"],
-      ["draft.html", "🏛️", "Draft Battles", "Build a council for the day's category and outscore the AI.", "Daily · vs AI"],
-      ["assassin.html", "🗡️", "Assassination", "Play a figure with a historical edge to end the opponent's card.", "vs AI"]
-    ];
-
-    function fill(id, items) {
-      var host = document.getElementById(id);
-      items.forEach(function (g) {
-        host.appendChild(HC.el("a", { href: g[0], class: "split-item" }, [
-          HC.el("div", { class: "si-icon", text: g[1] }),
-          HC.el("div", {}, [
-            HC.el("h3", { text: g[2] }),
-            HC.el("p", { text: g[3] }),
-            HC.el("span", { class: "si-tag", text: g[4] })
-          ])
-        ]));
-      });
-    }
-    fill("collect-list", COLLECT);
-    fill("play-list", PLAY);
-
-    document.getElementById("stat-humans").textContent = HC.ROSTER.length;
-    document.getElementById("stat-minted").textContent = HC.ROSTER.reduce(function (s, h) { return s + h.mined; }, 0);
-    document.getElementById("stat-legendary").textContent = HC.ROSTER.filter(function (h) { return h.max <= 3; }).length;
-  </script>
+<!-- vanilla port of the React prototype (no framework, no build step) -->
+<script src="assets/js/hcx-ui.js"></script>
+<script src="assets/js/hcx-cards.js"></script>
+<script src="assets/js/hcx-nav.js"></script>
+<script src="assets/js/hcx-landing.js"></script>
+<script src="assets/js/hcx-pack.js"></script>
+<script src="assets/js/hcx-collection.js"></script>
+<script src="assets/js/hcx-games.js"></script>
+<script src="assets/js/hcx-components.js"></script>
+<script src="assets/js/hcx-app.js"></script>
 </body>
 </html>

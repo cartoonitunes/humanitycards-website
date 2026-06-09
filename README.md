@@ -1,80 +1,63 @@
 # HumanityCards
 
-A game site for **HumanityCards (HCX)**: 239 historical figures minted on a 2018
-pre-standard ERC721 contract, with art generated entirely on-chain.
+A game site for **HumanityCards (HCX)**: 239 historical figures minted as fully
+on-chain cards on a 2018 pre-standard Ethereum contract.
 
-- **Original contract:** `0xbc9B96E7Aa6AFEA664f9D5fdDa168518eE20f2Cc`
-- **Wrapper (ERC-721, wHCX):** `0xf6f722590af5f791f68d0ed88d27b72dde1c70ca`
+- **Original contract:** `0xbc9b96e7aa6afea664f9d5fdda168518ee20f2cc`
+- **Deployed:** 13 March 2018 (pre–ERC-721)
 
-Pure static site. No framework, no build step, no `package.json`. Open
-`index.html` or serve the folder with any static host.
+This is a faithful vanilla-JS implementation of the Claude Design prototype. No
+framework, no build step, no `package.json`. It is a single-page app with hash
+routing — open `index.html` or serve the folder with any static host.
 
-## Structure: Collect and Play
+## Architecture
 
-The site is split into two sections, reflected in the nav.
-
-### Collect
-
-| Page | What it is |
-| --- | --- |
-| `packs.html` | **Pack Opening** — the mining loop reframed. Practice packs use the real remaining-supply odds; an optional on-chain path calls `mineCard()` behind a confirmation. Also lists the rarest "chase cards" with live pull odds. |
-| `collection.html` | **My Collection** — on-chain holdings read from the wrapper, plus every figure pulled in practice packs. |
-| `roster.html` | **Roster** — browse all 239 figures, filter by rarity, search by name, sort. |
-
-### Play
-
-| Page | Game | Notes |
-| --- | --- | --- |
-| `timeline.html` | **Timeline** | Order 5 figures by birth year. Daily seed = same puzzle for everyone. Streaks. Holding a card unlocks Hard (6) and Insane (7). |
-| `battle.html` | **Battle** | Pick a stat, higher wins. Owned cards are dealt into your deck. |
-| `draft.html` | **Draft Battles** | Daily category, shared draft pool, greedy AI opponent. Your owned cards join your side of the pool, tagged. |
-| `assassin.html` | **Assassination** | Play a figure with a historical edge for an instant kill, else win on influence. Played with your collection when connected. |
-
-## Owned cards in games
-
-When a wallet holding HumanityCards is connected, those cards feed into Battle,
-Draft, and Assassination. Without a wallet (or with an empty one) the games deal
-random loaner cards instead. Each game page shows a badge: **Playing with your
-collection** vs **Playing with random loaner cards**.
-
-## Chain integration
-
-- Read-only by default over `https://ethereum-rpc.publicnode.com` (swap for
-  Rarible later in `assets/js/config.js`).
-- Wallet connection is optional. Connecting reads ownership from the wrapper and
-  unlocks holder-only features.
-- The **only** state-changing call is `mineCard()` on Pack Opening, and it is
-  never signed or broadcast without an explicit confirmation modal.
-
-## Card art
-
-`assets/js/card.js` renders cards client-side in the on-chain CardRenderer
-style (500x700, near-black ground, monospace type, rarity-encoded `hsl()`
-accent: hotter red = rarer). The accent curve is fitted to the real on-chain art
-in `humanity-card-samples/`.
-
-## Structure
+The site was prototyped in React (Babel standalone) and ported to plain DOM. The
+data and on-chain card generators are reused verbatim from the design bundle; the
+React components were rewritten as vanilla functions over a tiny hyperscript
+helper (`h()` in `hcx-ui.js`) that mirrors `React.createElement`.
 
 ```
-index.html
-packs.html  collection.html  roster.html          (Collect)
-timeline.html  battle.html  draft.html  assassin.html   (Play)
-assets/
-  css/hc.css
-  js/
-    config.js          RPC, contract addresses, ABIs
-    roster.js          239 figures: supply, birth year, influence, controversy
-    hc.js              rarity model, colors, derived stats, RNG, nav, ownership helpers
-    card.js            on-chain-styled SVG renderer + mini card + modal
-    wallet.js          ethers v5 connect, ownership reads, gated mineCard()
-    relationships.js   assassination edge graph
-    game-*.js          one file per Play game
-    page-roster.js     roster browser
-    page-collection.js collection page
+index.html                         SPA shell: design's <style> (keyframes,
+                                   pack CSS, responsive) + script chain
+assets/js/
+  card-helpers.js   (design)       on-chain-safe SVG primitives (guilloche, grain)
+  card-variants.js  (design)       the Ledger card SVG generator
+  bios.js           (design)       role + one-line bio per figure
+  data.js           (design)       239-figure catalogue + game data (window.HCX)
+  hcx-ui.js                        h() runtime, palette, wallet+router stores, Btn/Stat/…
+  hcx-cards.js                     Card / CardBack / ScarcityBadge / CardGrid
+  hcx-nav.js                       Nav (mobile burger), Footer
+  hcx-landing.js                   hero, provenance band, stat bar, COLLECT/PLAY
+  hcx-pack.js                      the 6-stage Pack Opener (the star feature)
+  hcx-collection.js                My Collection, Roster, detail modal, filters
+  hcx-games.js                     Play hub, Timeline, Battle, Draft, Assassination
+  hcx-components.js                System (component library) + Mobile frame view
+  hcx-app.js                       router + wallet wiring + mount
 ```
 
-## Data note
+The old per-page files (`packs.html`, `timeline.html`, …) are kept as redirect
+stubs that forward to the matching hash route (e.g. `packs.html` → `/#packs`).
 
-Birth years and the influence/controversy stats are curated approximations for
-gameplay, not a historical record. Derived stats (era, rarity, legacy) are
-computed from on-chain supply so they stay consistent with the deck.
+## Routes
+
+- `#home` — landing: "Play history.", provenance, COLLECT + PLAY
+- `#packs` — Pack Opening: sealed → tear → suspense → flip → celebrate → details,
+  with effects (glow, rays, gold shower, flash, confetti) scaling to scarcity
+- `#collection` — My Collection (wallet-gated, demo connect toggle)
+- `#roster` — all 239, search + filter + sort + paginate
+- `#play` — game hub
+- `#timeline` — daily, login-gated, Wordle-style (4 tries, streaks, countdown)
+- `#battle` — 1v1 stat duel vs the house
+- `#draft` — five-figure council for the day's category
+- `#assassination` — play figures bound by history to strike a council
+- `#components` — design system; `#mobile` — phone-frame previews
+
+## Design notes
+
+- Scarcity is spoken in **supply counts only** (`1 OF 1` … `1 OF 50`), never
+  tiers. The card accent ink interpolates continuously toward vermilion as a
+  figure grows scarcer (`card-helpers.js` `rarity()`).
+- The game is called **Battle** — there is no "Top Trumps" anywhere.
+- Wallet connect is a demo toggle (persisted to `localStorage`); games run on
+  random cards, or your owned deck (`window.HCX.OWNED`) when connected.
