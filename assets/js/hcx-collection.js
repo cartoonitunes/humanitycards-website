@@ -27,6 +27,7 @@
       backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", animation: "fadeUp .22s ease" } },
       h("div", { onClick: function (e) { e.stopPropagation(); }, className: "detail-modal",
         style: { display: "grid", gridTemplateColumns: "300px 1fr", gap: "30px", maxWidth: "760px", width: "100%",
+          maxHeight: "min(88vh, 880px)", overflowY: "auto", WebkitOverflowScrolling: "touch",
           background: PANEL, border: "1px solid " + RULE, borderRadius: "12px", padding: "28px", boxShadow: "0 40px 100px -30px #000" } },
         h("div", null, window.Card({ figure: f, glow: true })),
         h("div", { style: { minWidth: 0 } },
@@ -47,9 +48,14 @@
             })),
           window.DottedRule({ style: { margin: "4px 0 16px" } }),
           h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" } },
-            miniStat("Card Number", f.cardId), miniStat("Max Supply", f.maxSupply, accent),
-            miniStat("Minted", f.minted + " / " + f.maxSupply), miniStat("Edition", f.minted >= f.maxSupply ? "Minted out" : "Open")),
-          h("div", { style: { marginTop: "20px", font: "400 10.5px/1.5 " + MONO, color: FAINT, wordBreak: "break-all" } }, f.contract + " · " + f.deployed))));
+            miniStat("Human Number", f.humanId),
+            f.cardId != null ? miniStat("Card Number", f.cardId) : null,
+            miniStat("Max Supply", f.maxSupply, accent),
+            miniStat("Minted", f.minted + " / " + f.maxSupply)),
+          h("a", { href: "https://etherscan.io/address/" + f.contract, target: "_blank", rel: "noopener noreferrer",
+            style: { display: "block", marginTop: "20px", font: "400 10.5px/1.5 " + MONO, color: FAINT, wordBreak: "break-all", textDecoration: "none" },
+            onMouseEnter: function (e) { e.currentTarget.style.color = COPPER; },
+            onMouseLeave: function (e) { e.currentTarget.style.color = FAINT; } }, f.contract + " ↗"))));
     document.addEventListener("keydown", onKey);
     document.body.appendChild(overlay);
   }
@@ -112,8 +118,8 @@
 
   function CollectionEmpty(onConnect) {
     var preview = [window.HCX.byName("Napoleon"), window.HCX.byName("Einstein"), window.HCX.byName("Cleopatra"), window.HCX.byName("Nikola Tesla")];
-    return h("div", { style: { position: "relative", marginTop: "30px", borderRadius: "12px", overflow: "hidden", border: "1px solid " + RULE } },
-      h("div", { style: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "26px", padding: "44px", filter: "blur(3px) saturate(.7)", opacity: 0.5, pointerEvents: "none" } },
+    return h("div", { style: { position: "relative", marginTop: "30px", borderRadius: "12px", overflow: "hidden", border: "1px solid " + RULE, minHeight: "420px" } },
+      h("div", { className: "empty-preview-grid", style: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "26px", padding: "44px", filter: "blur(3px) saturate(.7)", opacity: 0.5, pointerEvents: "none" } },
         preview.map(function (f) { return window.Card({ figure: f }); })),
       h("div", { style: { position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "24px",
         background: "radial-gradient(60% 80% at 50% 50%, rgba(11,11,14,.5), rgba(11,11,14,.92))" } },

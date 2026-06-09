@@ -100,6 +100,16 @@
         })));
   }
 
+  function addrLink(label, addr) {
+    return h("div", null,
+      h("div", { style: { font: "600 9.5px/1 " + MONO, letterSpacing: ".14em", color: DIM, textTransform: "uppercase", marginBottom: "4px" } }, label),
+      h("a", { href: "https://etherscan.io/address/" + addr, target: "_blank", rel: "noopener noreferrer",
+        style: { font: "400 11px/1.5 " + MONO, color: FAINT, wordBreak: "break-all", textDecoration: "none" },
+        onMouseEnter: function (e) { e.currentTarget.style.color = COPPER; },
+        onMouseLeave: function (e) { e.currentTarget.style.color = FAINT; } },
+        addr + " ↗"));
+  }
+
   function Footer() {
     var r = window.useRouter();
     return h("footer", { style: { borderTop: "1px solid " + RULE, marginTop: "120px", padding: "44px 0 60px", background: "#08080b" } },
@@ -108,7 +118,14 @@
           Logo(),
           h("p", { style: { marginTop: "16px", font: "400 13px/1.7 " + SANS, color: DIM } },
             "239 historical figures, minted as on-chain cards on a 2018 Ethereum contract. Collect them. Play history."),
-          h("div", { style: { marginTop: "16px", font: "400 11px/1.6 " + MONO, color: FAINT, wordBreak: "break-all" } }, window.HCX.CA)),
+          h("div", { style: { marginTop: "16px", display: "grid", gap: "10px" } },
+            addrLink("Original contract", window.HCX.CA),
+            addrLink("ERC-721 wrapper", window.HCX.WRAPPER),
+            h("a", { href: "https://ethereumhistory.com/contract/" + window.HCX.CA, target: "_blank", rel: "noopener noreferrer",
+              style: { font: "600 11px/1 " + MONO, letterSpacing: ".08em", color: DIM, textDecoration: "none" },
+              onMouseEnter: function (e) { e.currentTarget.style.color = COPPER; },
+              onMouseLeave: function (e) { e.currentTarget.style.color = DIM; } },
+              "ETHEREUM HISTORY ↗"))),
         h("div", { style: { display: "flex", gap: "56px", flexWrap: "wrap" } },
           navCol("Collect", [["Open a Pack", "packs"], ["My Collection", "collection"], ["Roster", "roster"]], r),
           navCol("Play", [["Timeline", "timeline"], ["Battle", "battle"], ["Draft", "draft"], ["Assassination", "assassination"]], r))));

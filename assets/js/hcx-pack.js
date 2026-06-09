@@ -11,8 +11,8 @@
     var F = window.HCX.FIGURES, pool = [];
     F.forEach(function (f) { var w = Math.max(1, Math.round(f.maxSupply * 1.4)); for (var i = 0; i < w; i++) pool.push(f); });
     var f = pool[Math.floor(Math.random() * pool.length)];
-    var serial = 1 + Math.floor(Math.random() * f.maxSupply);
-    return Object.assign({}, f, { cardId: f.cardId, pulledSerial: serial });
+    // demo pull: no fake serial — real card numbers only come from the chain
+    return Object.assign({}, f, { cardId: null, pulledSerial: null });
   }
   function intensityOf(f) {
     var w = window.CARD.rarity(f.maxSupply, "dark").weight;
@@ -111,7 +111,9 @@
   }
 
   function RevealDetails(f, hash, onAgain, onReset, onchain) {
-    var rows = [["Human Number", f.humanId], ["Card Number", f.pulledSerial + " / " + f.maxSupply], ["Max Supply", f.maxSupply], ["Minted To Date", f.minted]];
+    var rows = [["Human Number", f.humanId]];
+    if (f.pulledSerial != null) rows.push(["Card Number", f.pulledSerial + " / " + f.maxSupply]);
+    rows.push(["Max Supply", f.maxSupply, true], ["Minted To Date", f.minted]);
     return h("div", { style: { maxWidth: "380px", margin: "0 auto", animation: "fadeUp .5s ease both" } },
       (f.role || f.bio) ? h("div", { style: { marginBottom: "20px", textAlign: "center" } },
         f.role ? h("div", { style: { font: "600 11px/1 " + MONO, letterSpacing: ".14em", textTransform: "uppercase", color: window.rarityAccent(f), marginBottom: "8px" } }, f.role + " · " + window.HCX.lifespan(f)) : null,
@@ -120,7 +122,7 @@
         rows.map(function (r, i) {
           return h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "9px 0", borderBottom: "1px dotted " + RULE } },
             h("span", { style: { font: "600 10.5px/1 " + MONO, letterSpacing: ".16em", color: DIM } }, r[0].toUpperCase()),
-            h("span", { style: { font: "600 13px/1 " + MONO, color: i === 2 ? window.rarityAccent(f) : INK } }, String(r[1])));
+            h("span", { style: { font: "600 13px/1 " + MONO, color: r[2] ? window.rarityAccent(f) : INK } }, String(r[1])));
         })),
       h("div", { style: { display: "flex", gap: "10px", justifyContent: "center" } },
         window.Btn({ onClick: onAgain }, "Open Another"),
@@ -337,7 +339,8 @@
       if (revealCard) { revealCard.remove(); revealCard = null; }
       onchain = !!(meta && meta.onchain);
       pull = forced ? Object.assign({}, forced) : weightedPull();
-      if (pull.pulledSerial == null) pull.pulledSerial = (meta && meta.serial) || (1 + Math.floor(Math.random() * pull.maxSupply));
+      // serial only when the chain reported one — never invented
+      if (pull.pulledSerial == null) pull.pulledSerial = (meta && meta.serial != null) ? meta.serial : null;
       fx = intensityOf(pull); accent = window.rarityAccent(pull); hash = (meta && meta.txHash) || txHash();
       headlineText.nodeValue = "";
       setStage("tearing");

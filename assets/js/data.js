@@ -268,7 +268,6 @@
 
   var FIGURES = RAW.map(function (row) {
     var humanId = row[0], name = row[1];
-    var rnd = seed(name);
     var b = BIOS[humanId] || {};
     return {
       humanId: humanId,
@@ -280,7 +279,7 @@
       era: b.era || null,
       role: b.role || null,
       bio: b.bio || null,
-      cardId: 1000 + humanId * 17 + Math.floor(rnd() * 11),
+      cardId: null,                         // real token ids only on owned cards (hcx-chain.js)
       contract: CA,
       deployed: DEP,
       stats: { influence: row[6], intellect: row[7], dominion: row[8],

@@ -28,7 +28,10 @@
   }
   function svg(inner) { return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '">' + inner + "</svg>"; }
   function defaults(d) {
-    return { figure: d.figure, humanId: d.humanId, maxSupply: d.maxSupply, cardId: d.cardId,
+    // cardId: real on-chain token id when owned/pulled; null otherwise — only
+    // rendered when real, never stubbed.
+    return { figure: d.figure, humanId: d.humanId, maxSupply: d.maxSupply,
+      cardId: d.cardId != null ? d.cardId : null,
       contract: d.contract || CA, deployed: d.deployed || DEP };
   }
   function txt(x, y, size, fill, str, opts) {
@@ -75,10 +78,11 @@
       '<g opacity="0.5">' + C.rosette(250, 230, 150, accent, 0.5, 0.10) + "</g>" +
       nameSvg +
       '<line x1="200" y1="' + (lastY + 30) + '" x2="300" y2="' + (lastY + 30) + '" stroke="' + accent + '" stroke-width="2"/>' +
-      // quiet token data
+      // quiet token data (card number only when it's a real on-chain token)
       dataRow(424, "HUMAN NUMBER", String(d.humanId)) +
-      dataRow(464, "CARD NUMBER", String(d.cardId)) +
-      dataRow(504, "MAX SUPPLY", String(d.maxSupply), accent) +
+      (d.cardId != null
+        ? dataRow(464, "CARD NUMBER", String(d.cardId)) + dataRow(504, "MAX SUPPLY", String(d.maxSupply), accent)
+        : dataRow(464, "MAX SUPPLY", String(d.maxSupply), accent)) +
       // footer — contract-level metadata (same for every token)
       '<line x1="40" y1="586" x2="460" y2="586" stroke="' + rule + '" stroke-width="0.6"/>' +
       txt(40, 614, 12, dim, "ORIGINAL CONTRACT \u00b7 DEPLOYED " + d.deployed, { ls: 1 }) +
