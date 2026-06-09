@@ -300,54 +300,140 @@
   }
 
   // ---- Assassination ----
-  function boardRow(label, figs, opponent) {
-    return h("div", null,
-      h("div", { style: { font: "600 11px/1 " + MONO, letterSpacing: ".14em", color: DIM, marginBottom: "14px" } }, label.toUpperCase()),
-      h("div", { style: { display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "16px", maxWidth: "760px" } },
-        figs.map(function (f, i) {
-          return h("div", { style: { opacity: opponent && i === 1 ? 0.4 : 1, position: "relative" } },
-            window.Card({ figure: f, badge: false, glow: false }),
-            opponent && i === 1 ? h("div", { style: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", font: "700 13px/1 " + MONO, letterSpacing: ".1em", color: "#d0563a", background: "#000a", borderRadius: "7px" } }, "STRUCK") : null);
-        })));
-  }
+  // Playable duel on the real relationship graph (relationships.js).
+  // Rules: pick a card, pick a target. A direct historical edge (killed,
+  // defeated, succeeded, opposed, influenced) is an instant strike and your
+  // card stays ready. No edge: higher influence strikes but exhausts your
+  // card; lower or tied influence and your card falls. Clear the council
+  // before your hand runs out.
+  var REL_VERB = { KILLED: "killed", DEFEATED: "defeated", SUCCEEDED: "succeeded", OPPOSED: "opposed", INFLUENCED: "influenced" };
   function AssassinationPage() {
-    var s = 0;
-    var hand = ["Caesar", "Hannibal", "Cleopatra", "Gengis Khan", "Napoleon"].map(window.HCX.byName).filter(Boolean);
-    var connections = {
-      "Caesar": ["Heir → Augustus", "Ally → Cleopatra", "Rival → Pompey"],
-      "Hannibal": ["Rival → Scipio Africanus", "Father → Hamilcar", "Echo → Napoleon"],
-      "Cleopatra": ["Ally → Caesar", "Rival → Augustus", "Love → Mark Antony"],
-      "Gengis Khan": ["Era → Marco Polo", "Echo → Attila", "Foe → William the Conqueror"],
-      "Napoleon": ["Echo → Caesar", "Era → Beethoven", "Mind → Karl Marx"]
-    };
+    var H = window.HCX, REL = window.HCX_REL;
+    var wallet = window.useWallet();
+    var st;
     var host = h("div", null);
     function rr() { host.innerHTML = ""; host.appendChild(build()); }
+
+    function newGame() {
+      var pool = shuffle(((wallet.connected && H.OWNED.length >= 10) ? H.OWNED : H.FIGURES).slice());
+      var council = pool.slice(0, 5);
+      // bias the deal: up to 3 hand cards hold a real edge over the council,
+      // so history is actually in play most games
+      var rest = pool.slice(5);
+      var hand = rest.filter(function (f) {
+        return council.some(function (c) { return REL.edge(f.humanId, c.humanId); });
+      }).slice(0, 3);
+      for (var i = 0; i < rest.length && hand.length < 5; i++)
+        if (hand.indexOf(rest[i]) < 0) hand.push(rest[i]);
+      st = { council: council, hand: shuffle(hand), struck: {}, spent: {}, lost: {},
+             sel: null, target: null, last: null, over: null };
+    }
+
+    function usable(f) { return !st.spent[f.humanId] && !st.lost[f.humanId]; }
+    function strike() {
+      var a = st.sel, d = st.target;
+      if (!a || !d || st.over) return;
+      var e = REL.edge(a.humanId, d.humanId);
+      if (e) {
+        st.struck[d.humanId] = true;
+        st.last = { win: true, edge: e, a: a, d: d };
+      } else if (a.stats.influence > d.stats.influence) {
+        st.struck[d.humanId] = true;
+        st.spent[a.humanId] = true;
+        st.last = { win: true, edge: null, a: a, d: d };
+      } else {
+        st.lost[a.humanId] = true;
+        st.last = { win: false, edge: null, a: a, d: d };
+      }
+      st.sel = null; st.target = null;
+      if (st.council.every(function (c) { return st.struck[c.humanId]; })) st.over = "win";
+      else if (!st.hand.some(usable)) st.over = "loss";
+      rr();
+    }
+
+    function cardCell(f, dim, tag, tagColor, selected, onClick) {
+      return h("div", { onClick: onClick || null,
+        style: { position: "relative", cursor: onClick ? "pointer" : "default", borderRadius: "8px",
+          opacity: dim ? 0.38 : 1, transform: selected ? "translateY(-8px)" : "none", transition: "transform .2s, opacity .3s",
+          boxShadow: selected ? "0 0 0 2px " + (tagColor || COPPER) + ", 0 0 26px -8px " + (tagColor || COPPER) : "none" } },
+        window.Card({ figure: f, badge: false, glow: false }),
+        h("div", { style: { position: "absolute", left: 0, right: 0, bottom: 0, padding: "7px 9px", display: "flex", justifyContent: "space-between",
+          background: "linear-gradient(transparent,#000d)", font: "700 11px/1 " + MONO, color: "#fff", borderRadius: "0 0 7px 7px" } },
+          h("span", null, "INF"), h("span", { style: { color: "#e8c89a" } }, String(f.stats.influence))),
+        tag ? h("div", { style: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+          font: "700 13px/1 " + MONO, letterSpacing: ".1em", color: tagColor || "#d0563a", background: "#000a", borderRadius: "7px" } }, tag) : null);
+    }
+
+    function tiesPanel(f) {
+      var ties = REL.edgesFor(f.humanId);
+      var onBoard = {};
+      st.council.forEach(function (c) { onBoard[c.humanId] = true; });
+      ties.sort(function (x, y) { return (onBoard[y.overId] ? 1 : 0) - (onBoard[x.overId] ? 1 : 0); });
+      return h("div", { style: { background: PANEL, border: "1px solid " + RULE, borderRadius: "9px", padding: "18px 20px", maxWidth: "760px" } },
+        h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "12px" } },
+          h("h3", { style: { margin: 0, font: "700 17px/1 " + MONO, color: INK } }, f.name + "'s edges in history"),
+          window.Kicker({ color: DIM }, "Instant strikes")),
+        ties.length
+          ? h("div", { style: { display: "flex", gap: "8px", flexWrap: "wrap" } },
+              ties.slice(0, 6).map(function (t) {
+                var o = H.byId(t.overId), hot = onBoard[t.overId];
+                return h("span", { title: t.note, style: { font: "600 11.5px/1.4 " + MONO, color: hot ? "#13101f" : INK,
+                  background: hot ? "#5fae6e" : "#ffffff08", border: "1px solid " + (hot ? "#5fae6e" : RULE),
+                  borderRadius: "30px", padding: "8px 13px" } }, REL_VERB[t.type] + " → " + (o ? o.name : t.overId));
+              }))
+          : h("div", { style: { font: "400 12.5px/1.5 " + SANS, color: DIM } }, "No recorded edges — this one fights on influence alone."));
+    }
+
+    function resultPanel(r) {
+      var head = r.win
+        ? (r.edge ? r.a.name + " strikes — history sides with the " + REL_VERB[r.edge.type] : r.a.name + " overpowers " + r.d.name)
+        : r.a.name + " falls to " + r.d.name;
+      var body = r.edge ? r.edge.note
+        : "Influence " + r.a.stats.influence + " vs " + r.d.stats.influence +
+          (r.win ? " — the strike lands, but the effort exhausts your card." : " — the defender holds. Your card is gone.");
+      return h("div", { style: { background: PANEL, border: "1px solid " + (r.win ? "#5fae6e55" : "#d0563a55"), borderRadius: "9px", padding: "16px 20px", maxWidth: "760px" } },
+        h("div", { style: { font: "700 15px/1.3 " + MONO, color: r.win ? "#5fae6e" : "#d0563a", marginBottom: "6px" } }, head),
+        h("div", { style: { font: "400 13px/1.55 " + SANS, color: "#c3bdae" } }, body));
+    }
+
     function build() {
-      var cur = hand[s];
-      return GameShell({ kicker: "Connections · 1v1", title: "Assassination", body: "Play a figure, then chain another bound to them by history — teacher, heir, rival — to strike a card from your opponent's council." },
+      var ready = st.sel && st.target && !st.over;
+      return GameShell({ kicker: "Connections · 1v1", title: "Assassination",
+        body: "Every edge here is real: 165 documented kill / defeat / succession / rivalry / influence links among the 239. Play a card with a direct edge over the target and the strike is instant; otherwise higher influence wins, and the defender takes ties." },
         h("div", { className: "assassin-board", style: { display: "grid", gridTemplateColumns: "1fr", gap: "22px" } },
-          boardRow("Opponent's Council", ["Augustus", "Marco Polo", "Spartacus", "Beethoven", "Charlemagne"].map(window.HCX.byName).filter(Boolean), true),
-          h("div", { style: { position: "relative", padding: "26px 0", textAlign: "center" } },
+          h("div", null,
+            h("div", { style: { font: "600 11px/1 " + MONO, letterSpacing: ".14em", color: DIM, marginBottom: "14px" } },
+              "OPPONENT'S COUNCIL — " + st.council.filter(function (c) { return !st.struck[c.humanId]; }).length + " STANDING"),
+            h("div", { style: { display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "16px", maxWidth: "760px" } },
+              st.council.map(function (f) {
+                var down = !!st.struck[f.humanId];
+                return cardCell(f, down, down ? "STRUCK" : null, "#d0563a", st.target === f,
+                  down || st.over ? null : function () { st.target = (st.target === f ? null : f); rr(); });
+              }))),
+          h("div", { style: { position: "relative", padding: "20px 0", textAlign: "center" } },
             window.DottedRule({ style: { position: "absolute", left: 0, right: 0, top: "50%" } }),
-            h("span", { style: { position: "relative", background: BG, padding: "0 16px", font: "600 11px/1 " + MONO, letterSpacing: ".18em", color: DIM } }, "PLAY A CONNECTION")),
+            h("span", { style: { position: "relative", background: BG, padding: "0 16px", font: "600 11px/1 " + MONO, letterSpacing: ".18em", color: DIM } },
+              st.over === "win" ? "COUNCIL ELIMINATED" : st.over === "loss" ? "YOUR HAND IS SPENT" :
+              ready ? (REL.edge(st.sel.humanId, st.target.humanId) ? "HISTORY FAVOURS THIS STRIKE" : "NO EDGE — INFLUENCE DECIDES") : "PICK A CARD AND A TARGET")),
           h("div", null,
             h("div", { style: { font: "600 11px/1 " + MONO, letterSpacing: ".14em", color: DIM, marginBottom: "14px" } }, "YOUR HAND"),
             h("div", { style: { display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "16px", maxWidth: "760px" } },
-              hand.map(function (f, i) {
-                return h("div", { onClick: function () { s = i; rr(); },
-                  style: { cursor: "pointer", borderRadius: "8px", transform: i === s ? "translateY(-8px)" : "none", transition: "transform .2s",
-                    boxShadow: i === s ? "0 0 0 2px " + COPPER + ", 0 0 26px -8px " + COPPER : "none" } },
-                  window.Card({ figure: f, badge: false, glow: false }));
+              st.hand.map(function (f) {
+                var gone = st.lost[f.humanId], used = st.spent[f.humanId];
+                return cardCell(f, gone || used, gone ? "FALLEN" : used ? "SPENT" : null, gone ? "#d0563a" : "#8d8678", st.sel === f,
+                  (gone || used || st.over) ? null : function () { st.sel = (st.sel === f ? null : f); rr(); });
               }))),
-          cur ? h("div", { style: { background: PANEL, border: "1px solid " + RULE, borderRadius: "9px", padding: "20px 22px", maxWidth: "760px" } },
-            h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "14px" } },
-              h("h3", { style: { margin: 0, font: "700 18px/1 " + MONO, color: INK } }, cur.name + "'s ties"),
-              window.Kicker({ color: DIM }, "Chain to strike")),
-            h("div", { style: { display: "flex", gap: "10px", flexWrap: "wrap" } },
-              (connections[cur.name] || ["No recorded ties"]).map(function (c) {
-                return h("span", { style: { font: "600 12px/1 " + MONO, color: INK, background: "#ffffff08", border: "1px solid " + RULE, borderRadius: "30px", padding: "9px 14px" } }, c);
-              }))) : null));
+          h("div", { style: { display: "flex", gap: "14px", alignItems: "center", flexWrap: "wrap" } },
+            st.over
+              ? window.Btn({ onClick: function () { newGame(); rr(); } }, st.over === "win" ? "Council down — play again" : "Avenged? Play again")
+              : window.Btn({ disabled: !ready, onClick: strike }, ready ? "Strike " + st.target.name : "Strike"),
+            st.over ? h("span", { style: { font: "700 14px/1 " + MONO, color: st.over === "win" ? "#5fae6e" : "#d0563a" } },
+              st.over === "win" ? "All five struck. History was on your side." : "The council stands. Your hand is gone.") : null),
+          st.last ? resultPanel(st.last) : null,
+          (st.sel && !st.over) ? tiesPanel(st.sel) : null));
     }
+
+    newGame();
     rr();
     return host;
   }

@@ -114,7 +114,7 @@
     var rows = [["Human Number", f.humanId], ["Card Number", f.pulledSerial + " / " + f.maxSupply], ["Max Supply", f.maxSupply], ["Minted To Date", f.minted]];
     return h("div", { style: { maxWidth: "380px", margin: "0 auto", animation: "fadeUp .5s ease both" } },
       (f.role || f.bio) ? h("div", { style: { marginBottom: "20px", textAlign: "center" } },
-        f.role ? h("div", { style: { font: "600 11px/1 " + MONO, letterSpacing: ".14em", textTransform: "uppercase", color: window.rarityAccent(f), marginBottom: "8px" } }, f.role + " · Born " + window.HCX.eraLabel(f.born)) : null,
+        f.role ? h("div", { style: { font: "600 11px/1 " + MONO, letterSpacing: ".14em", textTransform: "uppercase", color: window.rarityAccent(f), marginBottom: "8px" } }, f.role + " · " + window.HCX.lifespan(f)) : null,
         f.bio ? h("p", { style: { margin: 0, font: "400 13px/1.6 " + SANS, color: "#b8b2a4" } }, f.bio) : null) : null,
       h("div", { style: { display: "grid", gap: "0", marginBottom: "20px" } },
         rows.map(function (r, i) {

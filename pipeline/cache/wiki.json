@@ -1,0 +1,2853 @@
+{
+ "pages": {
+  "Abraham": {
+   "title": "Abraham",
+   "length": 88101,
+   "qid": "Q9181"
+  },
+  "Abraham Lincoln": {
+   "title": "Abraham Lincoln",
+   "length": 160004,
+   "qid": "Q91"
+  },
+  "Adam Smith": {
+   "title": "Adam Smith",
+   "length": 111775,
+   "qid": "Q9381"
+  },
+  "Adolf Hitler": {
+   "title": "Adolf Hitler",
+   "length": 182054,
+   "qid": "Q352"
+  },
+  "Al Capone": {
+   "title": "Al Capone",
+   "length": 90232,
+   "qid": "Q80048"
+  },
+  "Alan Turing": {
+   "title": "Alan Turing",
+   "length": 155388,
+   "qid": "Q7251"
+  },
+  "Albert Einstein": {
+   "title": "Albert Einstein",
+   "length": 235102,
+   "qid": "Q937"
+  },
+  "Alexander Fleming": {
+   "title": "Alexander Fleming",
+   "length": 72040,
+   "qid": "Q37064"
+  },
+  "Alexander Graham Bell": {
+   "title": "Alexander Graham Bell",
+   "length": 147552,
+   "qid": "Q34286"
+  },
+  "Alexander the Great": {
+   "title": "Alexander the Great",
+   "length": 223207,
+   "qid": "Q8409"
+  },
+  "Alexis Tsipras": {
+   "title": "Alexis Tsipras",
+   "length": 66217,
+   "qid": "Q312015"
+  },
+  "Alfred Nobel": {
+   "title": "Alfred Nobel",
+   "length": 49205,
+   "qid": "Q23810"
+  },
+  "Alfred the Great": {
+   "title": "Alfred the Great",
+   "length": 129088,
+   "qid": "Q83476"
+  },
+  "Ali Khamenei": {
+   "title": "Ali Khamenei",
+   "length": 217928,
+   "qid": "Q57336"
+  },
+  "Angela Merkel": {
+   "title": "Angela Merkel",
+   "length": 260137,
+   "qid": "Q567"
+  },
+  "Antoine Lavoisier": {
+   "title": "Antoine Lavoisier",
+   "length": 80657,
+   "qid": "Q39607"
+  },
+  "Aristotle": {
+   "title": "Aristotle",
+   "length": 158725,
+   "qid": "Q868"
+  },
+  "Ashoka": {
+   "title": "Ashoka",
+   "length": 153274,
+   "qid": "Q8589"
+  },
+  "Atahualpa": {
+   "title": "Atahualpa",
+   "length": 46538,
+   "qid": "Q179577"
+  },
+  "Attila": {
+   "title": "Attila",
+   "length": 73453,
+   "qid": "Q36724"
+  },
+  "Augustine of Hippo": {
+   "title": "Augustine of Hippo",
+   "length": 179498,
+   "qid": "Q8018"
+  },
+  "Augusto Pinochet": {
+   "title": "Augusto Pinochet",
+   "length": 182134,
+   "qid": "Q368"
+  },
+  "Augustus": {
+   "title": "Augustus",
+   "length": 243802,
+   "qid": "Q1405"
+  },
+  "Barack Obama": {
+   "title": "Barack Obama",
+   "length": 398461,
+   "qid": "Q76"
+  },
+  "Bashar al-Assad": {
+   "title": "Bashar al-Assad",
+   "length": 353587,
+   "qid": "Q44329"
+  },
+  "Benito Mussolini": {
+   "title": "Benito Mussolini",
+   "length": 214514,
+   "qid": "Q23559"
+  },
+  "Benjamin Netanyahu": {
+   "title": "Benjamin Netanyahu",
+   "length": 367867,
+   "qid": "Q43723"
+  },
+  "Bill Gates": {
+   "title": "Bill Gates",
+   "length": 223145,
+   "qid": "Q5284"
+  },
+  "Blackbeard": {
+   "title": "Blackbeard",
+   "length": 82068,
+   "qid": "Q213518"
+  },
+  "Cai Lun": {
+   "title": "Cai Lun",
+   "length": 69179,
+   "qid": "Q229235"
+  },
+  "Caligula": {
+   "title": "Caligula",
+   "length": 131881,
+   "qid": "Q1409"
+  },
+  "Charlemagne": {
+   "title": "Charlemagne",
+   "length": 119873,
+   "qid": "Q3044"
+  },
+  "Charles Darwin": {
+   "title": "Charles Darwin",
+   "length": 174662,
+   "qid": "Q1035"
+  },
+  "Charles Dickens": {
+   "title": "Charles Dickens",
+   "length": 192823,
+   "qid": "Q5686"
+  },
+  "Charles I of England": {
+   "title": "Charles I of England",
+   "length": 120959,
+   "qid": "Q81506"
+  },
+  "Charles II of England": {
+   "title": "Charles II of England",
+   "length": 94898,
+   "qid": "Q122553"
+  },
+  "Charles Ponzi": {
+   "title": "Charles Ponzi",
+   "length": 44338,
+   "qid": "Q360145"
+  },
+  "Charles de Gaulle": {
+   "title": "Charles de Gaulle",
+   "length": 177506,
+   "qid": "Q2042"
+  },
+  "Che Guevara": {
+   "title": "Che Guevara",
+   "length": 209861,
+   "qid": "Q5809"
+  },
+  "Chiang Kai-shek": {
+   "title": "Chiang Kai-shek",
+   "length": 192053,
+   "qid": "Q16574"
+  },
+  "Christopher Columbus": {
+   "title": "Christopher Columbus",
+   "length": 199034,
+   "qid": "Q7322"
+  },
+  "Cicero": {
+   "title": "Cicero",
+   "length": 115061,
+   "qid": "Q1541"
+  },
+  "Claudius": {
+   "title": "Claudius",
+   "length": 85054,
+   "qid": "Q1411"
+  },
+  "Cleopatra": {
+   "title": "Cleopatra",
+   "length": 222848,
+   "qid": "Q635"
+  },
+  "Clovis I": {
+   "title": "Clovis I",
+   "length": 53246,
+   "qid": "Q82339"
+  },
+  "Confucius": {
+   "title": "Confucius",
+   "length": 115906,
+   "qid": "Q4604"
+  },
+  "Constantine the Great": {
+   "title": "Constantine the Great",
+   "length": 182562,
+   "qid": "Q8413"
+  },
+  "Cyrus the Great": {
+   "title": "Cyrus the Great",
+   "length": 119136,
+   "qid": "Q8423"
+  },
+  "David": {
+   "title": "David",
+   "length": 119296,
+   "qid": "Q41370"
+  },
+  "Donald Trump": {
+   "title": "Donald Trump",
+   "length": 362507,
+   "qid": "Q22686"
+  },
+  "Edgar Allan Poe": {
+   "title": "Edgar Allan Poe",
+   "length": 92277,
+   "qid": "Q16867"
+  },
+  "Edward Jenner": {
+   "title": "Edward Jenner",
+   "length": 60871,
+   "qid": "Q40852"
+  },
+  "Elizabeth I": {
+   "title": "Elizabeth I",
+   "length": 132433,
+   "qid": "Q7207"
+  },
+  "Elizabeth II": {
+   "title": "Elizabeth II",
+   "length": 199785,
+   "qid": "Q9682"
+  },
+  "Elon Musk": {
+   "title": "Elon Musk",
+   "length": 343780,
+   "qid": "Q317521"
+  },
+  "Elvis Presley": {
+   "title": "Elvis Presley",
+   "length": 220346,
+   "qid": "Q303"
+  },
+  "Emmanuel Macron": {
+   "title": "Emmanuel Macron",
+   "length": 298345,
+   "qid": "Q3052772"
+  },
+  "Emperor Gaozu of Han": {
+   "title": "Emperor Gaozu of Han",
+   "length": 56799,
+   "qid": "Q7210"
+  },
+  "Emperor Wen of Sui": {
+   "title": "Emperor Wen of Sui",
+   "length": 37430,
+   "qid": "Q7418"
+  },
+  "Enver Pasha": {
+   "title": "Enver Pasha",
+   "length": 81601,
+   "qid": "Q153899"
+  },
+  "Erasmus": {
+   "title": "Erasmus",
+   "length": 324263,
+   "qid": "Q43499"
+  },
+  "Ernest Rutherford": {
+   "title": "Ernest Rutherford",
+   "length": 74885,
+   "qid": "Q9123"
+  },
+  "Euclid": {
+   "title": "Euclid",
+   "length": 48312,
+   "qid": "Q8747"
+  },
+  "Felipe VI": {
+   "title": "Felipe VI",
+   "length": 180465,
+   "qid": "Q191045"
+  },
+  "Fidel Castro": {
+   "title": "Fidel Castro",
+   "length": 271378,
+   "qid": "Q11256"
+  },
+  "Francis Bacon": {
+   "title": "Francis Bacon",
+   "length": 97339,
+   "qid": "Q37388"
+  },
+  "Francisco Pizarro": {
+   "title": "Francisco Pizarro",
+   "length": 49728,
+   "qid": "Q44741"
+  },
+  "Franklin D. Roosevelt": {
+   "title": "Franklin D. Roosevelt",
+   "length": 177085,
+   "qid": "Q8007"
+  },
+  "Freddie Mercury": {
+   "title": "Freddie Mercury",
+   "length": 194109,
+   "qid": "Q15869"
+  },
+  "Galileo Galilei": {
+   "title": "Galileo Galilei",
+   "length": 140270,
+   "qid": "Q307"
+  },
+  "Gautama Buddha": {
+   "title": "The Buddha",
+   "length": 255270,
+   "qid": "Q9441"
+  },
+  "Genghis Khan": {
+   "title": "Genghis Khan",
+   "length": 116560,
+   "qid": "Q720"
+  },
+  "George H. W. Bush": {
+   "title": "George H. W. Bush",
+   "length": 204725,
+   "qid": "Q23505"
+  },
+  "George W. Bush": {
+   "title": "George W. Bush",
+   "length": 343448,
+   "qid": "Q207"
+  },
+  "George Washington": {
+   "title": "George Washington",
+   "length": 145717,
+   "qid": "Q23"
+  },
+  "Guglielmo Marconi": {
+   "title": "Guglielmo Marconi",
+   "length": 82268,
+   "qid": "Q36488"
+  },
+  "Hamilcar Barca": {
+   "title": "Hamilcar Barca",
+   "length": 58679,
+   "qid": "Q185101"
+  },
+  "Hannibal": {
+   "title": "Hannibal",
+   "length": 98695,
+   "qid": "Q36456"
+  },
+  "Henry Ford": {
+   "title": "Henry Ford",
+   "length": 113868,
+   "qid": "Q8768"
+  },
+  "Henry IV of France": {
+   "title": "Henry IV of France",
+   "length": 65451,
+   "qid": "Q936976"
+  },
+  "Hernán Cortés": {
+   "title": "Hernán Cortés",
+   "length": 89041,
+   "qid": "Q7326"
+  },
+  "Hideki Tojo": {
+   "title": "Hideki Tojo",
+   "length": 67388,
+   "qid": "Q160847"
+  },
+  "Hillary Clinton": {
+   "title": "Hillary Clinton",
+   "length": 325138,
+   "qid": "Q6294"
+  },
+  "Hirohito": {
+   "title": "Hirohito",
+   "length": 162036,
+   "qid": "Q34479"
+  },
+  "Ho Chi Minh": {
+   "title": "Ho Chi Minh",
+   "length": 131964,
+   "qid": "Q36014"
+  },
+  "Homer": {
+   "title": "Homer",
+   "length": 68783,
+   "qid": "Q6691"
+  },
+  "Hugo Chávez": {
+   "title": "Hugo Chávez",
+   "length": 292223,
+   "qid": "Q8440"
+  },
+  "Idi Amin": {
+   "title": "Idi Amin",
+   "length": 135451,
+   "qid": "Q48231"
+  },
+  "Imhotep": {
+   "title": "Imhotep",
+   "length": 22421,
+   "qid": "Q131171"
+  },
+  "Isaac Newton": {
+   "title": "Isaac Newton",
+   "length": 224716,
+   "qid": "Q935"
+  },
+  "Isabella I of Castile": {
+   "title": "Isabella I of Castile",
+   "length": 111229,
+   "qid": "Q45859"
+  },
+  "J. R. R. Tolkien": {
+   "title": "J. R. R. Tolkien",
+   "length": 148124,
+   "qid": "Q892"
+  },
+  "Jack Ma": {
+   "title": "Jack Ma",
+   "length": 70286,
+   "qid": "Q1137062"
+  },
+  "Jack the Ripper": {
+   "title": "Jack the Ripper",
+   "length": 91683,
+   "qid": "Q43963"
+  },
+  "James Clerk Maxwell": {
+   "title": "James Clerk Maxwell",
+   "length": 96053,
+   "qid": "Q9095"
+  },
+  "James Watt": {
+   "title": "James Watt",
+   "length": 60530,
+   "qid": "Q9041"
+  },
+  "Jawaharlal Nehru": {
+   "title": "Jawaharlal Nehru",
+   "length": 243019,
+   "qid": "Q1047"
+  },
+  "Jean Moulin": {
+   "title": "Jean Moulin",
+   "length": 41554,
+   "qid": "Q632"
+  },
+  "Jean-Jacques Rousseau": {
+   "title": "Jean-Jacques Rousseau",
+   "length": 156722,
+   "qid": "Q6527"
+  },
+  "Jeff Bezos": {
+   "title": "Jeff Bezos",
+   "length": 224585,
+   "qid": "Q312556"
+  },
+  "Jesus": {
+   "title": "Jesus",
+   "length": 278248,
+   "qid": "Q302"
+  },
+  "Joan of Arc": {
+   "title": "Joan of Arc",
+   "length": 186540,
+   "qid": "Q7226"
+  },
+  "Johann Sebastian Bach": {
+   "title": "Johann Sebastian Bach",
+   "length": 158145,
+   "qid": "Q1339"
+  },
+  "Johannes Gutenberg": {
+   "title": "Johannes Gutenberg",
+   "length": 52599,
+   "qid": "Q8958"
+  },
+  "Johannes Kepler": {
+   "title": "Johannes Kepler",
+   "length": 128789,
+   "qid": "Q8963"
+  },
+  "John Calvin": {
+   "title": "John Calvin",
+   "length": 96504,
+   "qid": "Q37577"
+  },
+  "John D. Rockefeller": {
+   "title": "John D. Rockefeller",
+   "length": 94100,
+   "qid": "Q160278"
+  },
+  "John Dalton": {
+   "title": "John Dalton",
+   "length": 52095,
+   "qid": "Q41284"
+  },
+  "John F. Kennedy": {
+   "title": "John F. Kennedy",
+   "length": 238547,
+   "qid": "Q9696"
+  },
+  "John Lennon": {
+   "title": "John Lennon",
+   "length": 193781,
+   "qid": "Q1203"
+  },
+  "Joseph Stalin": {
+   "title": "Joseph Stalin",
+   "length": 214083,
+   "qid": "Q855"
+  },
+  "Julius Caesar": {
+   "title": "Julius Caesar",
+   "length": 146046,
+   "qid": "Q1048"
+  },
+  "Justinian I": {
+   "title": "Justinian I",
+   "length": 104309,
+   "qid": "Q41866"
+  },
+  "Karl Marx": {
+   "title": "Karl Marx",
+   "length": 204087,
+   "qid": "Q9061"
+  },
+  "Khufu": {
+   "title": "Khufu",
+   "length": 79903,
+   "qid": "Q161904"
+  },
+  "Kim Il Sung": {
+   "title": "Kim Il Sung",
+   "length": 124633,
+   "qid": "Q41117"
+  },
+  "Kim Jong Il": {
+   "title": "Kim Jong Il",
+   "length": 140756,
+   "qid": "Q10665"
+  },
+  "Kim Jong Un": {
+   "title": "Kim Jong Un",
+   "length": 198648,
+   "qid": "Q56226"
+  },
+  "Konrad Adenauer": {
+   "title": "Konrad Adenauer",
+   "length": 110184,
+   "qid": "Q2492"
+  },
+  "Laozi": {
+   "title": "Laozi",
+   "length": 41940,
+   "qid": "Q9333"
+  },
+  "Larry Page": {
+   "title": "Larry Page",
+   "length": 105495,
+   "qid": "Q4934"
+  },
+  "Leon Trotsky": {
+   "title": "Leon Trotsky",
+   "length": 270176,
+   "qid": "Q33391"
+  },
+  "Leonardo da Vinci": {
+   "title": "Leonardo da Vinci",
+   "length": 140875,
+   "qid": "Q762"
+  },
+  "Leonhard Euler": {
+   "title": "Leonhard Euler",
+   "length": 105043,
+   "qid": "Q7604"
+  },
+  "Leonidas I": {
+   "title": "Leonidas I",
+   "length": 23667,
+   "qid": "Q44228"
+  },
+  "Louis XIV": {
+   "title": "Louis XIV",
+   "length": 157125,
+   "qid": "Q7742"
+  },
+  "Ludwig van Beethoven": {
+   "title": "Ludwig van Beethoven",
+   "length": 108854,
+   "qid": "Q255"
+  },
+  "Mahatma Gandhi": {
+   "title": "Mahatma Gandhi",
+   "length": 189796,
+   "qid": "Q1001"
+  },
+  "Mahavira": {
+   "title": "Mahavira",
+   "length": 94350,
+   "qid": "Q9422"
+  },
+  "Malcolm X": {
+   "title": "Malcolm X",
+   "length": 182754,
+   "qid": "Q43303"
+  },
+  "Mani (prophet)": {
+   "title": "Mani (prophet)",
+   "length": 34708,
+   "qid": "Q203922"
+  },
+  "Mansa Musa": {
+   "title": "Mansa Musa",
+   "length": 55462,
+   "qid": "Q309333"
+  },
+  "Mao Zedong": {
+   "title": "Mao Zedong",
+   "length": 184211,
+   "qid": "Q5816"
+  },
+  "Marco Polo": {
+   "title": "Marco Polo",
+   "length": 114970,
+   "qid": "Q6101"
+  },
+  "Marcus Licinius Crassus": {
+   "title": "Marcus Licinius Crassus",
+   "length": 45074,
+   "qid": "Q175121"
+  },
+  "Margaret Thatcher": {
+   "title": "Margaret Thatcher",
+   "length": 276237,
+   "qid": "Q7416"
+  },
+  "Marie Antoinette": {
+   "title": "Marie Antoinette",
+   "length": 127919,
+   "qid": "Q47365"
+  },
+  "Marie Curie": {
+   "title": "Marie Curie",
+   "length": 119444,
+   "qid": "Q7186"
+  },
+  "Mark Antony": {
+   "title": "Mark Antony",
+   "length": 142629,
+   "qid": "Q51673"
+  },
+  "Mark Zuckerberg": {
+   "title": "Mark Zuckerberg",
+   "length": 158617,
+   "qid": "Q36215"
+  },
+  "Martin Luther": {
+   "title": "Martin Luther",
+   "length": 157814,
+   "qid": "Q9554"
+  },
+  "Martin Luther King Jr.": {
+   "title": "Martin Luther King Jr.",
+   "length": 305037,
+   "qid": "Q8027"
+  },
+  "Mauricio Macri": {
+   "title": "Mauricio Macri",
+   "length": 177316,
+   "qid": "Q561837"
+  },
+  "Max Planck": {
+   "title": "Max Planck",
+   "length": 75339,
+   "qid": "Q9021"
+  },
+  "Maximilien Robespierre": {
+   "title": "Maximilien Robespierre",
+   "length": 239637,
+   "qid": "Q44197"
+  },
+  "Mencius": {
+   "title": "Mencius",
+   "length": 26505,
+   "qid": "Q188903"
+  },
+  "Menes": {
+   "title": "Menes",
+   "length": 29692,
+   "qid": "Q189574"
+  },
+  "Michael Faraday": {
+   "title": "Michael Faraday",
+   "length": 73679,
+   "qid": "Q8750"
+  },
+  "Michael Jackson": {
+   "title": "Michael Jackson",
+   "length": 347422,
+   "qid": "Q2831"
+  },
+  "Michel Temer": {
+   "title": "Michel Temer",
+   "length": 74240,
+   "qid": "Q463533"
+  },
+  "Michelangelo": {
+   "title": "Michelangelo",
+   "length": 86294,
+   "qid": "Q5592"
+  },
+  "Mikhail Gorbachev": {
+   "title": "Mikhail Gorbachev",
+   "length": 139951,
+   "qid": "Q30487"
+  },
+  "Mohammed VI of Morocco": {
+   "title": "Mohammed VI of Morocco",
+   "length": 100357,
+   "qid": "Q57553"
+  },
+  "Moses": {
+   "title": "Moses",
+   "length": 132213,
+   "qid": "Q9077"
+  },
+  "Muammar Gaddafi": {
+   "title": "Muammar Gaddafi",
+   "length": 232840,
+   "qid": "Q19878"
+  },
+  "Muhammad": {
+   "title": "Muhammad",
+   "length": 184627,
+   "qid": "Q9458"
+  },
+  "Muhammad Ali": {
+   "title": "Muhammad Ali",
+   "length": 300817,
+   "qid": "Q36107"
+  },
+  "Muhammad Ali Jinnah": {
+   "title": "Muhammad Ali Jinnah",
+   "length": 132382,
+   "qid": "Q160554"
+  },
+  "Mustafa Kemal Atatürk": {
+   "title": "Mustafa Kemal Atatürk",
+   "length": 240779,
+   "qid": "Q5152"
+  },
+  "Napoleon": {
+   "title": "Napoleon",
+   "length": 186112,
+   "qid": "Q517"
+  },
+  "Nefertiti": {
+   "title": "Nefertiti",
+   "length": 55574,
+   "qid": "Q40930"
+  },
+  "Nelson Mandela": {
+   "title": "Nelson Mandela",
+   "length": 207093,
+   "qid": "Q8023"
+  },
+  "Nero": {
+   "title": "Nero",
+   "length": 93567,
+   "qid": "Q1413"
+  },
+  "Neville Chamberlain": {
+   "title": "Neville Chamberlain",
+   "length": 126874,
+   "qid": "Q10664"
+  },
+  "Niccolò Machiavelli": {
+   "title": "Niccolò Machiavelli",
+   "length": 154695,
+   "qid": "Q1399"
+  },
+  "Nicholas II of Russia": {
+   "title": "Nicholas II",
+   "length": 230547,
+   "qid": "Q40787"
+  },
+  "Nicolas Sarkozy": {
+   "title": "Nicolas Sarkozy",
+   "length": 188113,
+   "qid": "Q329"
+  },
+  "Nicolaus Otto": {
+   "title": "Nicolaus Otto",
+   "length": 13945,
+   "qid": "Q75782"
+  },
+  "Nikola Tesla": {
+   "title": "Nikola Tesla",
+   "length": 131367,
+   "qid": "Q9036"
+  },
+  "Osama bin Laden": {
+   "title": "Osama bin Laden",
+   "length": 276964,
+   "qid": "Q1317"
+  },
+  "Pablo Escobar": {
+   "title": "Pablo Escobar",
+   "length": 81730,
+   "qid": "Q187447"
+  },
+  "Pablo Picasso": {
+   "title": "Pablo Picasso",
+   "length": 127570,
+   "qid": "Q5593"
+  },
+  "Paul the Apostle": {
+   "title": "Paul the Apostle",
+   "length": 204943,
+   "qid": "Q9200"
+  },
+  "Paul von Hindenburg": {
+   "title": "Paul von Hindenburg",
+   "length": 163721,
+   "qid": "Q2667"
+  },
+  "Peter the Great": {
+   "title": "Peter the Great",
+   "length": 103347,
+   "qid": "Q8479"
+  },
+  "Philippe Pétain": {
+   "title": "Philippe Pétain",
+   "length": 92983,
+   "qid": "Q5721"
+  },
+  "Philippe of Belgium": {
+   "title": "Philippe of Belgium",
+   "length": 28304,
+   "qid": "Q155004"
+  },
+  "Plato": {
+   "title": "Plato",
+   "length": 53652,
+   "qid": "Q859"
+  },
+  "Pol Pot": {
+   "title": "Pol Pot",
+   "length": 155198,
+   "qid": "Q39464"
+  },
+  "Pompey": {
+   "title": "Pompey",
+   "length": 79277,
+   "qid": "Q125414"
+  },
+  "Pope Urban II": {
+   "title": "Pope Urban II",
+   "length": 29109,
+   "qid": "Q30578"
+  },
+  "Pythagoras": {
+   "title": "Pythagoras",
+   "length": 104613,
+   "qid": "Q10261"
+  },
+  "Qin Shi Huang": {
+   "title": "Qin Shi Huang",
+   "length": 89752,
+   "qid": "Q7192"
+  },
+  "Queen Victoria": {
+   "title": "Queen Victoria",
+   "length": 128469,
+   "qid": "Q9439"
+  },
+  "Ram Nath Kovind": {
+   "title": "Ram Nath Kovind",
+   "length": 33201,
+   "qid": "Q16845347"
+  },
+  "Ramesses II": {
+   "title": "Ramesses II",
+   "length": 95448,
+   "qid": "Q1523"
+  },
+  "Ramzan Kadyrov": {
+   "title": "Ramzan Kadyrov",
+   "length": 193703,
+   "qid": "Q217115"
+  },
+  "Recep Tayyip Erdoğan": {
+   "title": "Recep Tayyip Erdoğan",
+   "length": 363060,
+   "qid": "Q39259"
+  },
+  "René Descartes": {
+   "title": "René Descartes",
+   "length": 132134,
+   "qid": "Q9191"
+  },
+  "Robert Mugabe": {
+   "title": "Robert Mugabe",
+   "length": 184615,
+   "qid": "Q10707"
+  },
+  "Ronald Reagan": {
+   "title": "Ronald Reagan",
+   "length": 174272,
+   "qid": "Q9960"
+  },
+  "Saddam Hussein": {
+   "title": "Saddam Hussein",
+   "length": 228485,
+   "qid": "Q1316"
+  },
+  "Satoshi Nakamoto": {
+   "title": "Satoshi Nakamoto",
+   "length": 68737,
+   "qid": "Q13382352"
+  },
+  "Scipio Africanus": {
+   "title": "Scipio Africanus",
+   "length": 65685,
+   "qid": "Q2253"
+  },
+  "Sergey Brin": {
+   "title": "Sergey Brin",
+   "length": 45718,
+   "qid": "Q92764"
+  },
+  "Shaka": {
+   "title": "Shaka",
+   "length": 57507,
+   "qid": "Q27695"
+  },
+  "Sigmund Freud": {
+   "title": "Sigmund Freud",
+   "length": 198954,
+   "qid": "Q9215"
+  },
+  "Silvio Berlusconi": {
+   "title": "Silvio Berlusconi",
+   "length": 332829,
+   "qid": "Q11860"
+  },
+  "Simón Bolívar": {
+   "title": "Simón Bolívar",
+   "length": 118791,
+   "qid": "Q8605"
+  },
+  "Sneferu": {
+   "title": "Sneferu",
+   "length": 24024,
+   "qid": "Q189371"
+  },
+  "Socrates": {
+   "title": "Socrates",
+   "length": 92216,
+   "qid": "Q913"
+  },
+  "Spartacus": {
+   "title": "Spartacus",
+   "length": 49861,
+   "qid": "Q83406"
+  },
+  "Stephen Hawking": {
+   "title": "Stephen Hawking",
+   "length": 201752,
+   "qid": "Q17714"
+  },
+  "Stephen King": {
+   "title": "Stephen King",
+   "length": 161021,
+   "qid": "Q39829"
+  },
+  "Steve Jobs": {
+   "title": "Steve Jobs",
+   "length": 207803,
+   "qid": "Q19837"
+  },
+  "Suleiman the Magnificent": {
+   "title": "Suleiman the Magnificent",
+   "length": 96445,
+   "qid": "Q8474"
+  },
+  "Sulla": {
+   "title": "Sulla",
+   "length": 94855,
+   "qid": "Q483783"
+  },
+  "Theodore Roosevelt": {
+   "title": "Theodore Roosevelt",
+   "length": 209684,
+   "qid": "Q33866"
+  },
+  "Thomas Edison": {
+   "title": "Thomas Edison",
+   "length": 119220,
+   "qid": "Q8743"
+  },
+  "Thomas Jefferson": {
+   "title": "Thomas Jefferson",
+   "length": 239916,
+   "qid": "Q11812"
+  },
+  "Thomas Robert Malthus": {
+   "title": "Thomas Robert Malthus",
+   "length": 59698,
+   "qid": "Q13526"
+  },
+  "Tiberius": {
+   "title": "Tiberius",
+   "length": 80689,
+   "qid": "Q1407"
+  },
+  "Titus": {
+   "title": "Titus",
+   "length": 60761,
+   "qid": "Q1421"
+  },
+  "Tutankhamun": {
+   "title": "Tutankhamun",
+   "length": 153412,
+   "qid": "Q12154"
+  },
+  "Umar": {
+   "title": "Umar",
+   "length": 109084,
+   "qid": "Q8467"
+  },
+  "Vasco da Gama": {
+   "title": "Vasco da Gama",
+   "length": 62103,
+   "qid": "Q7328"
+  },
+  "Vespasian": {
+   "title": "Vespasian",
+   "length": 47585,
+   "qid": "Q1419"
+  },
+  "Vincent van Gogh": {
+   "title": "Vincent van Gogh",
+   "length": 152594,
+   "qid": "Q5582"
+  },
+  "Vitalik Buterin": {
+   "title": "Vitalik Buterin",
+   "length": 39326,
+   "qid": "Q16197959"
+  },
+  "Vlad the Impaler": {
+   "title": "Vlad the Impaler",
+   "length": 90360,
+   "qid": "Q43715"
+  },
+  "Vladimir Lenin": {
+   "title": "Vladimir Lenin",
+   "length": 199577,
+   "qid": "Q1394"
+  },
+  "Vladimir Putin": {
+   "title": "Vladimir Putin",
+   "length": 295802,
+   "qid": "Q7747"
+  },
+  "Voltaire": {
+   "title": "Voltaire",
+   "length": 146569,
+   "qid": "Q9068"
+  },
+  "Warren Buffett": {
+   "title": "Warren Buffett",
+   "length": 176480,
+   "qid": "Q47213"
+  },
+  "Werner Heisenberg": {
+   "title": "Werner Heisenberg",
+   "length": 134722,
+   "qid": "Q40904"
+  },
+  "Wilhelm II, German Emperor": {
+   "title": "Wilhelm II",
+   "length": 146153,
+   "qid": "Q2677"
+  },
+  "Wilhelm Röntgen": {
+   "title": "Wilhelm Röntgen",
+   "length": 28202,
+   "qid": "Q35149"
+  },
+  "William Harvey": {
+   "title": "William Harvey",
+   "length": 50088,
+   "qid": "Q93128"
+  },
+  "William Shakespeare": {
+   "title": "William Shakespeare",
+   "length": 127612,
+   "qid": "Q692"
+  },
+  "William T. G. Morton": {
+   "title": "William T. G. Morton",
+   "length": 26894,
+   "qid": "Q319689"
+  },
+  "William Wallace": {
+   "title": "William Wallace",
+   "length": 44699,
+   "qid": "Q82457"
+  },
+  "William the Conqueror": {
+   "title": "William the Conqueror",
+   "length": 101521,
+   "qid": "Q37594"
+  },
+  "Winston Churchill": {
+   "title": "Winston Churchill",
+   "length": 207005,
+   "qid": "Q8016"
+  },
+  "Wolfgang Amadeus Mozart": {
+   "title": "Wolfgang Amadeus Mozart",
+   "length": 109453,
+   "qid": "Q254"
+  },
+  "Xi Jinping": {
+   "title": "Xi Jinping",
+   "length": 359956,
+   "qid": "Q15031"
+  },
+  "Yahya Khan": {
+   "title": "Yahya Khan",
+   "length": 72653,
+   "qid": "Q333981"
+  },
+  "Zoroaster": {
+   "title": "Zoroaster",
+   "length": 88578,
+   "qid": "Q35811"
+  }
+ },
+ "talk": {
+  "Abraham": 1039580,
+  "Abraham Lincoln": 2485205,
+  "Adam Smith": 410211,
+  "Adolf Hitler": 7154263,
+  "Al Capone": 164568,
+  "Alan Turing": 479319,
+  "Albert Einstein": 3005642,
+  "Alexander Fleming": 66075,
+  "Alexander Graham Bell": 496783,
+  "Alexander the Great": 2342762,
+  "Alexis Tsipras": 11015,
+  "Alfred Nobel": 37992,
+  "Alfred the Great": 136797,
+  "Ali Khamenei": 825905,
+  "Angela Merkel": 571663,
+  "Antoine Lavoisier": 52455,
+  "Aristotle": 615252,
+  "Ashoka": 240490,
+  "Atahualpa": 23887,
+  "Attila": 298369,
+  "Augustine of Hippo": 330040,
+  "Augusto Pinochet": 1124644,
+  "Augustus": 535163,
+  "Barack Obama": 16716011,
+  "Bashar al-Assad": 311712,
+  "Benito Mussolini": 631087,
+  "Benjamin Netanyahu": 430491,
+  "Bill Gates": 638749,
+  "Blackbeard": 227492,
+  "Cai Lun": 59810,
+  "Caligula": 131868,
+  "Charlemagne": 646364,
+  "Charles Darwin": 2162752,
+  "Charles Dickens": 596355,
+  "Charles I of England": 202902,
+  "Charles II of England": 141304,
+  "Charles Ponzi": 26255,
+  "Charles de Gaulle": 187840,
+  "Che Guevara": 2618408,
+  "Chiang Kai-shek": 248991,
+  "Christopher Columbus": 2377240,
+  "Cicero": 168189,
+  "Claudius": 78708,
+  "Cleopatra": 547898,
+  "Clovis I": 93267,
+  "Confucius": 200019,
+  "Constantine the Great": 387575,
+  "Cyrus the Great": 427199,
+  "David": 1096998,
+  "Donald Trump": 37051273,
+  "Edgar Allan Poe": 447793,
+  "Edward Jenner": 54610,
+  "Elizabeth I": 497855,
+  "Elizabeth II": 5532315,
+  "Elon Musk": 3992211,
+  "Elvis Presley": 4772455,
+  "Emmanuel Macron": 157613,
+  "Emperor Gaozu of Han": 12668,
+  "Emperor Wen of Sui": 3107,
+  "Enver Pasha": 69460,
+  "Erasmus": 208134,
+  "Ernest Rutherford": 201731,
+  "Euclid": 179168,
+  "Felipe VI": 73511,
+  "Fidel Castro": 2182150,
+  "Francis Bacon": 771874,
+  "Francisco Pizarro": 16870,
+  "Franklin D. Roosevelt": 917973,
+  "Freddie Mercury": 668908,
+  "Galileo Galilei": 1062783,
+  "Genghis Khan": 1259857,
+  "George H. W. Bush": 446072,
+  "George W. Bush": 7551767,
+  "George Washington": 4641028,
+  "Guglielmo Marconi": 124400,
+  "Hamilcar Barca": 7676,
+  "Hannibal": 363323,
+  "Henry Ford": 527600,
+  "Henry IV of France": 45666,
+  "Hernán Cortés": 153653,
+  "Hideki Tojo": 57664,
+  "Hillary Clinton": 6035536,
+  "Hirohito": 590122,
+  "Ho Chi Minh": 237894,
+  "Homer": 224369,
+  "Hugo Chávez": 3796924,
+  "Idi Amin": 127145,
+  "Imhotep": 44208,
+  "Isaac Newton": 819908,
+  "Isabella I of Castile": 82794,
+  "J. R. R. Tolkien": 621438,
+  "Jack Ma": 33472,
+  "Jack the Ripper": 1536697,
+  "James Clerk Maxwell": 317384,
+  "James Watt": 58637,
+  "Jawaharlal Nehru": 574091,
+  "Jean Moulin": 16325,
+  "Jean-Jacques Rousseau": 139820,
+  "Jeff Bezos": 257642,
+  "Jesus": 16003065,
+  "Joan of Arc": 1251446,
+  "Johann Sebastian Bach": 1209713,
+  "Johannes Gutenberg": 269001,
+  "Johannes Kepler": 222135,
+  "John Calvin": 460428,
+  "John D. Rockefeller": 136437,
+  "John Dalton": 19433,
+  "John F. Kennedy": 990710,
+  "John Lennon": 1307013,
+  "Joseph Stalin": 3640667,
+  "Julius Caesar": 645515,
+  "Justinian I": 165673,
+  "Karl Marx": 1485438,
+  "Khufu": 70748,
+  "Kim Il Sung": 165079,
+  "Kim Jong Il": 583673,
+  "Kim Jong Un": 1314670,
+  "Konrad Adenauer": 100591,
+  "Laozi": 200862,
+  "Larry Page": 94381,
+  "Leon Trotsky": 309098,
+  "Leonardo da Vinci": 708118,
+  "Leonhard Euler": 135965,
+  "Leonidas I": 53538,
+  "Louis XIV": 353526,
+  "Ludwig van Beethoven": 778310,
+  "Mahatma Gandhi": 2166309,
+  "Mahavira": 255715,
+  "Malcolm X": 985361,
+  "Mani (prophet)": 51254,
+  "Mansa Musa": 118838,
+  "Mao Zedong": 1201663,
+  "Marco Polo": 867465,
+  "Marcus Licinius Crassus": 33003,
+  "Margaret Thatcher": 1640339,
+  "Marie Antoinette": 468747,
+  "Marie Curie": 599040,
+  "Mark Antony": 241927,
+  "Mark Zuckerberg": 491939,
+  "Martin Luther": 2475176,
+  "Martin Luther King Jr.": 1186359,
+  "Mauricio Macri": 88887,
+  "Max Planck": 65276,
+  "Maximilien Robespierre": 267505,
+  "Mencius": 21886,
+  "Menes": 22208,
+  "Michael Faraday": 80805,
+  "Michael Jackson": 6148254,
+  "Michel Temer": 45491,
+  "Michelangelo": 204680,
+  "Mikhail Gorbachev": 178527,
+  "Mohammed VI of Morocco": 16364,
+  "Moses": 815396,
+  "Muammar Gaddafi": 1003562,
+  "Muhammad": 13334532,
+  "Muhammad Ali": 602161,
+  "Muhammad Ali Jinnah": 556839,
+  "Mustafa Kemal Atatürk": 1417758,
+  "Napoleon": 1471609,
+  "Nefertiti": 38303,
+  "Nelson Mandela": 716341,
+  "Nero": 293181,
+  "Neville Chamberlain": 123940,
+  "Niccolò Machiavelli": 192018,
+  "Nicholas II": 320867,
+  "Nicolas Sarkozy": 226954,
+  "Nicolaus Otto": 16291,
+  "Nikola Tesla": 3796046,
+  "Osama bin Laden": 1480601,
+  "Pablo Escobar": 101955,
+  "Pablo Picasso": 239609,
+  "Paul the Apostle": 1027005,
+  "Paul von Hindenburg": 45899,
+  "Peter the Great": 65224,
+  "Philippe Pétain": 95067,
+  "Philippe of Belgium": 35524,
+  "Plato": 371573,
+  "Pol Pot": 223433,
+  "Pompey": 68618,
+  "Pope Urban II": 14366,
+  "Pythagoras": 203126,
+  "Qin Shi Huang": 121286,
+  "Queen Victoria": 487163,
+  "Ram Nath Kovind": 15274,
+  "Ramesses II": 155368,
+  "Ramzan Kadyrov": 66926,
+  "Recep Tayyip Erdoğan": 379005,
+  "René Descartes": 170336,
+  "Robert Mugabe": 516013,
+  "Ronald Reagan": 3302439,
+  "Saddam Hussein": 1621827,
+  "Satoshi Nakamoto": 267017,
+  "Scipio Africanus": 44583,
+  "Sergey Brin": 112843,
+  "Shaka": 89917,
+  "Sigmund Freud": 1745588,
+  "Silvio Berlusconi": 518247,
+  "Simón Bolívar": 152867,
+  "Sneferu": 3827,
+  "Socrates": 454505,
+  "Spartacus": 125454,
+  "Stephen Hawking": 554383,
+  "Stephen King": 317422,
+  "Steve Jobs": 858921,
+  "Suleiman the Magnificent": 88357,
+  "Sulla": 133804,
+  "The Buddha": 2000159,
+  "Theodore Roosevelt": 708345,
+  "Thomas Edison": 459032,
+  "Thomas Jefferson": 7193137,
+  "Thomas Robert Malthus": 75585,
+  "Tiberius": 120023,
+  "Titus": 26961,
+  "Tutankhamun": 552403,
+  "Umar": 549568,
+  "Vasco da Gama": 87074,
+  "Vespasian": 27361,
+  "Vincent van Gogh": 1021854,
+  "Vitalik Buterin": 48217,
+  "Vlad the Impaler": 351913,
+  "Vladimir Lenin": 1387172,
+  "Vladimir Putin": 2984956,
+  "Voltaire": 259181,
+  "Warren Buffett": 248298,
+  "Werner Heisenberg": 65390,
+  "Wilhelm II": 282247,
+  "Wilhelm Röntgen": 16622,
+  "William Harvey": 29398,
+  "William Shakespeare": 2320315,
+  "William T. G. Morton": 8247,
+  "William Wallace": 178989,
+  "William the Conqueror": 398360,
+  "Winston Churchill": 1552763,
+  "Wolfgang Amadeus Mozart": 1122509,
+  "Xi Jinping": 311340,
+  "Yahya Khan": 26449,
+  "Zoroaster": 289278
+ },
+ "wikidata": {
+  "Q1001": {
+   "born": 1869,
+   "died": 1948,
+   "has_death_claim": true,
+   "sitelinks": 208
+  },
+  "Q10261": {
+   "born": -582,
+   "died": -500,
+   "has_death_claim": true,
+   "sitelinks": 160
+  },
+  "Q1035": {
+   "born": 1809,
+   "died": 1882,
+   "has_death_claim": true,
+   "sitelinks": 213
+  },
+  "Q1047": {
+   "born": 1889,
+   "died": 1964,
+   "has_death_claim": true,
+   "sitelinks": 154
+  },
+  "Q1048": {
+   "born": -100,
+   "died": -44,
+   "has_death_claim": true,
+   "sitelinks": 217
+  },
+  "Q10664": {
+   "born": 1869,
+   "died": 1940,
+   "has_death_claim": true,
+   "sitelinks": 96
+  },
+  "Q10665": {
+   "born": 1941,
+   "died": 2011,
+   "has_death_claim": true,
+   "sitelinks": 120
+  },
+  "Q10707": {
+   "born": 1924,
+   "died": 2019,
+   "has_death_claim": true,
+   "sitelinks": 121
+  },
+  "Q11256": {
+   "born": 1926,
+   "died": 2016,
+   "has_death_claim": true,
+   "sitelinks": 157
+  },
+  "Q1137062": {
+   "born": 1964,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 80
+  },
+  "Q11812": {
+   "born": 1743,
+   "died": 1826,
+   "has_death_claim": true,
+   "sitelinks": 165
+  },
+  "Q11860": {
+   "born": 1936,
+   "died": 2023,
+   "has_death_claim": true,
+   "sitelinks": 131
+  },
+  "Q1203": {
+   "born": 1940,
+   "died": 1980,
+   "has_death_claim": true,
+   "sitelinks": 143
+  },
+  "Q12154": {
+   "born": -1343,
+   "died": -1324,
+   "has_death_claim": true,
+   "sitelinks": 113
+  },
+  "Q122553": {
+   "born": 1630,
+   "died": 1685,
+   "has_death_claim": true,
+   "sitelinks": 87
+  },
+  "Q125414": {
+   "born": -106,
+   "died": -48,
+   "has_death_claim": true,
+   "sitelinks": 88
+  },
+  "Q131171": {
+   "born": null,
+   "died": null,
+   "has_death_claim": true,
+   "sitelinks": 74
+  },
+  "Q1316": {
+   "born": 1937,
+   "died": 2006,
+   "has_death_claim": true,
+   "sitelinks": 136
+  },
+  "Q1317": {
+   "born": 1957,
+   "died": 2011,
+   "has_death_claim": true,
+   "sitelinks": 150
+  },
+  "Q13382352": {
+   "born": null,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 60
+  },
+  "Q1339": {
+   "born": 1685,
+   "died": 1750,
+   "has_death_claim": true,
+   "sitelinks": 223
+  },
+  "Q13526": {
+   "born": 1766,
+   "died": 1834,
+   "has_death_claim": true,
+   "sitelinks": 89
+  },
+  "Q1394": {
+   "born": 1870,
+   "died": 1924,
+   "has_death_claim": true,
+   "sitelinks": 213
+  },
+  "Q1399": {
+   "born": 1469,
+   "died": 1527,
+   "has_death_claim": true,
+   "sitelinks": 158
+  },
+  "Q1405": {
+   "born": -63,
+   "died": 14,
+   "has_death_claim": true,
+   "sitelinks": 214
+  },
+  "Q1407": {
+   "born": -42,
+   "died": 37,
+   "has_death_claim": true,
+   "sitelinks": 104
+  },
+  "Q1409": {
+   "born": 12,
+   "died": 41,
+   "has_death_claim": true,
+   "sitelinks": 116
+  },
+  "Q1411": {
+   "born": -10,
+   "died": 54,
+   "has_death_claim": true,
+   "sitelinks": 97
+  },
+  "Q1413": {
+   "born": 37,
+   "died": 68,
+   "has_death_claim": true,
+   "sitelinks": 113
+  },
+  "Q1419": {
+   "born": 9,
+   "died": 79,
+   "has_death_claim": true,
+   "sitelinks": 91
+  },
+  "Q1421": {
+   "born": 39,
+   "died": 81,
+   "has_death_claim": true,
+   "sitelinks": 90
+  },
+  "Q15031": {
+   "born": 1953,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 160
+  },
+  "Q1523": {
+   "born": -1303,
+   "died": -1213,
+   "has_death_claim": true,
+   "sitelinks": 99
+  },
+  "Q153899": {
+   "born": 1881,
+   "died": 1922,
+   "has_death_claim": true,
+   "sitelinks": 65
+  },
+  "Q1541": {
+   "born": -106,
+   "died": -43,
+   "has_death_claim": true,
+   "sitelinks": 135
+  },
+  "Q155004": {
+   "born": 1960,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 87
+  },
+  "Q15869": {
+   "born": 1946,
+   "died": 1991,
+   "has_death_claim": true,
+   "sitelinks": 152
+  },
+  "Q160278": {
+   "born": 1839,
+   "died": 1937,
+   "has_death_claim": true,
+   "sitelinks": 83
+  },
+  "Q160554": {
+   "born": 1876,
+   "died": 1948,
+   "has_death_claim": true,
+   "sitelinks": 99
+  },
+  "Q160847": {
+   "born": 1884,
+   "died": 1948,
+   "has_death_claim": true,
+   "sitelinks": 76
+  },
+  "Q161904": {
+   "born": null,
+   "died": -2566,
+   "has_death_claim": true,
+   "sitelinks": 79
+  },
+  "Q16197959": {
+   "born": 1994,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 36
+  },
+  "Q16574": {
+   "born": 1887,
+   "died": 1975,
+   "has_death_claim": true,
+   "sitelinks": 126
+  },
+  "Q16845347": {
+   "born": 1945,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 82
+  },
+  "Q16867": {
+   "born": 1809,
+   "died": 1849,
+   "has_death_claim": true,
+   "sitelinks": 155
+  },
+  "Q175121": {
+   "born": -115,
+   "died": -53,
+   "has_death_claim": true,
+   "sitelinks": 69
+  },
+  "Q17714": {
+   "born": 1942,
+   "died": 2018,
+   "has_death_claim": true,
+   "sitelinks": 154
+  },
+  "Q179577": {
+   "born": 1500,
+   "died": 1533,
+   "has_death_claim": true,
+   "sitelinks": 70
+  },
+  "Q185101": {
+   "born": -275,
+   "died": -228,
+   "has_death_claim": true,
+   "sitelinks": 59
+  },
+  "Q187447": {
+   "born": 1949,
+   "died": 1993,
+   "has_death_claim": true,
+   "sitelinks": 101
+  },
+  "Q188903": {
+   "born": -372,
+   "died": -289,
+   "has_death_claim": true,
+   "sitelinks": 76
+  },
+  "Q189371": {
+   "born": null,
+   "died": -2609,
+   "has_death_claim": true,
+   "sitelinks": 60
+  },
+  "Q189574": {
+   "born": null,
+   "died": -3125,
+   "has_death_claim": true,
+   "sitelinks": 63
+  },
+  "Q191045": {
+   "born": 1968,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 109
+  },
+  "Q19837": {
+   "born": 1955,
+   "died": 2011,
+   "has_death_claim": true,
+   "sitelinks": 173
+  },
+  "Q19878": {
+   "born": 1942,
+   "died": 2011,
+   "has_death_claim": true,
+   "sitelinks": 146
+  },
+  "Q203922": {
+   "born": 216,
+   "died": 274,
+   "has_death_claim": true,
+   "sitelinks": 70
+  },
+  "Q2042": {
+   "born": 1890,
+   "died": 1970,
+   "has_death_claim": true,
+   "sitelinks": 174
+  },
+  "Q207": {
+   "born": 1946,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 216
+  },
+  "Q213518": {
+   "born": 1680,
+   "died": 1718,
+   "has_death_claim": true,
+   "sitelinks": 64
+  },
+  "Q217115": {
+   "born": 1976,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 73
+  },
+  "Q2253": {
+   "born": -235,
+   "died": -183,
+   "has_death_claim": true,
+   "sitelinks": 68
+  },
+  "Q22686": {
+   "born": 1946,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 262
+  },
+  "Q229235": {
+   "born": 48,
+   "died": 121,
+   "has_death_claim": true,
+   "sitelinks": 73
+  },
+  "Q23": {
+   "born": 1732,
+   "died": 1799,
+   "has_death_claim": true,
+   "sitelinks": 217
+  },
+  "Q23505": {
+   "born": 1924,
+   "died": 2018,
+   "has_death_claim": true,
+   "sitelinks": 159
+  },
+  "Q23559": {
+   "born": 1883,
+   "died": 1945,
+   "has_death_claim": true,
+   "sitelinks": 155
+  },
+  "Q23810": {
+   "born": 1833,
+   "died": 1896,
+   "has_death_claim": true,
+   "sitelinks": 163
+  },
+  "Q2492": {
+   "born": 1876,
+   "died": 1967,
+   "has_death_claim": true,
+   "sitelinks": 119
+  },
+  "Q254": {
+   "born": 1756,
+   "died": 1791,
+   "has_death_claim": true,
+   "sitelinks": 231
+  },
+  "Q255": {
+   "born": 1770,
+   "died": 1827,
+   "has_death_claim": true,
+   "sitelinks": 219
+  },
+  "Q2667": {
+   "born": 1847,
+   "died": 1934,
+   "has_death_claim": true,
+   "sitelinks": 91
+  },
+  "Q2677": {
+   "born": 1859,
+   "died": 1941,
+   "has_death_claim": true,
+   "sitelinks": 109
+  },
+  "Q27695": {
+   "born": 1787,
+   "died": 1828,
+   "has_death_claim": true,
+   "sitelinks": 96
+  },
+  "Q2831": {
+   "born": 1958,
+   "died": 2009,
+   "has_death_claim": true,
+   "sitelinks": 282
+  },
+  "Q302": {
+   "born": -7,
+   "died": 30,
+   "has_death_claim": true,
+   "sitelinks": 282
+  },
+  "Q303": {
+   "born": 1935,
+   "died": 1977,
+   "has_death_claim": true,
+   "sitelinks": 189
+  },
+  "Q3044": {
+   "born": 748,
+   "died": 814,
+   "has_death_claim": true,
+   "sitelinks": 168
+  },
+  "Q30487": {
+   "born": 1931,
+   "died": 2022,
+   "has_death_claim": true,
+   "sitelinks": 160
+  },
+  "Q3052772": {
+   "born": 1977,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 167
+  },
+  "Q30578": {
+   "born": 1035,
+   "died": 1099,
+   "has_death_claim": true,
+   "sitelinks": 89
+  },
+  "Q307": {
+   "born": 1564,
+   "died": 1642,
+   "has_death_claim": true,
+   "sitelinks": 210
+  },
+  "Q309333": {
+   "born": 1280,
+   "died": 1337,
+   "has_death_claim": true,
+   "sitelinks": 79
+  },
+  "Q312015": {
+   "born": 1974,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 85
+  },
+  "Q312556": {
+   "born": 1964,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 100
+  },
+  "Q317521": {
+   "born": 1971,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 162
+  },
+  "Q319689": {
+   "born": 1819,
+   "died": 1868,
+   "has_death_claim": true,
+   "sitelinks": 40
+  },
+  "Q329": {
+   "born": 1955,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 153
+  },
+  "Q33391": {
+   "born": 1879,
+   "died": 1940,
+   "has_death_claim": true,
+   "sitelinks": 140
+  },
+  "Q333981": {
+   "born": 1917,
+   "died": 1980,
+   "has_death_claim": true,
+   "sitelinks": 58
+  },
+  "Q33866": {
+   "born": 1858,
+   "died": 1919,
+   "has_death_claim": true,
+   "sitelinks": 146
+  },
+  "Q34286": {
+   "born": 1847,
+   "died": 1922,
+   "has_death_claim": true,
+   "sitelinks": 135
+  },
+  "Q34479": {
+   "born": 1901,
+   "died": 1989,
+   "has_death_claim": true,
+   "sitelinks": 140
+  },
+  "Q35149": {
+   "born": 1845,
+   "died": 1923,
+   "has_death_claim": true,
+   "sitelinks": 142
+  },
+  "Q352": {
+   "born": 1889,
+   "died": 1945,
+   "has_death_claim": true,
+   "sitelinks": 248
+  },
+  "Q35811": {
+   "born": -628,
+   "died": -551,
+   "has_death_claim": true,
+   "sitelinks": 123
+  },
+  "Q36014": {
+   "born": 1890,
+   "died": 1969,
+   "has_death_claim": true,
+   "sitelinks": 129
+  },
+  "Q360145": {
+   "born": 1882,
+   "died": 1949,
+   "has_death_claim": true,
+   "sitelinks": 35
+  },
+  "Q36107": {
+   "born": 1942,
+   "died": 2016,
+   "has_death_claim": true,
+   "sitelinks": 140
+  },
+  "Q36215": {
+   "born": 1984,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 144
+  },
+  "Q36456": {
+   "born": -247,
+   "died": -183,
+   "has_death_claim": true,
+   "sitelinks": 116
+  },
+  "Q36488": {
+   "born": 1874,
+   "died": 1937,
+   "has_death_claim": true,
+   "sitelinks": 119
+  },
+  "Q36724": {
+   "born": 395,
+   "died": 453,
+   "has_death_claim": true,
+   "sitelinks": 107
+  },
+  "Q368": {
+   "born": 1915,
+   "died": 2006,
+   "has_death_claim": true,
+   "sitelinks": 103
+  },
+  "Q37064": {
+   "born": 1881,
+   "died": 1955,
+   "has_death_claim": true,
+   "sitelinks": 118
+  },
+  "Q37388": {
+   "born": 1561,
+   "died": 1626,
+   "has_death_claim": true,
+   "sitelinks": 119
+  },
+  "Q37577": {
+   "born": 1509,
+   "died": 1564,
+   "has_death_claim": true,
+   "sitelinks": 112
+  },
+  "Q37594": {
+   "born": 1028,
+   "died": 1087,
+   "has_death_claim": true,
+   "sitelinks": 108
+  },
+  "Q39259": {
+   "born": 1954,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 149
+  },
+  "Q39464": {
+   "born": 1925,
+   "died": 1998,
+   "has_death_claim": true,
+   "sitelinks": 115
+  },
+  "Q39607": {
+   "born": 1743,
+   "died": 1794,
+   "has_death_claim": true,
+   "sitelinks": 111
+  },
+  "Q39829": {
+   "born": 1947,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 115
+  },
+  "Q40787": {
+   "born": 1868,
+   "died": 1918,
+   "has_death_claim": true,
+   "sitelinks": 114
+  },
+  "Q40852": {
+   "born": 1749,
+   "died": 1823,
+   "has_death_claim": true,
+   "sitelinks": 102
+  },
+  "Q40904": {
+   "born": 1901,
+   "died": 1976,
+   "has_death_claim": true,
+   "sitelinks": 114
+  },
+  "Q40930": {
+   "born": -1370,
+   "died": -1330,
+   "has_death_claim": true,
+   "sitelinks": 101
+  },
+  "Q41117": {
+   "born": 1912,
+   "died": 1994,
+   "has_death_claim": true,
+   "sitelinks": 141
+  },
+  "Q41284": {
+   "born": 1766,
+   "died": 1844,
+   "has_death_claim": true,
+   "sitelinks": 105
+  },
+  "Q41370": {
+   "born": -1039,
+   "died": -969,
+   "has_death_claim": true,
+   "sitelinks": 112
+  },
+  "Q41866": {
+   "born": 482,
+   "died": 565,
+   "has_death_claim": true,
+   "sitelinks": 104
+  },
+  "Q43303": {
+   "born": 1925,
+   "died": 1965,
+   "has_death_claim": true,
+   "sitelinks": 100
+  },
+  "Q43499": {
+   "born": 1466,
+   "died": 1536,
+   "has_death_claim": true,
+   "sitelinks": 104
+  },
+  "Q43715": {
+   "born": 1431,
+   "died": 1476,
+   "has_death_claim": true,
+   "sitelinks": 84
+  },
+  "Q43723": {
+   "born": 1949,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 133
+  },
+  "Q43963": {
+   "born": null,
+   "died": null,
+   "has_death_claim": true,
+   "sitelinks": 82
+  },
+  "Q44197": {
+   "born": 1758,
+   "died": 1794,
+   "has_death_claim": true,
+   "sitelinks": 101
+  },
+  "Q44228": {
+   "born": null,
+   "died": -480,
+   "has_death_claim": true,
+   "sitelinks": 75
+  },
+  "Q44329": {
+   "born": 1965,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 123
+  },
+  "Q44741": {
+   "born": 1478,
+   "died": 1541,
+   "has_death_claim": true,
+   "sitelinks": 87
+  },
+  "Q45859": {
+   "born": 1451,
+   "died": 1504,
+   "has_death_claim": true,
+   "sitelinks": 97
+  },
+  "Q4604": {
+   "born": -551,
+   "died": -479,
+   "has_death_claim": true,
+   "sitelinks": 239
+  },
+  "Q463533": {
+   "born": 1940,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 77
+  },
+  "Q47213": {
+   "born": 1930,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 104
+  },
+  "Q47365": {
+   "born": 1755,
+   "died": 1793,
+   "has_death_claim": true,
+   "sitelinks": 104
+  },
+  "Q48231": {
+   "born": 1925,
+   "died": 2003,
+   "has_death_claim": true,
+   "sitelinks": 102
+  },
+  "Q483783": {
+   "born": -138,
+   "died": -78,
+   "has_death_claim": true,
+   "sitelinks": 68
+  },
+  "Q4934": {
+   "born": 1973,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 93
+  },
+  "Q5152": {
+   "born": 1881,
+   "died": 1938,
+   "has_death_claim": true,
+   "sitelinks": 212
+  },
+  "Q51673": {
+   "born": -83,
+   "died": -30,
+   "has_death_claim": true,
+   "sitelinks": 92
+  },
+  "Q517": {
+   "born": 1769,
+   "died": 1821,
+   "has_death_claim": true,
+   "sitelinks": 221
+  },
+  "Q5284": {
+   "born": 1955,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 180
+  },
+  "Q5582": {
+   "born": 1853,
+   "died": 1890,
+   "has_death_claim": true,
+   "sitelinks": 218
+  },
+  "Q5592": {
+   "born": 1475,
+   "died": 1564,
+   "has_death_claim": true,
+   "sitelinks": 215
+  },
+  "Q5593": {
+   "born": 1881,
+   "died": 1973,
+   "has_death_claim": true,
+   "sitelinks": 212
+  },
+  "Q561837": {
+   "born": 1959,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 75
+  },
+  "Q56226": {
+   "born": 1984,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 146
+  },
+  "Q567": {
+   "born": 1954,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 174
+  },
+  "Q5686": {
+   "born": 1812,
+   "died": 1870,
+   "has_death_claim": true,
+   "sitelinks": 177
+  },
+  "Q5721": {
+   "born": 1856,
+   "died": 1951,
+   "has_death_claim": true,
+   "sitelinks": 85
+  },
+  "Q57336": {
+   "born": 1939,
+   "died": 2026,
+   "has_death_claim": true,
+   "sitelinks": 135
+  },
+  "Q57553": {
+   "born": 1963,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 93
+  },
+  "Q5809": {
+   "born": 1928,
+   "died": 1967,
+   "has_death_claim": true,
+   "sitelinks": 176
+  },
+  "Q5816": {
+   "born": 1893,
+   "died": 1976,
+   "has_death_claim": true,
+   "sitelinks": 185
+  },
+  "Q6101": {
+   "born": 1254,
+   "died": 1324,
+   "has_death_claim": true,
+   "sitelinks": 184
+  },
+  "Q6294": {
+   "born": 1947,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 148
+  },
+  "Q632": {
+   "born": 1899,
+   "died": 1943,
+   "has_death_claim": true,
+   "sitelinks": 41
+  },
+  "Q635": {
+   "born": -69,
+   "died": -30,
+   "has_death_claim": true,
+   "sitelinks": 157
+  },
+  "Q6527": {
+   "born": 1712,
+   "died": 1778,
+   "has_death_claim": true,
+   "sitelinks": 162
+  },
+  "Q6691": {
+   "born": null,
+   "died": null,
+   "has_death_claim": true,
+   "sitelinks": 199
+  },
+  "Q692": {
+   "born": 1564,
+   "died": 1616,
+   "has_death_claim": true,
+   "sitelinks": 237
+  },
+  "Q7186": {
+   "born": 1867,
+   "died": 1934,
+   "has_death_claim": true,
+   "sitelinks": 197
+  },
+  "Q7192": {
+   "born": -259,
+   "died": -210,
+   "has_death_claim": true,
+   "sitelinks": 185
+  },
+  "Q720": {
+   "born": 1162,
+   "died": 1227,
+   "has_death_claim": true,
+   "sitelinks": 181
+  },
+  "Q7207": {
+   "born": 1533,
+   "died": 1603,
+   "has_death_claim": true,
+   "sitelinks": 159
+  },
+  "Q7210": {
+   "born": -256,
+   "died": -195,
+   "has_death_claim": true,
+   "sitelinks": 61
+  },
+  "Q7226": {
+   "born": 1412,
+   "died": 1431,
+   "has_death_claim": true,
+   "sitelinks": 161
+  },
+  "Q7251": {
+   "born": 1912,
+   "died": 1954,
+   "has_death_claim": true,
+   "sitelinks": 165
+  },
+  "Q7322": {
+   "born": 1451,
+   "died": 1506,
+   "has_death_claim": true,
+   "sitelinks": 215
+  },
+  "Q7326": {
+   "born": 1485,
+   "died": 1547,
+   "has_death_claim": true,
+   "sitelinks": 155
+  },
+  "Q7328": {
+   "born": 1469,
+   "died": 1524,
+   "has_death_claim": true,
+   "sitelinks": 173
+  },
+  "Q7416": {
+   "born": 1925,
+   "died": 2013,
+   "has_death_claim": true,
+   "sitelinks": 156
+  },
+  "Q7418": {
+   "born": 541,
+   "died": 604,
+   "has_death_claim": true,
+   "sitelinks": 41
+  },
+  "Q75782": {
+   "born": 1832,
+   "died": 1891,
+   "has_death_claim": true,
+   "sitelinks": 64
+  },
+  "Q76": {
+   "born": 1961,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 256
+  },
+  "Q7604": {
+   "born": 1707,
+   "died": 1783,
+   "has_death_claim": true,
+   "sitelinks": 165
+  },
+  "Q762": {
+   "born": 1452,
+   "died": 1519,
+   "has_death_claim": true,
+   "sitelinks": 243
+  },
+  "Q7742": {
+   "born": 1638,
+   "died": 1715,
+   "has_death_claim": true,
+   "sitelinks": 146
+  },
+  "Q7747": {
+   "born": 1952,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 233
+  },
+  "Q80048": {
+   "born": 1899,
+   "died": 1947,
+   "has_death_claim": true,
+   "sitelinks": 84
+  },
+  "Q8007": {
+   "born": 1882,
+   "died": 1945,
+   "has_death_claim": true,
+   "sitelinks": 190
+  },
+  "Q8016": {
+   "born": 1874,
+   "died": 1965,
+   "has_death_claim": true,
+   "sitelinks": 183
+  },
+  "Q8018": {
+   "born": 354,
+   "died": 430,
+   "has_death_claim": true,
+   "sitelinks": 165
+  },
+  "Q8023": {
+   "born": 1918,
+   "died": 2013,
+   "has_death_claim": true,
+   "sitelinks": 234
+  },
+  "Q8027": {
+   "born": 1929,
+   "died": 1968,
+   "has_death_claim": true,
+   "sitelinks": 187
+  },
+  "Q81506": {
+   "born": 1600,
+   "died": 1649,
+   "has_death_claim": true,
+   "sitelinks": 98
+  },
+  "Q82339": {
+   "born": 466,
+   "died": 511,
+   "has_death_claim": true,
+   "sitelinks": 87
+  },
+  "Q82457": {
+   "born": 1270,
+   "died": 1305,
+   "has_death_claim": true,
+   "sitelinks": 82
+  },
+  "Q83406": {
+   "born": -103,
+   "died": -71,
+   "has_death_claim": true,
+   "sitelinks": 86
+  },
+  "Q83476": {
+   "born": 849,
+   "died": 899,
+   "has_death_claim": true,
+   "sitelinks": 93
+  },
+  "Q8409": {
+   "born": -356,
+   "died": -323,
+   "has_death_claim": true,
+   "sitelinks": 220
+  },
+  "Q8413": {
+   "born": 272,
+   "died": 337,
+   "has_death_claim": true,
+   "sitelinks": 141
+  },
+  "Q8423": {
+   "born": -600,
+   "died": -530,
+   "has_death_claim": true,
+   "sitelinks": 136
+  },
+  "Q8440": {
+   "born": 1954,
+   "died": 2013,
+   "has_death_claim": true,
+   "sitelinks": 142
+  },
+  "Q8467": {
+   "born": 586,
+   "died": 644,
+   "has_death_claim": true,
+   "sitelinks": 139
+  },
+  "Q8474": {
+   "born": 1494,
+   "died": 1566,
+   "has_death_claim": true,
+   "sitelinks": 137
+  },
+  "Q8479": {
+   "born": 1672,
+   "died": 1725,
+   "has_death_claim": true,
+   "sitelinks": 158
+  },
+  "Q855": {
+   "born": 1878,
+   "died": 1953,
+   "has_death_claim": true,
+   "sitelinks": 210
+  },
+  "Q8589": {
+   "born": -304,
+   "died": -232,
+   "has_death_claim": true,
+   "sitelinks": 164
+  },
+  "Q859": {
+   "born": -427,
+   "died": -347,
+   "has_death_claim": true,
+   "sitelinks": 220
+  },
+  "Q8605": {
+   "born": 1783,
+   "died": 1830,
+   "has_death_claim": true,
+   "sitelinks": 154
+  },
+  "Q868": {
+   "born": -384,
+   "died": -322,
+   "has_death_claim": true,
+   "sitelinks": 232
+  },
+  "Q8743": {
+   "born": 1847,
+   "died": 1931,
+   "has_death_claim": true,
+   "sitelinks": 193
+  },
+  "Q8747": {
+   "born": -323,
+   "died": -285,
+   "has_death_claim": true,
+   "sitelinks": 169
+  },
+  "Q8750": {
+   "born": 1791,
+   "died": 1867,
+   "has_death_claim": true,
+   "sitelinks": 154
+  },
+  "Q8768": {
+   "born": 1863,
+   "died": 1947,
+   "has_death_claim": true,
+   "sitelinks": 155
+  },
+  "Q892": {
+   "born": 1892,
+   "died": 1973,
+   "has_death_claim": true,
+   "sitelinks": 163
+  },
+  "Q8958": {
+   "born": 1400,
+   "died": 1468,
+   "has_death_claim": true,
+   "sitelinks": 168
+  },
+  "Q8963": {
+   "born": 1571,
+   "died": 1630,
+   "has_death_claim": true,
+   "sitelinks": 153
+  },
+  "Q9021": {
+   "born": 1858,
+   "died": 1947,
+   "has_death_claim": true,
+   "sitelinks": 149
+  },
+  "Q9036": {
+   "born": 1856,
+   "died": 1943,
+   "has_death_claim": true,
+   "sitelinks": 175
+  },
+  "Q9041": {
+   "born": 1736,
+   "died": 1819,
+   "has_death_claim": true,
+   "sitelinks": 147
+  },
+  "Q9061": {
+   "born": 1818,
+   "died": 1883,
+   "has_death_claim": true,
+   "sitelinks": 215
+  },
+  "Q9068": {
+   "born": 1694,
+   "died": 1778,
+   "has_death_claim": true,
+   "sitelinks": 179
+  },
+  "Q9077": {
+   "born": -1393,
+   "died": -1273,
+   "has_death_claim": true,
+   "sitelinks": 169
+  },
+  "Q9095": {
+   "born": 1831,
+   "died": 1879,
+   "has_death_claim": true,
+   "sitelinks": 139
+  },
+  "Q91": {
+   "born": 1809,
+   "died": 1865,
+   "has_death_claim": true,
+   "sitelinks": 208
+  },
+  "Q9123": {
+   "born": 1871,
+   "died": 1937,
+   "has_death_claim": true,
+   "sitelinks": 143
+  },
+  "Q913": {
+   "born": -470,
+   "died": -399,
+   "has_death_claim": true,
+   "sitelinks": 205
+  },
+  "Q9181": {
+   "born": -1813,
+   "died": -1638,
+   "has_death_claim": true,
+   "sitelinks": 176
+  },
+  "Q9191": {
+   "born": 1596,
+   "died": 1650,
+   "has_death_claim": true,
+   "sitelinks": 182
+  },
+  "Q9200": {
+   "born": 5,
+   "died": 66,
+   "has_death_claim": true,
+   "sitelinks": 154
+  },
+  "Q9215": {
+   "born": 1856,
+   "died": 1939,
+   "has_death_claim": true,
+   "sitelinks": 192
+  },
+  "Q92764": {
+   "born": 1973,
+   "died": null,
+   "has_death_claim": false,
+   "sitelinks": 88
+  },
+  "Q93128": {
+   "born": 1578,
+   "died": 1657,
+   "has_death_claim": true,
+   "sitelinks": 83
+  },
+  "Q9333": {
+   "born": -604,
+   "died": null,
+   "has_death_claim": true,
+   "sitelinks": 153
+  },
+  "Q935": {
+   "born": 1642,
+   "died": 1727,
+   "has_death_claim": true,
+   "sitelinks": 238
+  },
+  "Q936976": {
+   "born": 1553,
+   "died": 1610,
+   "has_death_claim": true,
+   "sitelinks": 88
+  },
+  "Q937": {
+   "born": 1879,
+   "died": 1955,
+   "has_death_claim": true,
+   "sitelinks": 237
+  },
+  "Q9381": {
+   "born": 1723,
+   "died": 1790,
+   "has_death_claim": true,
+   "sitelinks": 170
+  },
+  "Q9422": {
+   "born": -599,
+   "died": -527,
+   "has_death_claim": true,
+   "sitelinks": 81
+  },
+  "Q9439": {
+   "born": 1819,
+   "died": 1901,
+   "has_death_claim": true,
+   "sitelinks": 152
+  },
+  "Q9441": {
+   "born": -563,
+   "died": -483,
+   "has_death_claim": true,
+   "sitelinks": 216
+  },
+  "Q9458": {
+   "born": 571,
+   "died": 632,
+   "has_death_claim": true,
+   "sitelinks": 229
+  },
+  "Q9554": {
+   "born": 1483,
+   "died": 1546,
+   "has_death_claim": true,
+   "sitelinks": 199
+  },
+  "Q9682": {
+   "born": 1926,
+   "died": 2022,
+   "has_death_claim": true,
+   "sitelinks": 215
+  },
+  "Q9696": {
+   "born": 1917,
+   "died": 1963,
+   "has_death_claim": true,
+   "sitelinks": 179
+  },
+  "Q9960": {
+   "born": 1911,
+   "died": 2004,
+   "has_death_claim": true,
+   "sitelinks": 250
+  }
+ },
+ "fetched": "2026-06-09"
+}

@@ -19,7 +19,7 @@
   function openDetail(f) {
     if (!f) return;
     var accent = window.rarityAccent(f), H = window.HCX;
-    var stats = [["Influence", f.stats.influence], ["Intellect", f.stats.intellect], ["Dominion", f.stats.dominion], ["Legacy", f.stats.legacy]];
+    var stats = [["Influence", f.stats.influence], ["Intellect", f.stats.intellect], ["Dominion", f.stats.dominion], ["Legacy", f.stats.legacy], ["Controversy", f.stats.controversy]];
     var overlay;
     function close() { if (overlay) overlay.remove(); document.removeEventListener("keydown", onKey); }
     function onKey(e) { if (e.key === "Escape") close(); }
@@ -35,7 +35,7 @@
             h("button", { onClick: close, style: { background: "none", border: "none", color: DIM, cursor: "pointer", font: "400 22px/1 " + MONO } }, "×")),
           h("h2", { style: { margin: "12px 0 4px", font: "700 30px/1.05 " + MONO, color: INK } }, f.name),
           h("div", { style: { font: "400 13px/1 " + SANS, color: DIM, marginBottom: f.bio ? "14px" : "20px" } },
-            (f.role ? f.role + " · " : "") + "Born " + H.eraLabel(f.born) + " · Human No. " + f.humanId),
+            (f.role ? f.role + " · " : "") + H.lifespan(f) + (f.era ? " · " + f.era : "") + " · Human No. " + f.humanId),
           f.bio ? h("p", { style: { margin: "0 0 20px", font: "400 13.5px/1.62 " + SANS, color: "#c3bdae" } }, f.bio) : null,
           h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 22px", marginBottom: "20px" } },
             stats.map(function (st) {
