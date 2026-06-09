@@ -169,7 +169,9 @@
     .chase-grid { grid-template-columns: repeat(4,1fr) !important; }
     .story-grid { grid-template-columns: 1fr 1fr !important; }
     .detail-modal { grid-template-columns: 1fr !important; }
-    .detail-modal > div:first-child { max-width: 260px; margin: 0 auto; }
+    /* explicit width: with margin:auto a grid item shrink-wraps, and the
+       card inside is width:100% of it — max-width alone collapses to 0 */
+    .detail-modal > div:first-child { width: 260px; max-width: 100%; margin: 0 auto; }
     .battle-row { grid-template-columns: 1fr !important; }
     .empty-preview-grid { grid-template-columns: 1fr 1fr !important; }
   }
@@ -177,8 +179,15 @@
     .tile-grid-3, .tile-grid-4, .chase-grid, .story-grid { grid-template-columns: 1fr !important; }
     .tl-row { grid-template-columns: 1fr 1fr !important; }
     .hero-cards { transform: scale(.78); }
+    .detail-overlay { padding: 12px !important; }
     .detail-modal { padding: 18px !important; gap: 18px !important; }
+    .detail-modal > div:first-child { width: 200px !important; max-width: 100% !important; margin: 0 auto; }
     .empty-preview-grid { grid-template-columns: 1fr 1fr !important; padding: 24px !important; gap: 16px !important; }
+    /* compact nav: keep logo + wallet + burger inside the viewport so the
+       layout viewport never widens (which shifted fixed overlays right) */
+    .logo-hcx { display: none !important; }
+    .logo-word { font-size: 15px !important; }
+    .nav-wallet button { padding: 8px 10px !important; font-size: 10.5px !important; letter-spacing: .06em !important; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
@@ -192,21 +201,21 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" integrity="sha384-Htz1SE4Sl5aitpvFgr2j0sfsGUIuSXI6t8hEyrlQ93zflEF3a29bH2AvkUROUw7J" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <!-- on-chain-safe data + card generators (plain JS, reused from the design bundle) -->
-<script src="assets/js/card-helpers.js?v=3"></script>
-<script src="assets/js/card-variants.js?v=3"></script>
-<script src="assets/js/bios.js?v=3"></script>
-<script src="assets/js/data.js?v=3"></script>
-<script src="assets/js/relationships.js?v=3"></script>
+<script src="assets/js/card-helpers.js?v=4"></script>
+<script src="assets/js/card-variants.js?v=4"></script>
+<script src="assets/js/bios.js?v=4"></script>
+<script src="assets/js/data.js?v=4"></script>
+<script src="assets/js/relationships.js?v=4"></script>
 
 <!-- vanilla port of the React prototype (no framework, no build step) -->
-<script src="assets/js/hcx-ui.js?v=3"></script>
-<script src="assets/js/hcx-chain.js?v=3"></script>
-<script src="assets/js/hcx-cards.js?v=3"></script>
-<script src="assets/js/hcx-nav.js?v=3"></script>
-<script src="assets/js/hcx-landing.js?v=3"></script>
-<script src="assets/js/hcx-pack.js?v=3"></script>
-<script src="assets/js/hcx-collection.js?v=3"></script>
-<script src="assets/js/hcx-games.js?v=3"></script>
-<script src="assets/js/hcx-app.js?v=3"></script>
+<script src="assets/js/hcx-ui.js?v=4"></script>
+<script src="assets/js/hcx-chain.js?v=4"></script>
+<script src="assets/js/hcx-cards.js?v=4"></script>
+<script src="assets/js/hcx-nav.js?v=4"></script>
+<script src="assets/js/hcx-landing.js?v=4"></script>
+<script src="assets/js/hcx-pack.js?v=4"></script>
+<script src="assets/js/hcx-collection.js?v=4"></script>
+<script src="assets/js/hcx-games.js?v=4"></script>
+<script src="assets/js/hcx-app.js?v=4"></script>
 </body>
 </html>

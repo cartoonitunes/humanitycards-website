@@ -23,10 +23,10 @@
     var overlay;
     function close() { if (overlay) overlay.remove(); document.removeEventListener("keydown", onKey); }
     function onKey(e) { if (e.key === "Escape") close(); }
-    overlay = h("div", { onClick: close, style: { position: "fixed", inset: 0, zIndex: 120, background: "rgba(6,6,9,.82)",
+    overlay = h("div", { onClick: close, className: "detail-overlay", style: { position: "fixed", inset: 0, zIndex: 120, background: "rgba(6,6,9,.82)",
       backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", animation: "fadeUp .22s ease" } },
       h("div", { onClick: function (e) { e.stopPropagation(); }, className: "detail-modal",
-        style: { display: "grid", gridTemplateColumns: "300px 1fr", gap: "30px", maxWidth: "760px", width: "100%",
+        style: { display: "grid", gridTemplateColumns: "300px 1fr", gap: "30px", maxWidth: "760px", width: "100%", margin: "0 auto",
           maxHeight: "min(88vh, 880px)", overflowY: "auto", WebkitOverflowScrolling: "touch",
           background: PANEL, border: "1px solid " + RULE, borderRadius: "12px", padding: "28px", boxShadow: "0 40px 100px -30px #000" } },
         h("div", null, window.Card({ figure: f, glow: true })),
