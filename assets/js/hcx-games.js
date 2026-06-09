@@ -71,16 +71,46 @@
       font: "400 13px/1 " + MONO, opacity: disabled ? 0.4 : 1 } }, ch);
   }
 
+  // Pick 5 figures with distinct birth years so the ordering is unambiguous.
+  function tlPickSet(rng) {
+    var pool = seededShuffle(window.HCX.FIGURES, rng);
+    var out = [], seen = {};
+    for (var i = 0; i < pool.length && out.length < 5; i++) {
+      if (!seen[pool[i].born]) { seen[pool[i].born] = true; out.push(pool[i]); }
+    }
+    return out;
+  }
+
   function TimelinePage() {
     var wallet = window.useWallet();
-    var base = window.HCX.TIMELINE_TODAY;
-    var solvedOrder = base.slice().sort(function (a, b) { return a.born - b.born; });
+    // Signed in: one shared, date-seeded puzzle (Wordle-style; streak saved).
+    // Signed out: FREE PLAY — a fresh random set every round, nothing saved,
+    // so the daily answer can't be previewed before signing in.
+    var daily = wallet.connected;
     var today = tlDateKey();
-    var saved = tlLoad(today);
-    var record = saved || { order: null, att: [], finished: false, solved: false };
-    var order = (saved && saved.order) ? saved.order.map(window.HCX.byId) : seededShuffle(base, window.HCX.seed(today + "-tl"));
-    var showResult = !!(saved && saved.finished);
+    var base, solvedOrder, record, order, showResult;
     var countdownTimer = null;
+
+    function setup() {
+      if (daily) {
+        base = tlPickSet(window.HCX.seed(today + "-tlset"));
+        var baseIds = {}; base.forEach(function (f) { baseIds[f.humanId] = 1; });
+        var saved = tlLoad(today);
+        var savedOk = saved && (!saved.order || (saved.order.length === base.length &&
+          saved.order.every(function (id) { return baseIds[id]; })));
+        record = savedOk ? saved : { order: null, att: [], finished: false, solved: false };
+        order = (savedOk && saved.order) ? saved.order.map(window.HCX.byId)
+              : seededShuffle(base, window.HCX.seed(today + "-tl"));
+        showResult = !!(savedOk && saved.finished);
+      } else {
+        base = tlPickSet(Math.random);
+        record = { order: null, att: [], finished: false, solved: false };
+        order = shuffle(base.slice());
+        showResult = false;
+      }
+      solvedOrder = base.slice().sort(function (a, b) { return a.born - b.born; });
+    }
+    setup();
 
     var host = h("div", null);
     function rr() { if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; } host.innerHTML = ""; host.appendChild(build()); }
@@ -92,7 +122,8 @@
       var t = order[i]; order[i] = order[j]; order[j] = t;
       showResult = false;
       record = Object.assign({}, record, { order: order.map(function (f) { return f.humanId; }) });
-      tlSave(today, record); rr();
+      if (daily) tlSave(today, record);
+      rr();
     }
     function lockIn() {
       var corr = correctness(order);
@@ -100,8 +131,9 @@
       var att = record.att.concat([corr]);
       var finished = isSolved || att.length >= TL_MAX;
       record = { order: order.map(function (f) { return f.humanId; }), att: att, finished: finished, solved: isSolved };
-      tlSave(today, record); showResult = true;
-      if (finished && tlGet("hcx_tl_last", "") !== today) {
+      if (daily) tlSave(today, record);
+      showResult = true;
+      if (daily && finished && tlGet("hcx_tl_last", "") !== today) {
         localStorage.setItem("hcx_tl_last", today);
         localStorage.setItem("hcx_tl_played", (+tlGet("hcx_tl_played", 0)) + 1);
         if (isSolved) {
@@ -119,27 +151,28 @@
       var lastScore = record.att.length ? record.att[record.att.length - 1].filter(Boolean).length : 0;
       var attemptsLeft = TL_MAX - record.att.length;
 
-      if (!wallet.connected) {
-        return GameShell({ kicker: "Daily Puzzle", title: "Timeline", body: "Order five figures by birth year. One shared puzzle a day — your streak is tracked." },
-          h("div", { style: { position: "relative", borderRadius: "12px", overflow: "hidden", border: "1px solid " + RULE } },
-            h("div", { style: { display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "16px", padding: "40px", filter: "blur(4px) saturate(.6)", opacity: 0.45, pointerEvents: "none" } },
-              base.map(function (f) { return window.Card({ figure: f, badge: false, glow: false }); })),
-            h("div", { style: { position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "24px",
-              background: "radial-gradient(60% 80% at 50% 50%, rgba(11,11,14,.55), rgba(11,11,14,.93))" } },
-              h("div", { style: { font: "700 30px/1 " + MONO, color: "#9c8cf0", marginBottom: "18px" } }, "⬡"),
-              window.Kicker({ color: "#9c8cf0" }, "Sign in to play"),
-              h("h2", { style: { margin: "16px 0 10px", font: "700 clamp(24px,4vw,34px)/1.1 " + MONO, color: INK, maxWidth: "20ch" } }, "The Daily keeps your streak"),
-              h("p", { style: { margin: "0 0 24px", maxWidth: "400px", font: "400 14px/1.6 " + SANS, color: DIM } }, "Connect your wallet to play today's puzzle. We track your attempts, win rate and day streak — one puzzle, four tries, fresh figures every day."),
-              window.Btn({ onClick: wallet.toggle }, "Connect Wallet to Play"),
-              stats.streak > 0 ? h("div", { style: { marginTop: "20px", font: "600 11px/1 " + MONO, letterSpacing: ".14em", color: DIM } }, "CURRENT STREAK · " + stats.streak + " DAYS") : null)));
-      }
+      var attemptChip = h("div", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: "10px" } },
+        h("span", { style: { font: "600 10.5px/1 " + MONO, letterSpacing: ".14em", color: DIM } }, record.finished ? "DONE" : "ATTEMPT " + (record.att.length + 1) + " / " + TL_MAX),
+        record.att.length > 0 ? TLPips(record.att[record.att.length - 1]) : null);
 
-      return GameShell({ kicker: "Daily Puzzle · " + new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" }), title: "Timeline", body: "Use the arrows to order these five, earliest birth on the left. Four tries — your streak's on the line." },
-        h("div", { style: { display: "flex", gap: "26px", flexWrap: "wrap", alignItems: "center", padding: "14px 20px", background: PANEL, border: "1px solid " + RULE, borderRadius: "9px", marginBottom: "26px" } },
-          tlStat("Streak", stats.streak), tlStat("Win Rate", stats.played ? Math.round(stats.wins / stats.played * 100) + "%" : "—"), tlStat("Played", stats.played),
-          h("div", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: "10px" } },
-            h("span", { style: { font: "600 10.5px/1 " + MONO, letterSpacing: ".14em", color: DIM } }, record.finished ? "DONE" : "ATTEMPT " + (record.att.length + 1) + " / " + TL_MAX),
-            record.att.length > 0 ? TLPips(record.att[record.att.length - 1]) : null)),
+      var headerBar = daily
+        ? h("div", { style: { display: "flex", gap: "26px", flexWrap: "wrap", alignItems: "center", padding: "14px 20px", background: PANEL, border: "1px solid " + RULE, borderRadius: "9px", marginBottom: "26px" } },
+            tlStat("Streak", stats.streak), tlStat("Win Rate", stats.played ? Math.round(stats.wins / stats.played * 100) + "%" : "—"), tlStat("Played", stats.played),
+            attemptChip)
+        : h("div", { style: { display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center", padding: "14px 20px", background: PANEL, border: "1px solid " + RULE, borderRadius: "9px", marginBottom: "26px" } },
+            h("div", null,
+              h("div", { style: { font: "700 13px/1 " + MONO, letterSpacing: ".1em", color: "#9c8cf0", marginBottom: "6px" } }, "FREE PLAY"),
+              h("div", { style: { font: "400 12.5px/1.5 " + SANS, color: DIM } }, "Random figures, new round every time, nothing saved. Connect for the shared daily and a streak.")),
+            h("div", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: "14px" } },
+              window.Btn({ size: "sm", variant: "ghost", onClick: wallet.toggle }, "Connect for the Daily"),
+              attemptChip));
+
+      return GameShell({
+        kicker: daily ? "Daily Puzzle · " + new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "Free Play",
+        title: "Timeline",
+        body: daily ? "Use the arrows to order these five, earliest birth on the left. Four tries — your streak's on the line."
+                    : "Use the arrows to order these five, earliest birth on the left. Four tries — then a fresh random round." },
+        headerBar,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", font: "600 11px/1 " + MONO, letterSpacing: ".14em", color: DIM, textTransform: "uppercase", marginBottom: "14px" } },
           h("span", null, "← Earliest"), h("span", null, "Latest →")),
         h("div", { className: "tl-row", style: { display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "16px" } },
@@ -173,10 +206,14 @@
             solved ? "Solved in " + attempts.length + (attempts.length === 1 ? " try" : " tries") : "Out of tries"),
           h("div", { style: { display: "flex", flexDirection: "column", gap: "6px", marginBottom: "6px" } }, attempts.map(function (a) { return TLPips(a); })),
           h("div", { style: { font: "400 13px/1.5 " + SANS, color: DIM } },
-            solved ? "Nicely done. Streak now " + stats.streak + "." : "The order is revealed above. Streak reset.")),
-        h("div", { style: { paddingLeft: "30px", borderLeft: "1px solid " + RULE } },
-          h("div", { style: { font: "600 10px/1 " + MONO, letterSpacing: ".16em", color: DIM, marginBottom: "10px" } }, "NEXT PUZZLE IN"),
-          TLCountdown()));
+            daily ? (solved ? "Nicely done. Streak now " + stats.streak + "." : "The order is revealed above. Streak reset.")
+                  : (solved ? "Nicely done. Deal another five?" : "The order is revealed above. No harm done — it's free play."))),
+        daily
+          ? h("div", { style: { paddingLeft: "30px", borderLeft: "1px solid " + RULE } },
+              h("div", { style: { font: "600 10px/1 " + MONO, letterSpacing: ".16em", color: DIM, marginBottom: "10px" } }, "NEXT PUZZLE IN"),
+              TLCountdown())
+          : h("div", { style: { paddingLeft: "30px", borderLeft: "1px solid " + RULE } },
+              window.Btn({ onClick: function () { setup(); rr(); } }, "New Round")));
     }
     function TLCountdown() {
       var span = h("span", { style: { font: "700 16px/1 " + MONO, color: INK, letterSpacing: ".06em" } }, "");
@@ -258,43 +295,80 @@
   }
 
   // ---- Draft ----
+  // Twelve cards, you keep five; the house drafts the best five of the seven
+  // you pass on. Highest total in the day's category wins, so you have to
+  // identify the top five — anything you leave behind is used against you.
+  var DRAFT_CATS = [["influence", "Influence", "INF"], ["intellect", "Intellect", "INT"],
+                    ["dominion", "Dominion", "DOM"], ["legacy", "Legacy", "LEG"],
+                    ["controversy", "Controversy", "CON"]];
   function DraftPage() {
     var wallet = window.useWallet();
-    var pool = shuffle(((wallet.connected && window.HCX.OWNED.length) ? window.HCX.OWNED : window.HCX.FIGURES).slice()).slice(0, 12);
-    var picked = [];
-    var CATEGORY = "Minds of the Enlightenment", target = 380;
+    var st;
     var host = h("div", null);
     function rr() { host.innerHTML = ""; host.appendChild(build()); }
+    function newGame() {
+      var cat = DRAFT_CATS[Math.floor(window.HCX.seed(tlDateKey() + "-draft")() * DRAFT_CATS.length)];
+      var pool = shuffle(((wallet.connected && window.HCX.OWNED.length >= 12) ? window.HCX.OWNED : window.HCX.FIGURES).slice()).slice(0, 12);
+      st = { cat: cat, pool: pool, picked: [], result: null };
+    }
+    function val(f) { return f.stats[st.cat[0]]; }
+    function sum(a) { return a.reduce(function (n, f) { return n + val(f); }, 0); }
     function toggle(f) {
-      var idx = picked.indexOf(f);
-      if (idx >= 0) picked.splice(idx, 1);
-      else if (picked.length < 5) picked.push(f);
+      if (st.result) return;
+      var i = st.picked.indexOf(f);
+      if (i >= 0) st.picked.splice(i, 1);
+      else if (st.picked.length < 5) st.picked.push(f);
+      rr();
+    }
+    function submit() {
+      if (st.picked.length < 5 || st.result) return;
+      var rest = st.pool.filter(function (f) { return st.picked.indexOf(f) < 0; })
+        .sort(function (a, b) { return val(b) - val(a); });
+      var house = rest.slice(0, 5);
+      st.result = { house: house, you: sum(st.picked), them: sum(house) };
       rr();
     }
     function build() {
-      var total = picked.reduce(function (n, f) { return n + f.stats.intellect; }, 0);
-      return GameShell({ kicker: "Council · Daily Category", title: "Draft", body: "Pick a five-figure council. Today they're scored on Intellect — beat the bar to place on the board." },
+      var total = sum(st.picked), r = st.result;
+      var verdict = r ? (r.you > r.them ? "win" : r.you === r.them ? "tie" : "loss") : null;
+      return GameShell({ kicker: "Council · Daily Category", title: "Draft",
+        body: "Twelve cards, you keep five — the house drafts the best of the seven you leave. Highest " + st.cat[1] + " total wins." },
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "14px", padding: "16px 20px", background: PANEL, border: "1px solid " + RULE, borderRadius: "9px", marginBottom: "24px" } },
           h("div", null, window.Kicker({ color: "#9c8cf0" }, "Today's brief"),
-            h("div", { style: { marginTop: "6px", font: "700 18px/1 " + MONO, color: INK } }, CATEGORY)),
+            h("div", { style: { marginTop: "6px", font: "700 18px/1 " + MONO, color: INK } }, "Highest total " + st.cat[1])),
           h("div", { style: { textAlign: "right" } },
-            h("div", { style: { font: "700 24px/1 " + MONO, color: total >= target ? "#5fae6e" : INK } }, total + " / " + target),
-            h("div", { style: { font: "600 10px/1.4 " + MONO, letterSpacing: ".14em", color: DIM, marginTop: "5px" } }, picked.length + "/5 CHOSEN · INTELLECT"))),
+            h("div", { style: { font: "700 24px/1 " + MONO, color: r ? (verdict === "win" ? "#5fae6e" : verdict === "tie" ? INK : "#d0563a") : INK } },
+              r ? "You " + r.you + " · House " + r.them : String(total)),
+            h("div", { style: { font: "600 10px/1.4 " + MONO, letterSpacing: ".14em", color: DIM, marginTop: "5px" } },
+              r ? st.cat[1].toUpperCase() + " TOTALS" : st.picked.length + "/5 CHOSEN · " + st.cat[1].toUpperCase()))),
         h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: "18px" } },
-          pool.map(function (f) {
-            var on = picked.indexOf(f) >= 0;
-            return h("div", { onClick: function () { toggle(f); },
-              style: { position: "relative", cursor: "pointer", borderRadius: "8px",
-                boxShadow: on ? "0 0 0 2px #9c8cf0, 0 0 26px -8px #9c8cf0" : "none", transition: "box-shadow .2s", opacity: (!on && picked.length >= 5) ? 0.5 : 1 } },
+          st.pool.map(function (f) {
+            var on = st.picked.indexOf(f) >= 0;
+            var houseHas = r && r.house.indexOf(f) >= 0;
+            var ring = on ? "0 0 0 2px #9c8cf0, 0 0 26px -8px #9c8cf0" : houseHas ? "0 0 0 2px #d0563a, 0 0 26px -8px #d0563a" : "none";
+            return h("div", { onClick: r ? null : function () { toggle(f); },
+              style: { position: "relative", cursor: r ? "default" : "pointer", borderRadius: "8px",
+                boxShadow: ring, transition: "box-shadow .2s", opacity: (r && !on && !houseHas) || (!r && !on && st.picked.length >= 5) ? 0.5 : 1 } },
               window.Card({ figure: f, badge: false, glow: false }),
               h("div", { style: { position: "absolute", left: 0, right: 0, bottom: 0, padding: "8px 10px", display: "flex", justifyContent: "space-between", alignItems: "center",
                 background: "linear-gradient(transparent,#000d)", font: "700 12px/1 " + MONO, color: "#fff" } },
-                h("span", null, "INT"), h("span", { style: { color: "#c7b9ff" } }, String(f.stats.intellect))),
-              on ? h("div", { style: { position: "absolute", top: "10px", left: "10px", width: "22px", height: "22px", borderRadius: "50%", background: "#9c8cf0", color: "#13101f", font: "700 12px/22px " + MONO, textAlign: "center" } }, String(picked.indexOf(f) + 1)) : null);
+                h("span", null, st.cat[2]), h("span", { style: { color: "#c7b9ff" } }, String(val(f)))),
+              on ? h("div", { style: { position: "absolute", top: "10px", left: "10px", width: "22px", height: "22px", borderRadius: "50%", background: "#9c8cf0", color: "#13101f", font: "700 12px/22px " + MONO, textAlign: "center" } }, String(st.picked.indexOf(f) + 1)) : null,
+              houseHas ? h("div", { style: { position: "absolute", top: "10px", right: "10px", font: "700 9.5px/1 " + MONO, letterSpacing: ".1em", color: "#fff", background: "#d0563a", borderRadius: "4px", padding: "5px 7px" } }, "HOUSE") : null);
           })),
         h("div", { style: { marginTop: "26px", textAlign: "center" } },
-          window.Btn({ disabled: picked.length < 5, onClick: function () {} }, picked.length < 5 ? "Choose " + (5 - picked.length) + " more" : (total >= target ? "Submit Council — you placed!" : "Submit Council"))));
+          r
+            ? h("div", { style: { animation: "fadeUp .4s ease both" } },
+                h("div", { style: { font: "700 22px/1 " + MONO, color: verdict === "win" ? "#5fae6e" : verdict === "tie" ? INK : "#d0563a", marginBottom: "8px" } },
+                  verdict === "win" ? "Your council takes the board" : verdict === "tie" ? "Dead heat" : "The house out-drafted you"),
+                h("div", { style: { font: "400 13px/1.6 " + SANS, color: DIM, marginBottom: "18px" } },
+                  st.cat[1] + " " + r.you + " against " + r.them + ". " +
+                  (verdict === "win" ? "You found the top five." : verdict === "tie" ? "Split right down the middle." : "Something you passed on came back to haunt you.")),
+                window.Btn({ onClick: function () { newGame(); rr(); } }, "Play Again"))
+            : window.Btn({ disabled: st.picked.length < 5, onClick: submit },
+                st.picked.length < 5 ? "Choose " + (5 - st.picked.length) + " more" : "Submit Council")));
     }
+    newGame();
     rr();
     return host;
   }
