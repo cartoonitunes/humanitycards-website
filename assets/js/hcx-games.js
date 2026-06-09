@@ -278,7 +278,11 @@
                 h("div", { style: { font: "400 13px/1.5 " + SANS, color: DIM, marginBottom: "18px" } }, statName(result.stat) + " — you " + result.mine + ", house " + result.theirs),
                 window.Btn({ onClick: next }, "Next Round"))
             : h("div", null,
-                h("div", { style: { textAlign: "center", font: "600 11px/1 " + MONO, letterSpacing: ".14em", color: DIM, marginBottom: "14px" } }, "PICK YOUR STAT"),
+                h("div", { style: { textAlign: "center", font: "600 11px/1 " + MONO, letterSpacing: ".14em", color: DIM, marginBottom: "6px" } }, "PICK YOUR STAT"),
+                h("div", { style: { textAlign: "center", marginBottom: "14px" } },
+                  h("a", { href: "#", onClick: function (e) { e.preventDefault(); window.openScoresInfo(); },
+                    style: { font: "400 11px/1 " + SANS, color: FAINT, textDecoration: "underline dotted", cursor: "pointer" } },
+                    "How are these scored?")),
                 h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" } },
                   STATS.map(function (s) {
                     return h("button", { onClick: function () { pick(s[0]); },

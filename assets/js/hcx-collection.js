@@ -134,6 +134,9 @@
   function RosterPage() {
     var H = window.HCX, all = H.FIGURES;
     var filter = "all", sort = "human", limit = ROSTER_PAGE, query = "";
+    // mintedOut only counts once live chain data is in — the page re-renders
+    // when refreshMinted() lands (wallet.notify), so this recomputes itself.
+    var live = !!(window.HCX_CHAIN && window.HCX_CHAIN.mintedLive());
     var mintedOut = all.filter(function (f) { return f.minted >= f.maxSupply; }).length;
     var rareCount = all.filter(function (f) { return f.maxSupply <= 10; }).length;
 
@@ -199,7 +202,8 @@
         window.Kicker(null, "Roster"),
         h("h1", { style: { margin: "14px 0 6px", font: "700 clamp(34px,5vw,52px)/1 " + MONO, color: INK } }, "The catalogue"),
         h("p", { style: { margin: "0 0 26px", font: "400 14px/1.6 " + SANS, color: DIM, maxWidth: "560px" } },
-          all.length + " humans minted into cards · " + rareCount + " rare (1-of-10 or scarcer) · " + mintedOut + " editions minted out."),
+          all.length + " humans minted into cards · " + rareCount + " rare (1-of-10 or scarcer)" +
+          (live ? " · " + mintedOut + " editions minted out." : " · reading live mint counts…")),
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "14px", marginBottom: "18px" } },
           searchBox, filterBarWrap),
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "26px" } },

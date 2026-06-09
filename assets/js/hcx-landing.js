@@ -40,7 +40,9 @@
 
   function StatBar() {
     var s = window.HCX.stats;
-    var items = [{ v: s.humans, l: "Humans" }, { v: "~" + s.cardsMinted, l: "Cards Minted" },
+    // exact once live counts are read from the contract; "~" while on snapshot
+    var live = !!(window.HCX_CHAIN && window.HCX_CHAIN.mintedLive());
+    var items = [{ v: s.humans, l: "Humans" }, { v: (live ? "" : "~") + s.cardsMinted, l: "Cards Minted" },
       { v: s.uniques, l: "1-of-1 Mythics" }, { v: s.genesis, l: "Genesis" }];
     return h("div", { style: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px",
       background: RULE, border: "1px solid " + RULE, borderRadius: "10px", overflow: "hidden" } },
@@ -74,7 +76,11 @@
           border: "1px solid " + RULE, padding: "7px 14px 7px 11px", borderRadius: "30px" } },
           h("span", { style: { width: "6px", height: "6px", borderRadius: "50%", background: COPPER, boxShadow: "0 0 8px " + COPPER } }),
           h("span", { style: { font: "600 11px/1 " + MONO, letterSpacing: ".18em", textTransform: "uppercase", color: DIM } }, "Ethereum genesis NFT · Minted March 2018")),
-        h("h1", { style: { margin: "0 auto", font: "700 clamp(54px,10vw,128px)/0.95 " + MONO, letterSpacing: "-.02em",
+        h("div", { style: { margin: "0 0 16px", font: "700 clamp(19px,3.2vw,28px)/1 " + MONO, letterSpacing: ".16em", textTransform: "uppercase", color: INK } },
+          "Humanity", h("span", { style: { color: COPPER } }, "Cards")),
+        // paddingBottom: with background-clip:text the gradient only paints the
+        // padding box — without it, tight line-height crops the "y" descender.
+        h("h1", { style: { margin: "0 auto", padding: "0 0 .12em", font: "700 clamp(54px,10vw,128px)/0.95 " + MONO, letterSpacing: "-.02em",
           background: "linear-gradient(176deg,#f5ddb6 8%,#d39a5b 52%,#9c6326 100%)",
           WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", maxWidth: "12ch" } }, "Play history."),
         h("p", { style: { margin: "26px auto 0", maxWidth: "600px", font: "400 16.5px/1.65 " + SANS, color: "#b8b2a4" } },

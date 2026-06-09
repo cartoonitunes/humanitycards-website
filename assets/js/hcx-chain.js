@@ -350,6 +350,7 @@
 
   window.HCX_CHAIN = {
     connect: connect, disconnect: disconnect, ensureMainnet: ensureMainnet,
+    mintedLive: function () { return _mintedAt != null; },   // true once live counts have been read
     getCardPrice: getCardPrice, refreshMinted: refreshMinted, ensureMinted: ensureMinted, loadOwned: loadOwned,
     mint: mint, isUserReject: isUserReject, fmtEth: fmtEth, init: init,
     etherscanTx: function (h) { return "https://etherscan.io/tx/" + h; }

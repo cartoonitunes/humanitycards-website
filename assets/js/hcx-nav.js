@@ -101,6 +101,42 @@
         })));
   }
 
+  // ---- "How scores work" — concise methodology, full details in
+  // pipeline/report.md (shipped with the site source). ----
+  var SCORE_ROWS = [
+    ["Influence", "#e0a566", "How loudly history still talks about them: the size of their Wikipedia article, weighted by how many of the world's languages it exists in."],
+    ["Legacy", "#5fae6e", "How long they've endured: years since death — the longer their name has lasted, the higher. Living figures sit mid-range; their story isn't finished."],
+    ["Dominion", "#d0563a", "How far their power reached: the territory they ruled or the sweep of their work, judged by role and era — conquerors high, court painters low."],
+    ["Intellect", "#9c8cf0", "The weight of the ideas: mathematicians, scientists and philosophers rank highest, rulers and generals on their statecraft."],
+    ["Controversy", "#c98a4b", "How much the world still argues about them: the size of the debate archived on their Wikipedia talk pages."]
+  ];
+  function openScoresInfo() {
+    var overlay;
+    function close() { if (overlay) overlay.remove(); document.removeEventListener("keydown", onKey); }
+    function onKey(e) { if (e.key === "Escape") close(); }
+    overlay = h("div", { onClick: close, className: "detail-overlay", style: { position: "fixed", inset: 0, zIndex: 130, background: "rgba(6,6,9,.84)",
+      backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", animation: "fadeUp .22s ease" } },
+      h("div", { onClick: function (e) { e.stopPropagation(); }, style: { maxWidth: "560px", width: "100%", margin: "0 auto",
+        maxHeight: "min(88vh, 760px)", overflowY: "auto", WebkitOverflowScrolling: "touch",
+        background: PANEL, border: "1px solid " + RULE, borderRadius: "12px", padding: "26px 28px", boxShadow: "0 40px 100px -30px #000" } },
+        h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" } },
+          window.Kicker({ color: COPPER }, "Real data, same yardstick"),
+          h("button", { onClick: close, style: { background: "none", border: "none", color: DIM, cursor: "pointer", font: "400 22px/1 " + MONO } }, "×")),
+        h("h2", { style: { margin: "10px 0 10px", font: "700 26px/1.1 " + MONO, color: INK } }, "How the scores work"),
+        h("p", { style: { margin: "0 0 20px", font: "400 13.5px/1.6 " + SANS, color: DIM } },
+          "Every figure's stats are computed from public Wikipedia and Wikidata data and normalised 1–100 across all 239 humans — no favourites, no hand-tuning."),
+        h("div", { style: { display: "grid", gap: "14px" } },
+          SCORE_ROWS.map(function (s) {
+            return h("div", { style: { paddingLeft: "14px", borderLeft: "2px solid " + s[1] } },
+              h("div", { style: { font: "700 12px/1 " + MONO, letterSpacing: ".14em", textTransform: "uppercase", color: s[1], marginBottom: "5px" } }, s[0]),
+              h("div", { style: { font: "400 13px/1.55 " + SANS, color: "#c3bdae" } }, s[2]));
+          })),
+        h("p", { style: { margin: "20px 0 0", font: "400 11.5px/1.6 " + MONO, color: FAINT } },
+          "Full methodology and the per-figure source table ship with the site source (pipeline/report.md).")));
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(overlay);
+  }
+
   function addrLink(label, addr) {
     return h("div", null,
       h("div", { style: { font: "600 9.5px/1 " + MONO, letterSpacing: ".14em", color: DIM, textTransform: "uppercase", marginBottom: "4px" } }, label),
@@ -126,11 +162,16 @@
               style: { font: "600 11px/1 " + MONO, letterSpacing: ".08em", color: DIM, textDecoration: "none" },
               onMouseEnter: function (e) { e.currentTarget.style.color = COPPER; },
               onMouseLeave: function (e) { e.currentTarget.style.color = DIM; } },
-              "ETHEREUM HISTORY ↗"))),
+              "ETHEREUM HISTORY ↗"),
+            h("a", { href: "#", onClick: function (e) { e.preventDefault(); openScoresInfo(); },
+              style: { font: "600 11px/1 " + MONO, letterSpacing: ".08em", color: DIM, textDecoration: "none" },
+              onMouseEnter: function (e) { e.currentTarget.style.color = COPPER; },
+              onMouseLeave: function (e) { e.currentTarget.style.color = DIM; } },
+              "HOW SCORES WORK"))),
         h("div", { style: { display: "flex", gap: "56px", flexWrap: "wrap" } },
           navCol("Collect", [["Open a Pack", "packs"], ["My Collection", "collection"], ["Roster", "roster"]], r),
           navCol("Play", [["Timeline", "timeline"], ["Battle", "battle"], ["Draft", "draft"], ["Assassination", "assassination"]], r))));
   }
 
-  Object.assign(window, { Nav: Nav, Footer: Footer, Logo: Logo });
+  Object.assign(window, { Nav: Nav, Footer: Footer, Logo: Logo, openScoresInfo: openScoresInfo });
 })();
