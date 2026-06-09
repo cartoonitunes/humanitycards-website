@@ -8,8 +8,7 @@
     { id: "packs", label: "Packs" },
     { id: "collection", label: "Collection" },
     { id: "roster", label: "Roster" },
-    { id: "play", label: "Play" },
-    { id: "components", label: "System" }
+    { id: "play", label: "Play" }
   ];
 
   function Logo() {
@@ -112,8 +111,7 @@
           h("div", { style: { marginTop: "16px", font: "400 11px/1.6 " + MONO, color: FAINT, wordBreak: "break-all" } }, window.HCX.CA)),
         h("div", { style: { display: "flex", gap: "56px", flexWrap: "wrap" } },
           navCol("Collect", [["Open a Pack", "packs"], ["My Collection", "collection"], ["Roster", "roster"]], r),
-          navCol("Play", [["Timeline", "timeline"], ["Battle", "battle"], ["Draft", "draft"], ["Assassination", "assassination"]], r),
-          navCol("System", [["Components", "components"], ["Mobile", "mobile"]], r))));
+          navCol("Play", [["Timeline", "timeline"], ["Battle", "battle"], ["Draft", "draft"], ["Assassination", "assassination"]], r))));
   }
 
   Object.assign(window, { Nav: Nav, Footer: Footer, Logo: Logo });

@@ -176,16 +176,6 @@
     .tl-row { grid-template-columns: 1fr 1fr !important; }
     .hero-cards { transform: scale(.78); }
   }
-  /* mobile context: force single-column inside phone frames */
-  .mobile-ctx .tile-grid-3, .mobile-ctx .tile-grid-4, .mobile-ctx .play-grid,
-  .mobile-ctx .chase-grid, .mobile-ctx .story-grid { grid-template-columns: 1fr !important; }
-  .mobile-ctx .nav-links { display: none !important; }
-  .mobile-ctx [style*="repeat(4,1fr)"] { grid-template-columns: 1fr 1fr !important; }
-  /* clamp() vw units track the real viewport, not the phone frame — pin sizes */
-  .mobile-ctx h1 { font-size: 46px !important; line-height: .98 !important; }
-  .mobile-ctx h2 { font-size: 27px !important; }
-  .mobile-ctx .hero-cards { transform: scale(.62); height: 320px !important; }
-  .mobile-ctx .chase-grid { grid-template-columns: repeat(3,1fr) !important; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
   }
@@ -213,7 +203,6 @@
 <script src="assets/js/hcx-pack.js"></script>
 <script src="assets/js/hcx-collection.js"></script>
 <script src="assets/js/hcx-games.js"></script>
-<script src="assets/js/hcx-components.js"></script>
 <script src="assets/js/hcx-app.js"></script>
 </body>
 </html>

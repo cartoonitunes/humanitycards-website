@@ -33,7 +33,6 @@ assets/js/
   hcx-pack.js                      the 6-stage Pack Opener (the star feature)
   hcx-collection.js                My Collection, Roster, detail modal, filters
   hcx-games.js                     Play hub, Timeline, Battle, Draft, Assassination
-  hcx-components.js                System (component library) + Mobile frame view
   hcx-app.js                       router + wallet wiring + mount
 ```
 
@@ -54,7 +53,6 @@ stubs that forward to the matching hash route (e.g. `packs.html` → `/#packs`).
 - `#assassination` — duel on the real relationship graph: a documented
   historical edge (killed / defeated / succeeded / opposed / influenced) is an
   instant strike; otherwise higher influence wins and the defender takes ties
-- `#components` — design system; `#mobile` — phone-frame previews
 
 ## Data pipeline
 

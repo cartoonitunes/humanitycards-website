@@ -129,7 +129,7 @@
     var H = window.HCX, all = H.FIGURES;
     var filter = "all", sort = "human", limit = ROSTER_PAGE, query = "";
     var mintedOut = all.filter(function (f) { return f.minted >= f.maxSupply; }).length;
-    var scarceCount = all.filter(function (f) { return f.maxSupply <= 7; }).length;
+    var rareCount = all.filter(function (f) { return f.maxSupply <= 10; }).length;
 
     var input = h("input", { value: "", placeholder: "Search 239 humans…",
       onInput: function (e) { query = e.target.value; limit = ROSTER_PAGE; update(); },
@@ -152,7 +152,12 @@
       var q = query.trim().toLowerCase();
       var figs = all.filter(function (f) {
         if (q && f.name.toLowerCase().indexOf(q) < 0 && (!f.role || f.role.toLowerCase().indexOf(q) < 0)) return false;
-        if (filter === "scarce") return f.maxSupply <= 7;
+        // supply tiers match the real contract distribution:
+        // 1 (x3) | 3,5,10 (x24) | 20,30 (x36) | 50,100,200 (x176)
+        if (filter === "unique") return f.maxSupply === 1;
+        if (filter === "rare") return f.maxSupply > 1 && f.maxSupply <= 10;
+        if (filter === "scarce") return f.maxSupply > 10 && f.maxSupply <= 30;
+        if (filter === "common") return f.maxSupply > 30;
         if (filter === "mintedout") return f.minted >= f.maxSupply;
         if (filter === "open") return f.minted < f.maxSupply;
         return true;
@@ -162,7 +167,9 @@
       var shown = figs.slice(0, limit);
 
       filterBarWrap.innerHTML = ""; filterBarWrap.appendChild(FilterBar({ value: filter, onChange: function (v) { filter = v; limit = ROSTER_PAGE; update(); }, options: [
-        { id: "all", label: "All" }, { id: "scarce", label: "Scarce ≤7" }, { id: "open", label: "Open" }, { id: "mintedout", label: "Minted Out" }] }));
+        { id: "all", label: "All" }, { id: "unique", label: "Unique · 1 of 1" }, { id: "rare", label: "Rare · ≤10" },
+        { id: "scarce", label: "Scarce · 20–30" }, { id: "common", label: "Common · 50+" },
+        { id: "open", label: "Open" }, { id: "mintedout", label: "Minted Out" }] }));
       sortBarWrap.innerHTML = ""; sortBarWrap.appendChild(FilterBar({ value: sort, onChange: function (v) { sort = v; limit = ROSTER_PAGE; update(); }, options: [
         { id: "human", label: "By Number" }, { id: "era", label: "By Era" }, { id: "scarce", label: "By Scarcity" }, { id: "name", label: "A–Z" }] }));
       countWrap.textContent = totalMatched + (q ? " match" + (totalMatched === 1 ? "" : "es") : " humans");
@@ -186,7 +193,7 @@
         window.Kicker(null, "Roster"),
         h("h1", { style: { margin: "14px 0 6px", font: "700 clamp(34px,5vw,52px)/1 " + MONO, color: INK } }, "The catalogue"),
         h("p", { style: { margin: "0 0 26px", font: "400 14px/1.6 " + SANS, color: DIM, maxWidth: "560px" } },
-          all.length + " humans minted into cards · " + scarceCount + " scarce (1-of-7 or rarer) · " + mintedOut + " editions minted out."),
+          all.length + " humans minted into cards · " + rareCount + " rare (1-of-10 or scarcer) · " + mintedOut + " editions minted out."),
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "14px", marginBottom: "18px" } },
           searchBox, filterBarWrap),
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "26px" } },

@@ -13,9 +13,7 @@
     timeline: function () { return window.TimelinePage(); },
     battle: function () { return window.BattlePage(); },
     draft: function () { return window.DraftPage(); },
-    assassination: function () { return window.AssassinationPage(); },
-    components: function () { return window.ComponentsPage(); },
-    mobile: function () { return window.MobilePage(); }
+    assassination: function () { return window.AssassinationPage(); }
   };
 
   function mount() {
