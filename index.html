@@ -137,6 +137,7 @@
   @keyframes shimmerbg { to { background-position: -200% 0; } }
   .caret { animation: blink 1s step-end infinite; }
   @keyframes blink { 50% { opacity: 0 !important; } }
+  @keyframes hcxspin { to { transform: rotate(360deg); } }
 
   /* pack tear */
   .pack-wrap.is-tearing .pack-cap {
@@ -193,6 +194,9 @@
 <body>
 <div id="root"></div>
 
+<!-- ethers v5 for real on-chain reads + the mint flow -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
+
 <!-- on-chain-safe data + card generators (plain JS, reused from the design bundle) -->
 <script src="assets/js/card-helpers.js"></script>
 <script src="assets/js/card-variants.js"></script>
@@ -201,6 +205,7 @@
 
 <!-- vanilla port of the React prototype (no framework, no build step) -->
 <script src="assets/js/hcx-ui.js"></script>
+<script src="assets/js/hcx-chain.js"></script>
 <script src="assets/js/hcx-cards.js"></script>
 <script src="assets/js/hcx-nav.js"></script>
 <script src="assets/js/hcx-landing.js"></script>

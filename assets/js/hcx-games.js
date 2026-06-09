@@ -24,9 +24,9 @@
     var r = window.useRouter();
     var games = [
       { id: "timeline", k: "Daily Puzzle", t: "Timeline", b: "Order five figures by birth year. One shared puzzle a day, with a streak to protect.", fig: "Cleopatra" },
-      { id: "battle", k: "1v1", t: "Battle", b: "Draw, pick a stat, and pit your figure against the house. Higher number takes the trick.", fig: "Genghis Khan" },
-      { id: "draft", k: "Council", t: "Draft", b: "Assemble a five-figure council to top the day's category. Spend your scarcity wisely.", fig: "Marcus Aurelius" },
-      { id: "assassination", k: "Connections", t: "Assassination", b: "Play figures bound by history — teacher, rival, heir — to remove your opponent's council.", fig: "Julius Caesar" }
+      { id: "battle", k: "1v1", t: "Battle", b: "Draw, pick a stat, and pit your figure against the house. Higher number takes the trick.", fig: "Gengis Khan" },
+      { id: "draft", k: "Council", t: "Draft", b: "Assemble a five-figure council to top the day's category. Spend your scarcity wisely.", fig: "Da Vinci" },
+      { id: "assassination", k: "Connections", t: "Assassination", b: "Play figures bound by history — teacher, rival, heir — to remove your opponent's council.", fig: "Caesar" }
     ];
     return window.Section({ style: { paddingTop: "40px" } },
       window.Kicker({ color: "#9c8cf0" }, "Play"),
@@ -194,7 +194,10 @@
   }
 
   // ---- Battle ----
-  function deckFor(wallet) { return wallet.connected ? window.HCX.OWNED.slice() : shuffle(window.HCX.FIGURES.slice()).slice(0, 16); }
+  function deckFor(wallet) {
+    var src = (wallet.connected && window.HCX.OWNED.length) ? window.HCX.OWNED : window.HCX.FIGURES;
+    return shuffle(src.slice()).slice(0, 16);
+  }
   function drawRound(deck) { var d = shuffle(deck.slice()); return { mine: d[0], theirs: d[1] || d[0] }; }
   function statName(k) { return ({ influence: "Influence", intellect: "Intellect", dominion: "Dominion", legacy: "Legacy" })[k]; }
   function BattlePage() {
@@ -257,7 +260,7 @@
   // ---- Draft ----
   function DraftPage() {
     var wallet = window.useWallet();
-    var pool = shuffle((wallet.connected ? window.HCX.OWNED : window.HCX.FIGURES).slice()).slice(0, 12);
+    var pool = shuffle(((wallet.connected && window.HCX.OWNED.length) ? window.HCX.OWNED : window.HCX.FIGURES).slice()).slice(0, 12);
     var picked = [];
     var CATEGORY = "Minds of the Enlightenment", target = 380;
     var host = h("div", null);
@@ -309,13 +312,13 @@
   }
   function AssassinationPage() {
     var s = 0;
-    var hand = ["Julius Caesar", "Hannibal", "Cleopatra", "Genghis Khan", "Napoleon Bonaparte"].map(window.HCX.byName).filter(Boolean);
+    var hand = ["Caesar", "Hannibal", "Cleopatra", "Gengis Khan", "Napoleon"].map(window.HCX.byName).filter(Boolean);
     var connections = {
-      "Julius Caesar": ["Heir → Augustus", "Ally → Cleopatra", "Era → Cicero"],
-      "Hannibal": ["Rival → Scipio", "Era → Archimedes", "Echo → Napoleon"],
-      "Cleopatra": ["Ally → Julius Caesar", "Era → Augustus", "Realm → Ptolemy"],
-      "Genghis Khan": ["Heir → Kublai Khan", "Era → Marco Polo", "Conquest → Tamerlane"],
-      "Napoleon Bonaparte": ["Echo → Julius Caesar", "Era → Beethoven", "Mind → Hegel"]
+      "Caesar": ["Heir → Augustus", "Ally → Cleopatra", "Rival → Pompey"],
+      "Hannibal": ["Rival → Scipio Africanus", "Father → Hamilcar", "Echo → Napoleon"],
+      "Cleopatra": ["Ally → Caesar", "Rival → Augustus", "Love → Mark Antony"],
+      "Gengis Khan": ["Era → Marco Polo", "Echo → Attila", "Foe → William the Conqueror"],
+      "Napoleon": ["Echo → Caesar", "Era → Beethoven", "Mind → Karl Marx"]
     };
     var host = h("div", null);
     function rr() { host.innerHTML = ""; host.appendChild(build()); }
@@ -323,7 +326,7 @@
       var cur = hand[s];
       return GameShell({ kicker: "Connections · 1v1", title: "Assassination", body: "Play a figure, then chain another bound to them by history — teacher, heir, rival — to strike a card from your opponent's council." },
         h("div", { className: "assassin-board", style: { display: "grid", gridTemplateColumns: "1fr", gap: "22px" } },
-          boardRow("Opponent's Council", ["Augustus", "Marco Polo", "Tamerlane", "Ludwig van Beethoven", "Kublai Khan"].map(window.HCX.byName).filter(Boolean), true),
+          boardRow("Opponent's Council", ["Augustus", "Marco Polo", "Spartacus", "Beethoven", "Charlemagne"].map(window.HCX.byName).filter(Boolean), true),
           h("div", { style: { position: "relative", padding: "26px 0", textAlign: "center" } },
             window.DottedRule({ style: { position: "absolute", left: 0, right: 0, top: "50%" } }),
             h("span", { style: { position: "relative", background: BG, padding: "0 16px", font: "600 11px/1 " + MONO, letterSpacing: ".18em", color: DIM } }, "PLAY A CONNECTION")),

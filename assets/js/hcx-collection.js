@@ -111,7 +111,7 @@
   }
 
   function CollectionEmpty(onConnect) {
-    var preview = [window.HCX.byName("Marcus Aurelius"), window.HCX.byName("Ada Lovelace"), window.HCX.byName("Cleopatra"), window.HCX.byName("Nikola Tesla")];
+    var preview = [window.HCX.byName("Napoleon"), window.HCX.byName("Einstein"), window.HCX.byName("Cleopatra"), window.HCX.byName("Nikola Tesla")];
     return h("div", { style: { position: "relative", marginTop: "30px", borderRadius: "12px", overflow: "hidden", border: "1px solid " + RULE } },
       h("div", { style: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "26px", padding: "44px", filter: "blur(3px) saturate(.7)", opacity: 0.5, pointerEvents: "none" } },
         preview.map(function (f) { return window.Card({ figure: f }); })),

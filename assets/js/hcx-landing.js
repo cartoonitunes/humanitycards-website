@@ -7,7 +7,7 @@
 
   function HeroCards() {
     var H = window.HCX;
-    var picks = [H.byName("Marcus Aurelius"), H.byName("Cleopatra"), H.byName("Ada Lovelace")];
+    var picks = [H.byName("Napoleon"), H.byName("Cleopatra"), H.byName("Da Vinci")];
     var rots = [-9, 0, 9], lifts = [26, -8, 26], z = [1, 3, 1];
     return h("div", { className: "hero-cards",
       style: { position: "relative", height: "440px", display: "flex", justifyContent: "center", alignItems: "center" } },

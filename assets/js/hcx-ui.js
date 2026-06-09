@@ -46,18 +46,39 @@
   }
 
   // ---- stores (replace React context) ----
-  // Wallet: connected flag persisted to localStorage, with subscribers.
+  // Wallet: real connection state. The connect/disconnect logic lives in
+  // hcx-chain.js (real injected provider); this store holds state + subscribers
+  // so the rest of the UI can read it. notify() re-renders subscribers.
   var walletSubs = [];
   var wallet = {
-    connected: localStorage.getItem("hcx_wallet") === "1",
+    connected: false, address: null, chainId: null, connecting: false, loadingOwned: false,
     toggle: function () {
-      wallet.connected = !wallet.connected;
-      localStorage.setItem("hcx_wallet", wallet.connected ? "1" : "0");
-      walletSubs.forEach(function (f) { try { f(); } catch (e) {} });
+      if (!window.HCX_CHAIN) return;
+      if (wallet.connected) window.HCX_CHAIN.disconnect();
+      else window.HCX_CHAIN.connect();
     },
+    set: function (patch) { Object.assign(wallet, patch); wallet.notify(); },
+    notify: function () { walletSubs.forEach(function (f) { try { f(); } catch (e) {} }); },
     subscribe: function (fn) { walletSubs.push(fn); }
   };
   function useWallet() { return wallet; }
+  function shortAddr(a) { return a ? a.slice(0, 6) + "…" + a.slice(-4) : ""; }
+
+  // ---- toast (transient status) ----
+  function toast(msg, kind, ms) {
+    var t = document.getElementById("hcx-toast");
+    if (!t) { t = h("div", { id: "hcx-toast", style: {
+      position: "fixed", left: "50%", bottom: "26px", transform: "translate(-50%,20px)",
+      background: "#16151b", color: INK, border: "1px solid " + RULE, borderRadius: "8px",
+      font: "600 12.5px/1.4 " + MONO, letterSpacing: ".02em", padding: "12px 18px", zIndex: 300,
+      opacity: 0, transition: "opacity .25s, transform .25s", pointerEvents: "none", maxWidth: "90vw", textAlign: "center",
+      boxShadow: "0 18px 50px -20px #000" } });
+      document.body.appendChild(t); }
+    t.style.borderColor = kind === "error" ? "#d0563a" : kind === "ok" ? "#5fae6e" : RULE;
+    t.textContent = msg;
+    t.style.opacity = 1; t.style.transform = "translate(-50%,0)";
+    clearTimeout(toast._t); toast._t = setTimeout(function () { t.style.opacity = 0; t.style.transform = "translate(-50%,20px)"; }, ms || 3400);
+  }
 
   // Router: hash based. router.go(route) navigates; subscribers re-render.
   var routerSubs = [];
@@ -150,6 +171,7 @@
   Object.assign(window, {
     h: h, INK: INK, DIM: DIM, FAINT: FAINT, BG: BG, PANEL: PANEL, RULE: RULE, COPPER: COPPER,
     SANS: SANS, MONO: MONO, useWallet: useWallet, useRouter: useRouter,
-    Kicker: Kicker, Btn: Btn, Stat: Stat, Section: Section, DottedRule: DottedRule, Tile: Tile
+    Kicker: Kicker, Btn: Btn, Stat: Stat, Section: Section, DottedRule: DottedRule, Tile: Tile,
+    toast: toast, shortAddr: shortAddr
   });
 })();

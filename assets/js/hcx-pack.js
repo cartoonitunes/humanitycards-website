@@ -110,7 +110,7 @@
     return box;
   }
 
-  function RevealDetails(f, hash, onAgain, onReset) {
+  function RevealDetails(f, hash, onAgain, onReset, onchain) {
     var rows = [["Human Number", f.humanId], ["Card Number", f.pulledSerial + " / " + f.maxSupply], ["Max Supply", f.maxSupply], ["Minted To Date", f.minted]];
     return h("div", { style: { maxWidth: "380px", margin: "0 auto", animation: "fadeUp .5s ease both" } },
       (f.role || f.bio) ? h("div", { style: { marginBottom: "20px", textAlign: "center" } },
@@ -125,14 +125,17 @@
       h("div", { style: { display: "flex", gap: "10px", justifyContent: "center" } },
         window.Btn({ onClick: onAgain }, "Open Another"),
         window.Btn({ variant: "ghost", onClick: onReset }, "Done")),
-      h("a", { href: "#", onClick: function (e) { e.preventDefault(); }, title: "View on Etherscan (demo)",
-        style: { display: "block", marginTop: "16px", font: "400 10.5px/1.4 " + MONO, color: FAINT, textDecoration: "none", wordBreak: "break-all" } },
-        "TX " + hash.slice(0, 22) + "…"));
+      onchain
+        ? h("a", { href: "https://etherscan.io/tx/" + hash, target: "_blank", rel: "noopener", title: "View on Etherscan",
+            style: { display: "block", marginTop: "16px", font: "400 10.5px/1.4 " + MONO, color: COPPER, textDecoration: "none", wordBreak: "break-all" } },
+            "Minted on-chain · TX " + hash.slice(0, 18) + "… ↗")
+        : h("div", { style: { marginTop: "16px", font: "400 10.5px/1.4 " + MONO, color: FAINT } }, "Demo pull · not minted on-chain"));
   }
 
   function PackOpener() {
     var wallet = window.useWallet();
     var stage = "idle", pull = null, fx = null, accent = COPPER, hash = "";
+    var priceWei = null, onchain = false;
     var timers = [];
     function clearTimers() { timers.forEach(clearTimeout); timers = []; }
     function after(ms, fn) { timers.push(setTimeout(fn, ms)); }
@@ -201,13 +204,85 @@
       spotlightEl = raysEl = flashEl = confettiEl = showerEl = null;
     }
 
+    function priceLabel() {
+      if (priceWei && window.ethers) { try { return (+window.ethers.utils.formatEther(priceWei)).toFixed(4) + " Ξ"; } catch (e) {} }
+      return null;
+    }
+    function hintText() {
+      var w = window.useWallet();
+      var pl = priceLabel();
+      if (!w.connected) return "Open Pack is free in demo mode. Connect a wallet to mint a real card on-chain" + (pl ? " (" + pl + " + gas)." : ".");
+      if (w.chainId != null && w.chainId !== 1) return "You're on the wrong network. Switch to Ethereum Mainnet to mint.";
+      return "Mint sends a real transaction" + (pl ? " · " + pl + " + gas" : "") + ". Open Pack stays free in demo mode.";
+    }
     function idleControls() {
       controls.innerHTML = "";
+      var w = window.useWallet();
       controls.appendChild(h("div", null,
-        window.Btn({ onClick: open, style: { fontSize: "14px", padding: "16px 34px",
-          boxShadow: "0 10px 30px -10px " + COPPER + ", 0 0 0 1px #d49a59, 0 0 40px -16px " + COPPER } }, "Open Pack"),
-        h("div", { style: { marginTop: "16px", font: "400 12px/1.5 " + SANS, color: DIM } },
-          wallet.connected ? "Mints to your wallet · gas estimate 0.004 Ξ" : "Connect a wallet to mint on-chain — or open in demo mode")));
+        h("div", { style: { display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" } },
+          window.Btn({ onClick: function () { open(); }, style: { fontSize: "14px", padding: "16px 30px",
+            boxShadow: "0 10px 30px -10px " + COPPER + ", 0 0 0 1px #d49a59, 0 0 40px -16px " + COPPER } }, "Open Pack"),
+          window.Btn({ variant: "ghost", onClick: startMint, style: { fontSize: "14px", padding: "16px 26px" } },
+            w.connected ? "Mint On-Chain" : "Connect to Mint")),
+        h("div", { style: { marginTop: "16px", font: "400 12px/1.5 " + SANS, color: DIM, maxWidth: "420px", marginLeft: "auto", marginRight: "auto" } }, hintText())));
+      // fetch the live price once to enrich the hint
+      if (priceWei == null && window.HCX_CHAIN) {
+        window.HCX_CHAIN.getCardPrice().then(function (p) { priceWei = p; if (stage === "idle") idleControls(); }).catch(function () {});
+      }
+    }
+
+    // ---- bulletproof mint flow (status UI lives in the controls area) ----
+    function spinner() {
+      return h("span", { style: { display: "inline-block", width: "16px", height: "16px", borderRadius: "50%",
+        border: "2px solid " + RULE, borderTopColor: COPPER, animation: "hcxspin .8s linear infinite", verticalAlign: "middle", marginRight: "10px" } });
+    }
+    function statusPanel(node) { controls.innerHTML = ""; controls.appendChild(h("div", { style: { animation: "fadeUp .3s ease both", maxWidth: "420px", margin: "0 auto" } }, node)); }
+    function statusLine(text, withSpinner) {
+      return h("div", { style: { font: "600 14px/1.5 " + MONO, color: INK, display: "flex", alignItems: "center", justifyContent: "center" } },
+        withSpinner ? spinner() : null, text);
+    }
+    function txLink(hash) {
+      return hash ? h("a", { href: "https://etherscan.io/tx/" + hash, target: "_blank", rel: "noopener",
+        style: { display: "block", marginTop: "12px", font: "400 11px/1.4 " + MONO, color: COPPER, textDecoration: "none", wordBreak: "break-all" } },
+        "TX " + hash.slice(0, 20) + "… ↗") : null;
+    }
+
+    function onMintStatus(state, data) {
+      if (state === "checking") statusPanel(statusLine("Checking price and supply…", true));
+      else if (state === "confirm") {
+        var cost = (data && data.total && window.HCX_CHAIN) ? window.HCX_CHAIN.fmtEth(data.total) : null;
+        statusPanel(h("div", null,
+          statusLine("Confirm in your wallet…", true),
+          cost ? h("div", { style: { marginTop: "10px", font: "400 12px/1.5 " + SANS, color: DIM } }, "Approve about " + cost + " Ξ (mint + gas) in the popup.") : null));
+      } else if (state === "mining") {
+        statusPanel(h("div", null, statusLine("Mining your card…", true),
+          h("div", { style: { marginTop: "8px", font: "400 12px/1.5 " + SANS, color: DIM } }, "Waiting for the transaction to confirm."),
+          txLink(data && data.hash)));
+      } else if (state === "confirmed") {
+        statusPanel(statusLine("Confirmed. Revealing…", true));
+      }
+    }
+    function showMintError(e, hash) {
+      statusPanel(h("div", { style: { textAlign: "center" } },
+        h("div", { style: { font: "700 15px/1.4 " + MONO, color: "#d0563a", marginBottom: "8px" } }, "Mint failed"),
+        h("div", { style: { font: "400 13px/1.6 " + SANS, color: "#c3bdae", marginBottom: "16px" } }, (e && e.message) || "Something went wrong."),
+        txLink(hash || (e && e.txHash)),
+        h("div", { style: { display: "flex", gap: "10px", justifyContent: "center", marginTop: "16px" } },
+          window.Btn({ onClick: startMint }, "Try Again"),
+          window.Btn({ variant: "ghost", onClick: function () { open(); } }, "Open in Demo"))));
+    }
+    function startMint() {
+      if (!window.HCX_CHAIN) { window.toast("Wallet library not ready.", "error"); return; }
+      var w = window.useWallet();
+      if (!w.connected) { window.HCX_CHAIN.connect(); return; }   // connect first; page re-renders, then Mint again
+      onMintStatus("checking");
+      window.HCX_CHAIN.mint({ onStatus: onMintStatus }).then(function (res) {
+        if (res && res.figure) open(res.figure, { onchain: true, txHash: res.txHash, serial: res.serial });
+        else showMintError({ message: "Minted, but couldn't read which card came out. Check the transaction." }, res && res.txHash);
+      }).catch(function (e) {
+        if (e && e.kind === "rejected") { setStage("idle"); window.toast("Transaction cancelled."); return; }
+        showMintError(e, e && e.txHash);
+      });
     }
 
     function setStage(ns) {
@@ -242,7 +317,7 @@
         celebrationOverlays();
       } else if (ns === "details") {
         controls.innerHTML = "";
-        controls.appendChild(RevealDetails(pull, hash, open, reset));
+        controls.appendChild(RevealDetails(pull, hash, function () { open(); }, reset, onchain));
       }
     }
 
@@ -256,10 +331,14 @@
       });
     }
 
-    function open() {
+    // open() with no args = free demo pull; open(figure, meta) = real mint reveal.
+    function open(forced, meta) {
       clearTimers(); clearOverlays();
       if (revealCard) { revealCard.remove(); revealCard = null; }
-      pull = weightedPull(); fx = intensityOf(pull); accent = window.rarityAccent(pull); hash = txHash();
+      onchain = !!(meta && meta.onchain);
+      pull = forced ? Object.assign({}, forced) : weightedPull();
+      if (pull.pulledSerial == null) pull.pulledSerial = (meta && meta.serial) || (1 + Math.floor(Math.random() * pull.maxSupply));
+      fx = intensityOf(pull); accent = window.rarityAccent(pull); hash = (meta && meta.txHash) || txHash();
       headlineText.nodeValue = "";
       setStage("tearing");
       after(1150, function () { setStage("suspense"); });

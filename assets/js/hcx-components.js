@@ -44,9 +44,9 @@
 
       LibBlock("03", "The Card", "front · back · the on-chain register",
         h("div", { style: { display: "grid", gridTemplateColumns: "200px 200px 1fr", gap: "26px", alignItems: "start" } },
-          h("div", null, window.Card({ figure: H.byName("Marcus Aurelius"), glow: true }),
+          h("div", null, window.Card({ figure: H.byName("Napoleon"), glow: true }),
             h("div", { style: { textAlign: "center", marginTop: "10px", font: "600 10px/1 " + MONO, letterSpacing: ".14em", color: DIM } }, "FRONT")),
-          h("div", null, window.Card({ figure: H.byName("Marcus Aurelius"), variant: "back", badge: false }),
+          h("div", null, window.Card({ figure: H.byName("Napoleon"), variant: "back", badge: false }),
             h("div", { style: { textAlign: "center", marginTop: "10px", font: "600 10px/1 " + MONO, letterSpacing: ".14em", color: DIM } }, "BACK")),
           h("div", null,
             h("p", { style: { margin: "0 0 16px", font: "400 13px/1.6 " + SANS, color: DIM } }, "The name leads; Human Number, Card Number and supply sit quiet beneath; the contract and 2018 deploy date are grouped in the footer. The guilloche rosette is generated per card."),

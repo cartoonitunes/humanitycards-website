@@ -25,13 +25,14 @@
 
   function WalletButton() {
     var w = window.useWallet();
-    if (!w.connected) return window.Btn({ size: "sm", onClick: w.toggle }, "Connect Wallet");
-    return h("button", { onClick: w.toggle, title: "Click to disconnect (demo)",
+    if (!w.connected) return window.Btn({ size: "sm", disabled: w.connecting, onClick: w.toggle }, w.connecting ? "Connecting…" : "Connect Wallet");
+    var wrongNet = w.chainId != null && w.chainId !== 1;
+    return h("button", { onClick: w.toggle, title: wrongNet ? "Wrong network — switch to Ethereum Mainnet" : "Click to disconnect",
       style: { display: "inline-flex", alignItems: "center", gap: "9px", cursor: "pointer",
-        background: PANEL, border: "1px solid " + RULE, borderRadius: "4px", padding: "8px 13px",
-        font: "600 12px/1 " + MONO, letterSpacing: ".08em", color: INK } },
-      h("span", { style: { width: "7px", height: "7px", borderRadius: "50%", background: "#5fae6e", boxShadow: "0 0 8px #5fae6e" } }),
-      "0xA1F2…7C4D");
+        background: PANEL, border: "1px solid " + (wrongNet ? "#d0563a" : RULE), borderRadius: "4px", padding: "8px 13px",
+        font: "600 12px/1 " + MONO, letterSpacing: ".08em", color: wrongNet ? "#d0563a" : INK } },
+      h("span", { style: { width: "7px", height: "7px", borderRadius: "50%", background: wrongNet ? "#d0563a" : "#5fae6e", boxShadow: "0 0 8px " + (wrongNet ? "#d0563a" : "#5fae6e") } }),
+      wrongNet ? "Wrong Network" : window.shortAddr(w.address));
   }
 
   function Nav() {

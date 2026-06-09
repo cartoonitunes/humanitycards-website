@@ -1,0 +1,306 @@
+/* hcx-chain.js — real on-chain integration (ethers v5).
+ *
+ * Reads (public RPC):
+ *   - live minted counts:  original.getHumanInfo(i) -> (name, max, mined)
+ *   - mint price:          original.getCardPrice()
+ *   - ownership:           scan original.getCardInfo(0..cardMined-1) -> (human,owner);
+ *                          unwrapped = owner==you; wrapped = owner==WRAPPER then
+ *                          wrapper.ownerOf(cardId)==you. (Verified on mainnet: the
+ *                          wrapper is NOT ERC721Enumerable, and its tokenId equals
+ *                          the wrapped card's original cardId.)
+ * Writes (injected wallet only, never without an explicit click + confirm):
+ *   - mint:                original.mineCard{value: price}
+ *
+ * Multicall3 (0xcA11…CA11) batches the read scans. Everything degrades to the
+ * static snapshot in data.js if the RPC is unreachable. */
+(function () {
+  "use strict";
+  var H = window.HCX, wallet = window.useWallet();
+
+  var RPC = "https://ethereum-rpc.publicnode.com";
+  var CHAIN_ID = 1;
+  var ORIG = H.CA, WRAPPER = H.WRAPPER, MC3 = "0xcA11bde05977b3631167028862bE2a173976CA11";
+
+  var ABI = {
+    original: [
+      "function mineCard() payable returns (bool)",
+      "function getCardPrice() view returns (uint256)",
+      "function getHumanNumber() view returns (uint256)",
+      "function getHumanInfo(uint256 i) view returns (string name, uint8 max, uint256 mined)",
+      "function getCardInfo(uint256 tokenId) view returns (uint16 human, address owner)",
+      "function balanceOf(address owner) view returns (uint256)",
+      "event Mined(address indexed owner, uint16 human)"
+    ],
+    wrapper: ["function ownerOf(uint256 tokenId) view returns (address)"],
+    mc3: ["function aggregate3((address target,bool allowFailure,bytes callData)[] calls) view returns (tuple(bool success,bytes returnData)[])"]
+  };
+
+  function ethers() { return window.ethers; }
+  function ready() { return !!ethers(); }
+
+  var _read = null;
+  function readProvider() {
+    if (!_read && ready()) _read = new (ethers().providers.JsonRpcProvider)(RPC, CHAIN_ID);
+    return _read;
+  }
+  function origRead() { return new (ethers().Contract)(ORIG, ABI.original, readProvider()); }
+  function mc3() { return new (ethers().Contract)(MC3, ABI.mc3, readProvider()); }
+  function iface(which) { return new (ethers().utils.Interface)(ABI[which]); }
+
+  // cache of the last full card scan (cardId -> {human, owner})
+  var _cardMined = null;
+
+  // ---- live minted counts -------------------------------------------------
+  function refreshMinted() {
+    if (!ready()) return Promise.resolve();
+    var oi = iface("original"), mc = mc3(), figs = H.FIGURES;
+    var calls = figs.map(function (f) { return { target: ORIG, allowFailure: true, callData: oi.encodeFunctionData("getHumanInfo", [f.humanId]) }; });
+    return chunkedAggregate(mc, calls, 120).then(function (res) {
+      var total = 0;
+      figs.forEach(function (f, i) {
+        var r = res[i]; if (!r || !r.success) { total += f.minted; return; }
+        try {
+          var d = oi.decodeFunctionResult("getHumanInfo", r.returnData);
+          f.minted = d.mined.toNumber();
+          f.maxSupply = Number(d.max) || f.maxSupply;
+          total += f.minted;
+        } catch (e) { total += f.minted; }
+      });
+      _cardMined = total;
+      H.recomputeStats();
+      wallet.notify();
+    }).catch(function () { /* keep snapshot */ });
+  }
+
+  function chunkedAggregate(mc, calls, size) {
+    var out = [], i = 0;
+    function step() {
+      if (i >= calls.length) return Promise.resolve(out);
+      return mc.aggregate3(calls.slice(i, i + size)).then(function (part) {
+        out = out.concat(part); i += size; return step();
+      });
+    }
+    return step();
+  }
+
+  // ---- ownership ----------------------------------------------------------
+  // Returns the connected wallet's owned figures (unwrapped + wrapped), each a
+  // figure clone carrying its real cardId. Verified algorithm; safe on errors.
+  function loadOwned(addr) {
+    if (!ready() || !addr) { H.OWNED = []; return Promise.resolve([]); }
+    addr = addr.toLowerCase();
+    wallet.set({ loadingOwned: true });
+    var oi = iface("original"), wi = iface("wrapper"), mc = mc3();
+    var startCardMined = _cardMined;
+    var pre = startCardMined != null ? Promise.resolve() : refreshMinted();
+    return pre.then(function () {
+      var cardMined = _cardMined || 0;
+      if (!cardMined) return [];
+      var calls = [];
+      for (var t = 0; t < cardMined; t++) calls.push({ target: ORIG, allowFailure: true, callData: oi.encodeFunctionData("getCardInfo", [t]) });
+      return chunkedAggregate(mc, calls, 200).then(function (res) {
+        var owned = [], wrappedIds = [];
+        res.forEach(function (r, t) {
+          if (!r || !r.success) return;
+          var d;
+          try { d = oi.decodeFunctionResult("getCardInfo", r.returnData); } catch (e) { return; }
+          var human = Number(d.human), owner = d.owner.toLowerCase();
+          if (owner === addr) {
+            var f = H.byId(human); if (f) owned.push(Object.assign({}, f, { cardId: t, owned: true }));
+          } else if (owner === WRAPPER.toLowerCase()) {
+            wrappedIds.push({ tokenId: t, human: human });
+          }
+        });
+        if (!wrappedIds.length) return finalize(owned);
+        // resolve wrapped tokens through the wrapper
+        var wcalls = wrappedIds.map(function (w) { return { target: WRAPPER, allowFailure: true, callData: wi.encodeFunctionData("ownerOf", [w.tokenId]) }; });
+        return chunkedAggregate(mc, wcalls, 200).then(function (wres) {
+          wres.forEach(function (r, i) {
+            if (!r || !r.success) return;
+            var o;
+            try { o = wi.decodeFunctionResult("ownerOf", r.returnData)[0].toLowerCase(); } catch (e) { return; }
+            if (o === addr) { var f = H.byId(wrappedIds[i].human); if (f) owned.push(Object.assign({}, f, { cardId: wrappedIds[i].tokenId, owned: true, wrapped: true })); }
+          });
+          return finalize(owned);
+        });
+      });
+    }).catch(function () { return finalize([]); });
+    function finalize(owned) {
+      // de-dupe by cardId, scarcest first
+      var seen = {}, out = [];
+      owned.forEach(function (f) { if (!seen[f.cardId]) { seen[f.cardId] = 1; out.push(f); } });
+      out.sort(function (a, b) { return a.maxSupply - b.maxSupply; });
+      H.OWNED = out;
+      wallet.set({ loadingOwned: false });
+      return out;
+    }
+  }
+
+  function getCardPrice() {
+    if (!ready()) return Promise.reject(new Error("ethers unavailable"));
+    return origRead().getCardPrice();
+  }
+
+  // ---- wallet connect (real injected provider) ----------------------------
+  function injected() { return window.ethereum || null; }
+  var _web3 = null;
+  function web3() {
+    if (!_web3 && injected() && ready()) _web3 = new (ethers().providers.Web3Provider)(injected(), "any");
+    return _web3;
+  }
+
+  function connect() {
+    if (!ready()) { window.toast("Wallet library failed to load.", "error"); return Promise.resolve(); }
+    if (!injected()) { window.toast("No Ethereum wallet found. Install MetaMask to connect.", "error", 4200); return Promise.resolve(); }
+    if (wallet.connecting) return Promise.resolve();
+    wallet.set({ connecting: true });
+    var prov = web3();
+    return prov.send("eth_requestAccounts", []).then(function (accts) {
+      return prov.getNetwork().then(function (net) {
+        var addr = ethers().utils.getAddress(accts[0]);
+        wallet.set({ connected: true, address: addr, chainId: net.chainId, connecting: false });
+        window.toast("Connected " + window.shortAddr(addr), "ok");
+        bindInjectedEvents();
+        loadOwned(addr);
+        if (net.chainId !== CHAIN_ID) window.toast("Switch to Ethereum Mainnet to mint.", "error", 4200);
+      });
+    }).catch(function (e) {
+      wallet.set({ connecting: false });
+      window.toast(isUserReject(e) ? "Connection cancelled." : "Connection failed.", "error");
+    });
+  }
+
+  function disconnect() {
+    H.OWNED = [];
+    wallet.set({ connected: false, address: null, chainId: null });
+    window.toast("Wallet disconnected.");
+  }
+
+  var _bound = false;
+  function bindInjectedEvents() {
+    if (_bound || !injected() || !injected().on) return;
+    _bound = true;
+    injected().on("accountsChanged", function (accts) {
+      if (!accts || !accts.length) { disconnect(); return; }
+      var addr = ethers().utils.getAddress(accts[0]);
+      wallet.set({ address: addr }); loadOwned(addr);
+    });
+    injected().on("chainChanged", function (cid) {
+      wallet.set({ chainId: parseInt(cid, 16) });
+    });
+  }
+
+  function ensureMainnet() {
+    var eth = injected();
+    if (!eth) return Promise.reject(new Error("No wallet"));
+    return web3().getNetwork().then(function (net) {
+      if (net.chainId === CHAIN_ID) return true;
+      return eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x1" }] })
+        .then(function () { wallet.set({ chainId: CHAIN_ID }); return true; });
+    });
+  }
+
+  function isUserReject(e) {
+    return e && (e.code === 4001 || e.code === "ACTION_REJECTED" || /user rejected|user denied|rejected the request/i.test(e.message || ""));
+  }
+  function mintErr(kind, message, txHash) { var e = new Error(message); e.kind = kind; e.txHash = txHash; return e; }
+  function fmtEth(wei) { try { return (+ethers().utils.formatEther(wei)).toFixed(4); } catch (e) { return "?"; } }
+
+  // ---- the bulletproof mint flow -----------------------------------------
+  // cb.onStatus(state, data) is called through the lifecycle. Resolves with
+  // { humanId, figure, txHash, serial } or rejects with an Error carrying .kind
+  // (and .txHash when a tx was broadcast). Never broadcasts without the caller
+  // having already gathered explicit user intent (the Mint button).
+  function mint(cb) {
+    cb = cb || {};
+    function status(s, d) { if (cb.onStatus) try { cb.onStatus(s, d); } catch (e) {} }
+    var E = ethers();
+
+    if (!wallet.connected || !injected()) return Promise.reject(mintErr("not-connected", "Connect a wallet to mint on-chain."));
+
+    status("checking");
+    return ensureMainnet().catch(function (e) {
+      throw mintErr("wrong-network", isUserReject(e) ? "Network switch cancelled. Mint needs Ethereum Mainnet." : "Please switch to Ethereum Mainnet to mint.");
+    }).then(function () {
+      return getCardPrice().catch(function () { throw mintErr("rpc", "Couldn't read the mint price. Check your connection and retry."); });
+    }).then(function (price) {
+      var anyLeft = H.FIGURES.some(function (f) { return f.minted < f.maxSupply; });
+      if (!anyLeft) throw mintErr("sold-out", "Every card is minted out. There is nothing left to mine.");
+      var signer = web3().getSigner();
+      return signer.getAddress().then(function (from) {
+        var c = new E.Contract(ORIG, ABI.original, signer);
+        // balance first: an underfunded wallet should read as "insufficient",
+        // not "would revert" (estimateGas also fails when value > balance).
+        return Promise.all([web3().getBalance(from), web3().getGasPrice()]).then(function (bg) {
+          var bal = bg[0], gasPrice = bg[1];
+          if (bal.lt(price)) throw mintErr("insufficient", "Not enough ETH for the mint price (" + fmtEth(price) + " Ξ) plus gas.");
+          return c.estimateGas.mineCard({ value: price }).catch(function () {
+            throw mintErr("would-revert", "This transaction would fail on-chain. The price may have changed or the last cards just minted out.");
+          }).then(function (est) {
+            var gasLimit = est.mul(120).div(100);                 // +20% buffer
+            var gasCost = gasLimit.mul(gasPrice), maxCost = price.add(gasCost);
+            if (bal.lt(maxCost)) throw mintErr("insufficient", "Not enough ETH. You need about " + fmtEth(maxCost) + " Ξ (mint " + fmtEth(price) + " + gas).");
+            status("confirm", { price: price, gasCost: gasCost, total: maxCost });
+          return c.mineCard({ value: price, gasLimit: gasLimit }).then(function (tx) {
+            status("mining", { hash: tx.hash });
+            // race the receipt against a timeout so a stuck tx surfaces clearly
+            var timeout = new Promise(function (_, rej) { setTimeout(function () { rej(mintErr("timeout", "Transaction is taking longer than expected.", tx.hash)); }, 120000); });
+            var waitRcpt = tx.wait(1).catch(function (e) {
+              if (e && e.code === "TRANSACTION_REPLACED") { if (e.receipt && e.receipt.status === 1) return e.receipt; throw mintErr("reverted", "The transaction was replaced or dropped.", tx.hash); }
+              throw mintErr("tx-failed", "Mint failed on-chain. Someone may have taken the last card of that type.", tx.hash);
+            });
+            return Promise.race([waitRcpt, timeout]).then(function (receipt) {
+              if (!receipt || receipt.status === 0) throw mintErr("reverted", "Mint reverted on-chain. Check the transaction on Etherscan.", tx.hash);
+              var humanId = null;
+              receipt.logs.forEach(function (log) {
+                try { var pl = c.interface.parseLog(log); if (pl.name === "Mined") humanId = Number(pl.args.human); } catch (e) {}
+              });
+              status("confirmed", { hash: tx.hash });
+              var fig = humanId != null ? H.byId(humanId) : null;
+              // refresh live state in the background (don't block the reveal)
+              refreshMinted().then(function () { if (wallet.address) loadOwned(wallet.address); });
+              var serial = fig ? Math.min(fig.maxSupply, fig.minted + 1) : null;
+              return { humanId: humanId, figure: fig, txHash: tx.hash, serial: serial };
+            });
+          }).catch(function (e) {
+            if (e.kind) throw e;                                   // already mapped
+            if (isUserReject(e)) throw mintErr("rejected", "Transaction cancelled.");
+            if (/insufficient funds/i.test(e.message || "")) throw mintErr("insufficient", "Not enough ETH for the mint plus gas.");
+            throw mintErr("send-failed", "Couldn't send the transaction. " + ((e && e.message) ? e.message.slice(0, 80) : "Please try again."));
+          });
+          });     // close estimateGas().then(est)
+        });
+      });
+    });
+  }
+
+  // ---- init: eager reconnect (no popup) + live minted refresh -------------
+  function init() {
+    refreshMinted();
+    var eth = injected();
+    if (eth && ready()) {
+      try {
+        eth.request({ method: "eth_accounts" }).then(function (accts) {
+          if (accts && accts.length) {
+            web3().getNetwork().then(function (net) {
+              var addr = ethers().utils.getAddress(accts[0]);
+              wallet.set({ connected: true, address: addr, chainId: net.chainId });
+              bindInjectedEvents();
+              loadOwned(addr);
+            });
+          }
+        }).catch(function () {});
+      } catch (e) {}
+    }
+  }
+
+  window.HCX_CHAIN = {
+    connect: connect, disconnect: disconnect, ensureMainnet: ensureMainnet,
+    getCardPrice: getCardPrice, refreshMinted: refreshMinted, loadOwned: loadOwned,
+    mint: mint, isUserReject: isUserReject, fmtEth: fmtEth, init: init,
+    etherscanTx: function (h) { return "https://etherscan.io/tx/" + h; }
+  };
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();

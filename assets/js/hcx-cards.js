@@ -58,6 +58,8 @@
   // props: { figure, variant:'front'|'back', badge, glow, dim, hoverInfo, onClick, style }
   function Card(props) {
     var f = props.figure;
+    if (!f) return h("div", { style: Object.assign({ aspectRatio: "5 / 7", width: "100%", borderRadius: "6px",
+      background: "#0c0d0f", boxShadow: "0 0 0 1px #ffffff10" }, props.style || {}) });
     var accent = rarityAccent(f);
     var w = rarityWeight(f);
     var glow = props.glow !== false && w > 0.45;
