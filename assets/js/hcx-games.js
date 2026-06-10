@@ -187,7 +187,7 @@
               h("div", { style: { position: "relative", borderRadius: "8px",
                 boxShadow: ok ? "0 0 0 2px #5fae6e, 0 0 24px -8px #5fae6e" : bad ? "0 0 0 2px #d0563a" : "none", transition: "box-shadow .3s" } },
                 window.Card({ figure: f, badge: false, glow: false }),
-                showResult ? h("div", { style: { position: "absolute", left: 0, right: 0, bottom: 0, padding: "8px", textAlign: "center",
+                record.finished ? h("div", { style: { position: "absolute", left: 0, right: 0, bottom: 0, padding: "8px", textAlign: "center",
                   font: "700 13px/1 " + MONO, color: "#fff", background: "linear-gradient(transparent,#000c)", letterSpacing: ".05em" } }, window.HCX.eraLabel(f.born)) : null),
               !record.finished ? h("div", { style: { display: "flex", gap: "8px", justifyContent: "center" } },
                 arrowBtn("◀", function () { move(i, -1); }, i === 0),
