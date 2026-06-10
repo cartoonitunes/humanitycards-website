@@ -18,14 +18,14 @@
   var H = window.HCX, wallet = window.useWallet();
 
   // Read RPCs: primary first, then public fallbacks (manual failover below).
-  // Note: rarible.com/nodes/ethereum-node is a marketing page, NOT an RPC —
-  // every rarible RPC hostname is NXDOMAIN (checked 2026-06-09). llamarpc
-  // (Cloudflare challenge pages) and cloudflare-eth (fabricated estimates,
-  // -32046/-32603 errors) were dropped for the live-tested set below.
+  // Rarible's node is POST-only JSON-RPC on the page path (GET returns 405 —
+  // don't let that fool you); verified from browser context with CORS, block
+  // reads and contract calls. llamarpc (Cloudflare challenge pages) and
+  // cloudflare-eth (fabricated estimates) remain dropped.
   var RPCS = [
+    "https://rarible.com/nodes/ethereum-node",
     "https://ethereum-rpc.publicnode.com",
-    "https://eth.drpc.org",
-    "https://eth.merkle.io"
+    "https://eth.drpc.org"
   ];
   var CHAIN_ID = 1;
   var ORIG = H.CA, WRAPPER = H.WRAPPER, MC3 = "0xcA11bde05977b3631167028862bE2a173976CA11";
