@@ -36,9 +36,14 @@
       "function getHumanInfo(uint256 i) view returns (string name, uint8 max, uint256 mined)",
       "function getCardInfo(uint256 tokenId) view returns (uint16 human, address owner)",
       "function balanceOf(address owner) view returns (uint256)",
+      "function approve(address to, uint256 tokenId)",            // pre-ERC721: per-card, enables takeOwnership
       "event Mined(address indexed owner, uint16 human)"
     ],
-    wrapper: ["function ownerOf(uint256 tokenId) view returns (address)"],
+    wrapper: [
+      "function ownerOf(uint256 tokenId) view returns (address)",
+      "function wrap(uint256 cardId)",                            // pulls the card via takeOwnership, mints wHCX 1:1
+      "event Wrapped(uint256 indexed cardId, address indexed account)"
+    ],
     mc3: ["function aggregate3((address target,bool allowFailure,bytes callData)[] calls) view returns (tuple(bool success,bytes returnData)[])"]
   };
 
@@ -328,6 +333,125 @@
     });
   }
 
+  // ---- the wrap flow -------------------------------------------------------
+  // The 2018 contract pre-dates ERC-721: wrapping needs (1) original.approve(
+  // WRAPPER, cardId) so the wrapper may call takeOwnership, then (2)
+  // wrapper.wrap(cardId). The original exposes no approval getter, so approval
+  // state is detected by simulating wrap() from the owner: it succeeds iff the
+  // caller owns the card AND the wrapper is approved (verified on mainnet).
+  // Both transactions are sent only after the caller's explicit click; each is
+  // estimated, balance-checked and capped like the mint flow.
+
+  // A revert from the simulation IS the answer (not approved) — never fail
+  // over on it. Only transport errors move to the next RPC.
+  // Why estimateGas and not eth_call: ethers 5.7's provider.call returns the
+  // REVERT DATA ("0x") instead of throwing, and wrap() returns nothing, so
+  // success and revert are indistinguishable. estimateGas throws
+  // UNPREDICTABLE_GAS_LIMIT on revert. Caveat: cloudflare-eth fakes estimates
+  // (returned 21k for a reverting wrap), so it sits last in the RPC order and
+  // a wrong "approved" only leads to a caught would-revert before any send.
+  function isRevertError(e) {
+    if (!e) return false;
+    if (e.code === "CALL_EXCEPTION" || e.code === "UNPREDICTABLE_GAS_LIMIT") return true;
+    var s = ((e.message || "") + " " + (e.body || "") + " " + JSON.stringify(e.error || {})).toLowerCase();
+    return s.indexOf("execution reverted") >= 0 || s.indexOf("revert") >= 0;
+  }
+  function simulateWrap(cardId, fromAddr, prov) {
+    var w = new (ethers().Contract)(WRAPPER, ABI.wrapper, prov);
+    return w.estimateGas.wrap(cardId, { from: fromAddr })
+      .then(function () { return true; },
+            function (e) { if (isRevertError(e)) return false; throw e; });
+  }
+  function checkWrapApproval(cardId) {
+    if (!ready() || !wallet.address) return Promise.resolve(false);
+    var ps = providers(), i = 0, from = wallet.address;
+    function attempt() {
+      if (i >= ps.length) return Promise.resolve(false);  // all transports down → assume unapproved (safe)
+      return simulateWrap(cardId, from, ps[i]).catch(function () { i++; return attempt(); });
+    }
+    return attempt();
+  }
+
+  function wrapCard(cardId, cb) {
+    cb = cb || {};
+    function status(s, d) { if (cb.onStatus) try { cb.onStatus(s, d); } catch (e) {} }
+    function wrapErr(kind, message, txHash, step) { var e = mintErr(kind, message, txHash); e.step = step; return e; }
+    var E = ethers();
+
+    if (!wallet.connected || !injected()) return Promise.reject(wrapErr("not-connected", "Connect a wallet to wrap."));
+
+    status("checking");
+    return ensureMainnet().catch(function (e) {
+      throw wrapErr("wrong-network", isUserReject(e) ? "Network switch cancelled. Wrapping needs Ethereum Mainnet." : "Please switch to Ethereum Mainnet to wrap.");
+    }).then(function () {
+      // confirm current on-chain owner before sending anything
+      return withFailover(function (p) { return origAt(p).getCardInfo(cardId); }).catch(function () {
+        throw wrapErr("rpc", "Couldn't read the card's owner. Check your connection and retry.");
+      });
+    }).then(function (info) {
+      if ((info.owner || "").toLowerCase() !== wallet.address.toLowerCase())
+        throw wrapErr("not-owner", "Card #" + cardId + " isn't owned by the connected wallet — it may have just moved or already been wrapped.");
+      // authoritative approval check through the user's own wallet provider
+      return simulateWrap(cardId, wallet.address, web3()).catch(function () { return false; });
+    }).then(function (approved) {
+      var signer = web3().getSigner();
+      var original = new E.Contract(ORIG, ABI.original, signer);
+      var wrapper = new E.Contract(WRAPPER, ABI.wrapper, signer);
+
+      function waitFor(tx, step, failMsg) {
+        var timeout = new Promise(function (_, rej) { setTimeout(function () {
+          rej(wrapErr("timeout", "Transaction is taking longer than expected.", tx.hash, step)); }, 120000); });
+        var rcpt = tx.wait(1).catch(function (e) {
+          if (e && e.code === "TRANSACTION_REPLACED") { if (e.receipt && e.receipt.status === 1) return e.receipt; throw wrapErr("reverted", "The transaction was replaced or dropped.", tx.hash, step); }
+          throw wrapErr("tx-failed", failMsg, tx.hash, step);
+        });
+        return Promise.race([rcpt, timeout]).then(function (receipt) {
+          if (!receipt || receipt.status === 0) throw wrapErr("reverted", failMsg, tx.hash, step);
+          return receipt;
+        });
+      }
+      function send(contract, method, args, step, label) {
+        return Promise.all([web3().getBalance(wallet.address), web3().getGasPrice()]).then(function (bg) {
+          var bal = bg[0], gasPrice = bg[1];
+          return contract.estimateGas[method].apply(null, args).catch(function () {
+            throw wrapErr("would-revert", step === "approve"
+              ? "The approval would fail on-chain — the card may have just moved."
+              : "Wrapping would fail on-chain. If you just approved, give it a few seconds and retry.", null, step);
+          }).then(function (est) {
+            var gasLimit = est.mul(120).div(100);
+            if (gasLimit.gt(E.BigNumber.from(MAX_GAS))) gasLimit = E.BigNumber.from(MAX_GAS);
+            var gasCost = gasLimit.mul(gasPrice);
+            if (bal.lt(gasCost)) throw wrapErr("insufficient", "Not enough ETH for gas (about " + fmtEth(gasCost) + " Ξ for the " + label + ").", null, step);
+            status("confirm-" + step, { gasCost: gasCost });
+            return contract[method].apply(null, args.concat([{ gasLimit: gasLimit }]));
+          }).catch(function (e) {
+            if (e.kind) throw e;
+            if (isUserReject(e)) throw wrapErr("rejected", (step === "approve" ? "Approval" : "Wrap") + " cancelled.", null, step);
+            if (/insufficient funds/i.test(e.message || "")) throw wrapErr("insufficient", "Not enough ETH for gas.", null, step);
+            throw wrapErr("send-failed", "Couldn't send the " + label + ". " + ((e && e.message) ? e.message.slice(0, 80) : "Please try again."), null, step);
+          });
+        });
+      }
+
+      var approveStep = approved ? Promise.resolve(null)
+        : send(original, "approve", [WRAPPER, cardId], "approve", "approval")
+            .then(function (tx) { status("approving", { hash: tx.hash });
+              return waitFor(tx, "approve", "The approval failed on-chain."); })
+            .then(function (r) { status("approved", { hash: r.transactionHash }); return r; });
+
+      return approveStep.then(function () {
+        return send(wrapper, "wrap", [cardId], "wrap", "wrap transaction")
+          .then(function (tx) { status("wrapping", { hash: tx.hash });
+            return waitFor(tx, "wrap", "The wrap failed on-chain — the card may have moved."); })
+          .then(function (receipt) {
+            status("wrapped", { hash: receipt.transactionHash });
+            if (wallet.address) loadOwned(wallet.address);   // refresh; re-renders via wallet.notify
+            return { txHash: receipt.transactionHash, cardId: cardId };
+          });
+      });
+    });
+  }
+
   // ---- init: eager reconnect only (no popup). Minted counts are loaded
   // lazily via ensureMinted() once the UI has painted — not eagerly on load. ---
   function init() {
@@ -350,9 +474,10 @@
 
   window.HCX_CHAIN = {
     connect: connect, disconnect: disconnect, ensureMainnet: ensureMainnet,
-    mintedLive: function () { return _mintedAt != null; },   // true once live counts have been read
+    mintedLive: function () { return _mintedAt > 0; },       // true once live counts have been read
     getCardPrice: getCardPrice, refreshMinted: refreshMinted, ensureMinted: ensureMinted, loadOwned: loadOwned,
-    mint: mint, isUserReject: isUserReject, fmtEth: fmtEth, init: init,
+    mint: mint, wrapCard: wrapCard, checkWrapApproval: checkWrapApproval,
+    isUserReject: isUserReject, fmtEth: fmtEth, init: init,
     etherscanTx: function (h) { return "https://etherscan.io/tx/" + h; }
   };
 

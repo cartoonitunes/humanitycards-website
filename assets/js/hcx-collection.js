@@ -52,6 +52,10 @@
             f.cardId != null ? miniStat("Card Number", f.cardId) : null,
             miniStat("Max Supply", f.maxSupply, accent),
             miniStat("Minted", f.minted + " / " + f.maxSupply)),
+          f.owned ? (f.wrapped
+            ? h("div", { style: { marginTop: "18px", font: "700 11px/1 " + MONO, letterSpacing: ".12em", color: "#5fae6e" } },
+                "WRAPPED — ERC-721 (wHCX) · CARD #" + f.cardId)
+            : WrapPanel(f)) : null,
           h("a", { href: "https://etherscan.io/address/" + f.contract, target: "_blank", rel: "noopener noreferrer",
             style: { display: "block", marginTop: "20px", font: "400 10.5px/1.5 " + MONO, color: FAINT, wordBreak: "break-all", textDecoration: "none" },
             onMouseEnter: function (e) { e.currentTarget.style.color = COPPER; },
@@ -59,6 +63,78 @@
     document.addEventListener("keydown", onKey);
     document.body.appendChild(overlay);
   }
+  // ---- WrapPanel: the approve+wrap flow for an owned, unwrapped card. ----
+  // Checks approval by simulation, then runs HCX_CHAIN.wrapCard with explicit
+  // per-step confirmation: every transaction is signed in the user's wallet,
+  // costs are shown up front, and every failure mode lands as a message + retry.
+  function WrapPanel(f) {
+    var CH = window.HCX_CHAIN;
+    var box = h("div", { style: { marginTop: "18px", padding: "14px 16px", background: "#ffffff06", border: "1px solid " + RULE, borderRadius: "8px" } });
+    var busy = false;
+    function head(txt, color) {
+      return h("div", { style: { font: "700 11px/1 " + MONO, letterSpacing: ".12em", color: color || "#e0a566" } }, txt);
+    }
+    function line(txt, color) {
+      return h("div", { style: { marginTop: "8px", font: "400 12px/1.55 " + SANS, color: color || DIM } }, txt);
+    }
+    function txLink(hash) {
+      return h("a", { href: "https://etherscan.io/tx/" + hash, target: "_blank", rel: "noopener noreferrer",
+        style: { display: "inline-block", marginTop: "6px", font: "400 10.5px/1.4 " + MONO, color: COPPER, textDecoration: "none", wordBreak: "break-all" } },
+        "TX " + hash.slice(0, 14) + "… ↗");
+    }
+    function render(nodes) { box.innerHTML = ""; nodes.forEach(function (n) { if (n) box.appendChild(n); }); }
+    function gas(d) { return d && d.gasCost ? " ≈" + CH.fmtEth(d.gasCost) + " Ξ gas." : ""; }
+
+    function idle(approved) {
+      busy = false;
+      render([
+        head("UNWRAPPED — 2018 CONTRACT"),
+        line("Wrapping mints a standard ERC-721 (wHCX), 1:1 for card #" + f.cardId + ". " + (approved
+          ? "The wrapper is already approved for this card — one transaction."
+          : "Two transactions: first allow the wrapper to transfer this card out of the original contract, then wrap it.") +
+          " No cost beyond gas, and you can unwrap any time."),
+        h("div", { style: { marginTop: "12px" } },
+          window.Btn({ size: "sm", onClick: start }, approved ? "Wrap" : "Approve & Wrap"))
+      ]);
+    }
+    function fail(e) {
+      busy = false;
+      render([
+        head((e.step === "approve" ? "APPROVAL" : "WRAP") + " — " + (e.kind === "rejected" ? "CANCELLED" : "FAILED"), "#d0563a"),
+        line(e.message || "Something went wrong.", "#c3bdae"),
+        e.txHash ? txLink(e.txHash) : null,
+        h("div", { style: { marginTop: "12px" } },
+          window.Btn({ size: "sm", variant: "ghost", onClick: init }, "Try Again"))
+      ]);
+    }
+    function start() {
+      if (busy) return;
+      busy = true;
+      CH.wrapCard(f.cardId, { onStatus: function (s, d) {
+        if (s === "confirm-approve") render([head("STEP 1 OF 2 — APPROVE"),
+          line("Allow the wrapper contract to transfer card #" + f.cardId + " from the 2018 contract. Nothing moves yet —" + gas(d) + " Confirm in your wallet.")]);
+        else if (s === "approving") render([head("STEP 1 OF 2 — APPROVING…"),
+          line("Waiting for the approval to confirm on-chain."), d && d.hash ? txLink(d.hash) : null]);
+        else if (s === "approved") render([head("APPROVED ✓", "#5fae6e"), line("Now the wrap itself.")]);
+        else if (s === "confirm-wrap") render([head("WRAP CARD #" + f.cardId),
+          line("Mints wHCX #" + f.cardId + " to your wallet; the original card moves into the wrapper." + gas(d) + " Confirm in your wallet.")]);
+        else if (s === "wrapping") render([head("WRAPPING…"),
+          line("Waiting for the wrap to confirm on-chain."), d && d.hash ? txLink(d.hash) : null]);
+      } }).then(function (res) {
+        f.wrapped = true;
+        render([head("WRAPPED ✓ — NOW ERC-721 (wHCX)", "#5fae6e"),
+          line("Card #" + f.cardId + " is wrapped. It stays in your collection and now trades anywhere ERC-721 does."),
+          txLink(res.txHash)]);
+      }).catch(fail);
+    }
+    function init() {
+      render([head("UNWRAPPED — 2018 CONTRACT"), line("Checking wrapper approval…")]);
+      CH.checkWrapApproval(f.cardId).then(idle);
+    }
+    init();
+    return box;
+  }
+
   function miniStat(label, value, accent) {
     return h("div", null,
       h("div", { style: { font: "600 9.5px/1 " + MONO, letterSpacing: ".14em", color: DIM, marginBottom: "6px" } }, label.toUpperCase()),

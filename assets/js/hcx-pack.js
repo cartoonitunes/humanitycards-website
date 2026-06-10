@@ -128,9 +128,14 @@
         window.Btn({ onClick: onAgain }, "Open Another"),
         window.Btn({ variant: "ghost", onClick: onReset }, "Done")),
       onchain
-        ? h("a", { href: "https://etherscan.io/tx/" + hash, target: "_blank", rel: "noopener", title: "View on Etherscan",
-            style: { display: "block", marginTop: "16px", font: "400 10.5px/1.4 " + MONO, color: COPPER, textDecoration: "none", wordBreak: "break-all" } },
-            "Minted on-chain · TX " + hash.slice(0, 18) + "… ↗")
+        ? h("div", null,
+            h("a", { href: "https://etherscan.io/tx/" + hash, target: "_blank", rel: "noopener", title: "View on Etherscan",
+              style: { display: "block", marginTop: "16px", font: "400 10.5px/1.4 " + MONO, color: COPPER, textDecoration: "none", wordBreak: "break-all" } },
+              "Minted on-chain · TX " + hash.slice(0, 18) + "… ↗"),
+            h("div", { style: { marginTop: "10px", font: "400 11.5px/1.5 " + SANS, color: DIM } },
+              "It lands in your collection as an unwrapped card on the 2018 contract. ",
+              h("a", { href: "#collection", onClick: function (e) { e.preventDefault(); window.useRouter().go("collection"); },
+                style: { color: COPPER, textDecoration: "none" } }, "Wrap it to ERC-721 there →")))
         : h("div", { style: { marginTop: "16px", font: "400 10.5px/1.4 " + MONO, color: FAINT } }, "Demo pull · not minted on-chain"));
   }
 

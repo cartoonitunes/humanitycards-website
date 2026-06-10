@@ -86,3 +86,10 @@ Contract quirks preserved: humanIds 66 and 191 are both Sigmund Freud, and 164
 - The game is called **Battle** — there is no "Top Trumps" anywhere.
 - Wallet connect is a demo toggle (persisted to `localStorage`); games run on
   random cards, or your owned deck (`window.HCX.OWNED`) when connected.
+- Ownership reads BOTH contracts: cards held directly on the 2018 contract
+  show an UNWRAPPED badge and a wrap flow in the detail modal (pre-ERC-721
+  `approve(wrapper, cardId)` then `wrapper.wrap(cardId)`, two confirmed
+  transactions). Approval state is detected by simulating `wrap()` with
+  `estimateGas` — the original contract has no approval getter, and
+  `eth_call` can't be used because ethers 5.7 returns revert data as a
+  successful "0x" (indistinguishable from success for a void function).

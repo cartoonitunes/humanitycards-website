@@ -80,6 +80,10 @@
       onMouseLeave: function (e) { if (!props.onClick) return; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = baseShadow; } },
       props.variant === "back" ? CardBack(accent) : LedgerSVG(f),
       props.badge !== false ? ScarcityBadge(f) : null,
+      // owned-but-unwrapped: still sits on the 2018 contract, not yet wHCX
+      (f.owned && !f.wrapped) ? h("div", { style: { position: "absolute", top: "8px", left: "8px", zIndex: 2,
+        font: "700 8.5px/1 " + window.MONO, letterSpacing: ".12em", color: "#13101f",
+        background: "#e0a566", borderRadius: "3px", padding: "4px 6px" } }, "UNWRAPPED") : null,
       (props.hoverInfo && f.role) ? h("div", { className: "hc-hover", style: {
         position: "absolute", left: 0, right: 0, bottom: 0, padding: "26px 12px 11px", zIndex: 2, pointerEvents: "none",
         background: "linear-gradient(transparent, #07070acc 55%, #07070af2)", opacity: 0, transition: "opacity .22s" } },
