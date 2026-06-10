@@ -35,7 +35,7 @@
       h("div", { style: { marginBottom: "30px" } }, PlayingWith(true)),
       h("div", { className: "play-grid", style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px" } },
         games.map(function (g) {
-          return h("div", { style: { display: "grid", gridTemplateColumns: "120px 1fr", gap: "20px", background: PANEL, border: "1px solid " + RULE, borderRadius: "10px", padding: "20px", alignItems: "center" } },
+          return h("div", { className: "play-tile", style: { display: "grid", gridTemplateColumns: "120px 1fr", gap: "20px", background: PANEL, border: "1px solid " + RULE, borderRadius: "10px", padding: "20px", alignItems: "center" } },
             h("div", { style: { width: "120px" } }, window.Card({ figure: window.HCX.byName(g.fig), badge: false, glow: false })),
             h("div", null,
               window.Kicker({ color: "#9c8cf0" }, g.k),

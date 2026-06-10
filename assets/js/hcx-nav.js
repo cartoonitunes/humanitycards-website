@@ -13,12 +13,13 @@
 
   function Logo() {
     var r = window.useRouter();
+    // one word: "HumanityCards" — no gap between the two-tone halves
     return h("a", { href: "#home", onClick: function (e) { e.preventDefault(); r.go("home"); },
-      style: { display: "inline-flex", alignItems: "baseline", gap: "10px", textDecoration: "none", color: INK } },
+      style: { display: "inline-flex", alignItems: "baseline", gap: "0", textDecoration: "none", color: INK } },
       h("span", { className: "logo-word", style: { font: "700 17px/1 " + MONO, letterSpacing: ".02em" } }, "Humanity"),
       h("span", { className: "logo-word", style: { font: "700 17px/1 " + MONO, letterSpacing: ".02em",
         background: "linear-gradient(180deg,#f0d2a6,#c98a4b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" } }, "Cards"),
-      h("span", { className: "logo-hcx", style: { marginLeft: "4px", font: "600 9.5px/1 " + MONO, letterSpacing: ".22em", color: FAINT,
+      h("span", { className: "logo-hcx", style: { marginLeft: "9px", font: "600 9.5px/1 " + MONO, letterSpacing: ".22em", color: FAINT,
         border: "1px solid " + RULE, padding: "3px 5px", borderRadius: "3px", transform: "translateY(-1px)" } }, "HCX"));
   }
 

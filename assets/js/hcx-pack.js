@@ -129,7 +129,7 @@
         window.Btn({ variant: "ghost", onClick: onReset }, "Done")),
       onchain
         ? h("div", null,
-            h("a", { href: "https://etherscan.io/tx/" + hash, target: "_blank", rel: "noopener", title: "View on Etherscan",
+            h("a", { href: "https://etherscan.io/tx/" + hash, target: "_blank", rel: "noopener noreferrer", title: "View on Etherscan",
               style: { display: "block", marginTop: "16px", font: "400 10.5px/1.4 " + MONO, color: COPPER, textDecoration: "none", wordBreak: "break-all" } },
               "Minted on-chain · TX " + hash.slice(0, 18) + "… ↗"),
             h("div", { style: { marginTop: "10px", font: "400 11.5px/1.5 " + SANS, color: DIM } },
@@ -249,7 +249,7 @@
         withSpinner ? spinner() : null, text);
     }
     function txLink(hash) {
-      return hash ? h("a", { href: "https://etherscan.io/tx/" + hash, target: "_blank", rel: "noopener",
+      return hash ? h("a", { href: "https://etherscan.io/tx/" + hash, target: "_blank", rel: "noopener noreferrer",
         style: { display: "block", marginTop: "12px", font: "400 11px/1.4 " + MONO, color: COPPER, textDecoration: "none", wordBreak: "break-all" } },
         "TX " + hash.slice(0, 20) + "… ↗") : null;
     }
