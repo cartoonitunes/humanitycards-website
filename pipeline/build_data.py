@@ -31,7 +31,7 @@ Usage:  python3 pipeline/build_data.py [--offline]
         --offline reuses pipeline/cache/wiki.json without hitting the network.
 """
 
-import json, math, re, sys, time, urllib.parse, urllib.request
+import json, math, os, re, sys, time, urllib.parse, urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -41,7 +41,8 @@ from relationships import EDGES
 HERE = Path(__file__).parent
 SITE = HERE.parent
 CACHE = HERE / "cache" / "wiki.json"
-ROSTER_MD = Path("humanity-cards-roster.md")
+# on-chain supply snapshot; not committed — point HCX_ROSTER_MD at your copy
+ROSTER_MD = Path(os.environ.get("HCX_ROSTER_MD", SITE / "humanity-cards-roster.md"))
 
 WIKI_API = "https://en.wikipedia.org/w/api.php"
 WD_API = "https://www.wikidata.org/w/api.php"

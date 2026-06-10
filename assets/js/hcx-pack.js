@@ -215,6 +215,30 @@
       if (priceWei && window.ethers) { try { return (+window.ethers.utils.formatEther(priceWei)).toFixed(4) + " Ξ"; } catch (e) {} }
       return null;
     }
+
+    // ---- live gas readout (polled every 15s while the idle controls show) --
+    var gasEl = null, gasTimer = null, lastGas = null;
+    function gasColor(g) { return g < 15 ? "#5fae6e" : g <= 40 ? "#d9b14a" : "#d0563a"; }
+    function paintGas() {
+      if (!gasEl) return;
+      if (lastGas == null) { gasEl.textContent = "GAS — GWEI"; gasEl.style.color = FAINT; return; }
+      gasEl.textContent = "GAS " + (lastGas < 10 ? lastGas.toFixed(1) : Math.round(lastGas)) + " GWEI";
+      gasEl.style.color = gasColor(lastGas);
+    }
+    function pollGas() {
+      // first call runs before gasEl is appended — only stop on a LIVE timer
+      // whose element has since left the DOM (page navigated away)
+      if (gasTimer && gasEl && !gasEl.isConnected) { clearInterval(gasTimer); gasTimer = null; return; }
+      if (!window.HCX_CHAIN) return;
+      window.HCX_CHAIN.getGasGwei().then(function (g) { lastGas = g; paintGas(); }).catch(function () {});
+    }
+    function gasLine() {
+      gasEl = h("div", { title: "Current Ethereum gas price — green under 15 gwei, red over 40",
+        style: { marginTop: "12px", font: "600 10.5px/1 " + MONO, letterSpacing: ".14em", color: FAINT } });
+      paintGas();
+      if (!gasTimer) { pollGas(); gasTimer = setInterval(pollGas, 15000); }
+      return gasEl;
+    }
     function hintText() {
       var w = window.useWallet();
       var pl = priceLabel();
@@ -223,6 +247,7 @@
       return "Practice Open is a free demo — nothing is minted. Mint On-Chain sends a real transaction" + (pl ? " · " + pl + " + gas" : "") + ".";
     }
     function idleControls() {
+      controlsMode = "idle";
       controls.innerHTML = "";
       var w = window.useWallet();
       var pl = priceLabel();
@@ -232,10 +257,12 @@
             boxShadow: "0 10px 30px -10px " + COPPER + ", 0 0 0 1px #d49a59, 0 0 40px -16px " + COPPER } }, "Practice Open · Free"),
           window.Btn({ variant: "ghost", onClick: startMint, style: { fontSize: "14px", padding: "16px 26px" } },
             w.connected ? ("Mint On-Chain" + (pl ? " · " + pl : "")) : "Connect to Mint for Real")),
-        h("div", { style: { marginTop: "16px", font: "400 12px/1.5 " + SANS, color: DIM, maxWidth: "420px", marginLeft: "auto", marginRight: "auto" } }, hintText())));
-      // fetch the live price once to enrich the hint
+        h("div", { style: { marginTop: "16px", font: "400 12px/1.5 " + SANS, color: DIM, maxWidth: "420px", marginLeft: "auto", marginRight: "auto" } }, hintText()),
+        gasLine()));
+      // fetch the live price once to enrich the hint — but never clobber a
+      // mint/resume status panel that went up while the fetch was in flight
       if (priceWei == null && window.HCX_CHAIN) {
-        window.HCX_CHAIN.getCardPrice().then(function (p) { priceWei = p; if (stage === "idle") idleControls(); }).catch(function () {});
+        window.HCX_CHAIN.getCardPrice().then(function (p) { priceWei = p; if (stage === "idle" && controlsMode === "idle") idleControls(); }).catch(function () {});
       }
     }
 
@@ -244,7 +271,8 @@
       return h("span", { style: { display: "inline-block", width: "16px", height: "16px", borderRadius: "50%",
         border: "2px solid " + RULE, borderTopColor: COPPER, animation: "hcxspin .8s linear infinite", verticalAlign: "middle", marginRight: "10px" } });
     }
-    function statusPanel(node) { controls.innerHTML = ""; controls.appendChild(h("div", { style: { animation: "fadeUp .3s ease both", maxWidth: "420px", margin: "0 auto" } }, node)); }
+    var controlsMode = "idle";   // "status" while a mint/resume panel is up
+    function statusPanel(node) { controlsMode = "status"; controls.innerHTML = ""; controls.appendChild(h("div", { style: { animation: "fadeUp .3s ease both", maxWidth: "420px", margin: "0 auto" } }, node)); }
     function statusLine(text, withSpinner) {
       return h("div", { style: { font: "600 14px/1.5 " + MONO, color: INK, display: "flex", alignItems: "center", justifyContent: "center" } },
         withSpinner ? spinner() : null, text);
@@ -361,6 +389,20 @@
     function reset() { clearTimers(); clearOverlays(); pull = null; setStage("idle"); }
 
     setStage("idle");
+
+    // Resume a mint that was broadcast before the page reloaded (mobile
+    // in-app browsers reload after the wallet confirms; the hash is in
+    // localStorage). The receipt poll runs on public RPCs, wallet untouched.
+    var pending = window.HCX_CHAIN && window.HCX_CHAIN.pendingMint && window.HCX_CHAIN.pendingMint();
+    if (pending) {
+      statusPanel(h("div", null, statusLine("Found a pending mint — checking…", true), txLink(pending.hash)));
+      window.HCX_CHAIN.resumeMint(pending.hash, { onStatus: onMintStatus }).then(function (res) {
+        if (res && res.figure) open(res.figure, { onchain: true, txHash: res.txHash, serial: res.serial });
+        else showMintError({ message: "Your mint confirmed, but the revealed card couldn't be read. Check the transaction." }, pending.hash);
+      }).catch(function (e) {
+        showMintError(e, (e && e.txHash) || pending.hash);
+      });
+    }
     return container;
   }
 

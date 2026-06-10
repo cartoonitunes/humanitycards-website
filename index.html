@@ -109,14 +109,24 @@
   .pack-foil {
     position: absolute; inset: 0; pointer-events: none; overflow: hidden;
   }
+  /* foil sweep animates transform only (left/layout animation janked on
+     mobile): translate3d keeps it on the GPU compositor */
   .pack-foil::before {
-    content: ""; position: absolute; top: -25%; bottom: -25%; left: -40%; width: 45%;
+    content: ""; position: absolute; top: -25%; bottom: -25%; left: -45%; width: 45%;
     background: linear-gradient(100deg, transparent, rgba(231,201,142,.32) 38%, rgba(255,243,214,.6) 50%, rgba(231,201,142,.3) 62%, transparent);
-    filter: blur(3px); transform: skewX(-16deg); mix-blend-mode: screen;
+    filter: blur(3px); transform: translate3d(0,0,0) skewX(-16deg); mix-blend-mode: screen;
+    will-change: transform;
     animation: foilsweep 5.2s ease-in-out infinite;
   }
+  /* travel: -45% -> 125% of the pack = 170% of pack width = 378% of the
+     45%-wide sweep element itself */
   @keyframes foilsweep {
-    0% { left: -45%; } 55%, 100% { left: 125%; }
+    0% { transform: translate3d(0,0,0) skewX(-16deg); }
+    55%, 100% { transform: translate3d(378%,0,0) skewX(-16deg); }
+  }
+  /* mobile: the 3px blur is the expensive part — drop it, keep the sweep */
+  @media (max-width: 980px), (pointer: coarse) {
+    .pack-foil::before { filter: none; }
   }
   .pack-crinkle {
     position: absolute; inset: 0; pointer-events: none; opacity: .26; mix-blend-mode: screen;
@@ -235,21 +245,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" integrity="sha384-Htz1SE4Sl5aitpvFgr2j0sfsGUIuSXI6t8hEyrlQ93zflEF3a29bH2AvkUROUw7J" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <!-- on-chain-safe data + card generators (plain JS, reused from the design bundle) -->
-<script src="assets/js/card-helpers.js?v=16"></script>
-<script src="assets/js/card-variants.js?v=16"></script>
-<script src="assets/js/bios.js?v=16"></script>
-<script src="assets/js/data.js?v=16"></script>
-<script src="assets/js/relationships.js?v=16"></script>
+<script src="assets/js/card-helpers.js?v=17"></script>
+<script src="assets/js/card-variants.js?v=17"></script>
+<script src="assets/js/bios.js?v=17"></script>
+<script src="assets/js/data.js?v=17"></script>
+<script src="assets/js/relationships.js?v=17"></script>
 
 <!-- vanilla port of the React prototype (no framework, no build step) -->
-<script src="assets/js/hcx-ui.js?v=16"></script>
-<script src="assets/js/hcx-chain.js?v=16"></script>
-<script src="assets/js/hcx-cards.js?v=16"></script>
-<script src="assets/js/hcx-nav.js?v=16"></script>
-<script src="assets/js/hcx-landing.js?v=16"></script>
-<script src="assets/js/hcx-pack.js?v=16"></script>
-<script src="assets/js/hcx-collection.js?v=16"></script>
-<script src="assets/js/hcx-games.js?v=16"></script>
-<script src="assets/js/hcx-app.js?v=16"></script>
+<script src="assets/js/hcx-ui.js?v=17"></script>
+<script src="assets/js/hcx-chain.js?v=17"></script>
+<script src="assets/js/hcx-scores.js?v=17"></script>
+<script src="assets/js/hcx-cards.js?v=17"></script>
+<script src="assets/js/hcx-nav.js?v=17"></script>
+<script src="assets/js/hcx-landing.js?v=17"></script>
+<script src="assets/js/hcx-pack.js?v=17"></script>
+<script src="assets/js/hcx-collection.js?v=17"></script>
+<script src="assets/js/hcx-games.js?v=17"></script>
+<script src="assets/js/hcx-app.js?v=17"></script>
 </body>
 </html>

@@ -142,6 +142,10 @@
           localStorage.setItem("hcx_tl_streak", cont ? (+tlGet("hcx_tl_streak", 0)) + 1 : 1);
           localStorage.setItem("hcx_tl_streakLast", today);
         } else { localStorage.setItem("hcx_tl_streak", 0); }
+        // fewer attempts, more points: 100 / 75 / 50 / 25, miss = 0
+        if (window.HCX_SCORES) window.HCX_SCORES.submit("timeline",
+          isSolved ? (TL_MAX + 1 - att.length) * 25 : 0, isSolved,
+          { day: today, attempts: att.length, solved: isSolved, streak: +tlGet("hcx_tl_streak", 0) });
       }
       rr();
     }
@@ -227,7 +231,8 @@
     }
 
     rr();
-    return host;
+    return h("div", null, host,
+      window.HCX_SCORES ? window.Section(null, window.HCX_SCORES.widget("timeline")) : null);
   }
 
   // ---- Battle ----
@@ -251,6 +256,7 @@
       var mine = round.mine.stats[stat], theirs = round.theirs.stats[stat];
       var win = mine > theirs, tie = mine === theirs;
       if (!tie) { if (win) scoreV[0]++; else scoreV[1]++; }
+      if (window.HCX_SCORES && !tie) window.HCX_SCORES.submit("battle", win ? 10 : 0, win, { stat: stat });
       result = { stat: stat, win: win, tie: tie, mine: mine, theirs: theirs }; rr();
     }
     function next() { round = drawRound(deck); result = null; rr(); }
@@ -295,7 +301,8 @@
                   })))));
     }
     rr();
-    return host;
+    return h("div", null, host,
+      window.HCX_SCORES ? window.Section(null, window.HCX_SCORES.widget("battle")) : null);
   }
 
   // ---- Draft ----
@@ -330,6 +337,11 @@
         .sort(function (a, b) { return val(b) - val(a); });
       var house = rest.slice(0, 5);
       st.result = { house: house, you: sum(st.picked), them: sum(house) };
+      if (window.HCX_SCORES) {
+        var won = st.result.you > st.result.them, tied = st.result.you === st.result.them;
+        window.HCX_SCORES.submit("draft", won ? 100 : tied ? 50 : 0, won,
+          { cat: st.cat[0], you: st.result.you, them: st.result.them });
+      }
       rr();
     }
     function build() {
@@ -374,7 +386,8 @@
     }
     newGame();
     rr();
-    return host;
+    return h("div", null, host,
+      window.HCX_SCORES ? window.Section(null, window.HCX_SCORES.widget("draft")) : null);
   }
 
   // ---- Assassination ----
@@ -426,6 +439,11 @@
       st.sel = null; st.target = null;
       if (st.council.every(function (c) { return st.struck[c.humanId]; })) st.over = "win";
       else if (!st.hand.some(usable)) st.over = "loss";
+      if (st.over && window.HCX_SCORES) {
+        var left = st.hand.filter(usable).length;
+        window.HCX_SCORES.submit("assassination", st.over === "win" ? 100 + 10 * left : 0, st.over === "win",
+          { handLeft: left });
+      }
       rr();
     }
 
@@ -513,7 +531,8 @@
 
     newGame();
     rr();
-    return host;
+    return h("div", null, host,
+      window.HCX_SCORES ? window.Section(null, window.HCX_SCORES.widget("assassination")) : null);
   }
 
   Object.assign(window, { PlayHub: PlayHub, TimelinePage: TimelinePage, BattlePage: BattlePage, DraftPage: DraftPage, AssassinationPage: AssassinationPage });

@@ -186,6 +186,30 @@
     }
   }
 
+  // ---- pending-mint persistence ------------------------------------------
+  // Mobile in-app browsers (Coinbase Wallet especially) reload the page after
+  // the wallet confirms, losing all JS state. The tx hash survives here so
+  // the packs page can resume the reveal on load.
+  var PENDING_KEY = "hcx_pending_mint";
+  function savePendingMint(hash) { try { localStorage.setItem(PENDING_KEY, JSON.stringify({ hash: hash, t: now() })); } catch (e) {} }
+  function clearPendingMint() { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} }
+  function pendingMint() {
+    try {
+      var rec = JSON.parse(localStorage.getItem(PENDING_KEY) || "null");
+      if (rec && rec.hash && (now() - rec.t) < 86400000) return rec;
+    } catch (e) {}
+    clearPendingMint();
+    return null;
+  }
+  // Resume a previously-broadcast mint: poll the public RPCs for the receipt
+  // and resolve with the same shape as mint().
+  function resumeMint(hash, cb) {
+    cb = cb || {};
+    function status(s, d) { if (cb.onStatus) try { cb.onStatus(s, d); } catch (e) {} }
+    status("mining", { hash: hash });
+    return waitForReceiptPublic({ hash: hash }, { interface: iface("original") }, status);
+  }
+
   var _price = null, _priceAt = 0;
   function getCardPrice(force) {
     if (!ready()) return Promise.reject(new Error("ethers unavailable"));
@@ -334,6 +358,7 @@
             if (/insufficient funds/i.test(e.message || "")) throw mintErr("insufficient", "Not enough ETH for the mint plus gas.");
             throw mintErr("send-failed", "Your wallet couldn't broadcast the transaction (step: send). " + ((e && e.message) ? "(" + e.message.slice(0, 70) + ")" : "Please try again."));
           }).then(function (hash) {
+            savePendingMint(hash);
             status("mining", { hash: hash });
             return waitForReceiptPublic({ hash: hash }, { interface: oi }, status);
           });
@@ -377,6 +402,7 @@
     return awaitReceipt(tx, function () {
       return mintErr("timeout", "Transaction is taking longer than expected. It may still confirm — check Etherscan.", tx.hash);
     }).then(function (receipt) {
+      clearPendingMint();   // final receipt either way — nothing left to resume
       if (!receipt || receipt.status === 0) throw mintErr("reverted", "Mint reverted on-chain. Check the transaction on Etherscan.", tx.hash);
       var humanId = null;
       receipt.logs.forEach(function (log) {
@@ -387,6 +413,15 @@
       refreshMinted().then(function () { if (wallet.address) loadOwned(wallet.address); });
       var serial = fig ? Math.min(fig.maxSupply, fig.minted + 1) : null;
       return { humanId: humanId, figure: fig, txHash: tx.hash, serial: serial };
+    });
+  }
+
+  // Live gas price in gwei via the public RPCs (for the indicator under the
+  // mint button). Pure read — the wallet is never touched.
+  function getGasGwei() {
+    if (!ready()) return Promise.reject(new Error("ethers unavailable"));
+    return withFailover(function (p) { return p.getGasPrice(); }).then(function (wei) {
+      return parseFloat(ethers().utils.formatUnits(wei, "gwei"));
     });
   }
 
@@ -553,6 +588,8 @@
     mintedLive: function () { return _mintedAt > 0; },       // true once live counts have been read
     getCardPrice: getCardPrice, refreshMinted: refreshMinted, ensureMinted: ensureMinted, loadOwned: loadOwned,
     mint: mint, wrapCard: wrapCard, checkWrapApproval: checkWrapApproval,
+    pendingMint: pendingMint, resumeMint: resumeMint, clearPendingMint: clearPendingMint,
+    getGasGwei: getGasGwei,
     isUserReject: isUserReject, fmtEth: fmtEth, init: init,
     etherscanTx: function (h) { return "https://etherscan.io/tx/" + h; }
   };
