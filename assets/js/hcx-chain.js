@@ -17,11 +17,15 @@
   "use strict";
   var H = window.HCX, wallet = window.useWallet();
 
-  // Read RPCs: primary first, then public fallbacks (failover via FallbackProvider).
+  // Read RPCs: primary first, then public fallbacks (manual failover below).
+  // Note: rarible.com/nodes/ethereum-node is a marketing page, NOT an RPC —
+  // every rarible RPC hostname is NXDOMAIN (checked 2026-06-09). llamarpc
+  // (Cloudflare challenge pages) and cloudflare-eth (fabricated estimates,
+  // -32046/-32603 errors) were dropped for the live-tested set below.
   var RPCS = [
     "https://ethereum-rpc.publicnode.com",
-    "https://eth.llamarpc.com",
-    "https://cloudflare-eth.com"
+    "https://eth.drpc.org",
+    "https://eth.merkle.io"
   ];
   var CHAIN_ID = 1;
   var ORIG = H.CA, WRAPPER = H.WRAPPER, MC3 = "0xcA11bde05977b3631167028862bE2a173976CA11";
@@ -368,9 +372,10 @@
   // Why estimateGas and not eth_call: ethers 5.7's provider.call returns the
   // REVERT DATA ("0x") instead of throwing, and wrap() returns nothing, so
   // success and revert are indistinguishable. estimateGas throws
-  // UNPREDICTABLE_GAS_LIMIT on revert. Caveat: cloudflare-eth fakes estimates
-  // (returned 21k for a reverting wrap), so it sits last in the RPC order and
-  // a wrong "approved" only leads to a caught would-revert before any send.
+  // UNPREDICTABLE_GAS_LIMIT on revert. (cloudflare-eth used to fake estimates —
+  // returned 21k for a reverting wrap — and has since been dropped from the
+  // RPC list; even so, a wrong "approved" from a misbehaving node only leads
+  // to a caught would-revert before any send.)
   function isRevertError(e) {
     if (!e) return false;
     if (e.code === "CALL_EXCEPTION" || e.code === "UNPREDICTABLE_GAS_LIMIT") return true;
