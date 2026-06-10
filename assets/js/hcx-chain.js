@@ -280,16 +280,24 @@
     return ensureMainnet().catch(function (e) {
       throw mintErr("wrong-network", isUserReject(e) ? "Network switch cancelled. Mint needs Ethereum Mainnet." : "Please switch to Ethereum Mainnet to mint.");
     }).then(function () {
-      return getCardPrice().catch(function () { throw mintErr("rpc", "Couldn't read the mint price. Check your connection and retry."); });
+      // public read RPCs first; if they're all down, fall back to reading the
+      // price through the user's own wallet connection
+      return getCardPrice().catch(function () {
+        return origAt(web3()).getCardPrice().then(function (p) { _price = p; _priceAt = now(); return p; });
+      }).catch(function () { throw mintErr("rpc", "Couldn't read the mint price — the Ethereum RPCs aren't responding from your network. Nothing was sent. Check your connection and retry."); });
     }).then(function (price) {
       var anyLeft = H.FIGURES.some(function (f) { return f.minted < f.maxSupply; });
       if (!anyLeft) throw mintErr("sold-out", "Every card is minted out. There is nothing left to mine.");
       var signer = web3().getSigner();
-      return signer.getAddress().then(function (from) {
+      return signer.getAddress().catch(function () {
+        throw mintErr("wallet-rpc", "Couldn't read your wallet's account. Re-connect the wallet and try again. Nothing was sent.");
+      }).then(function (from) {
         var c = new E.Contract(ORIG, ABI.original, signer);
         // balance first: an underfunded wallet should read as "insufficient",
         // not "would revert" (estimateGas also fails when value > balance).
-        return Promise.all([web3().getBalance(from), web3().getGasPrice()]).then(function (bg) {
+        return Promise.all([web3().getBalance(from), web3().getGasPrice()]).catch(function () {
+          throw mintErr("wallet-rpc", "Couldn't reach Ethereum through your wallet's connection. Nothing was sent — check your network and try again.");
+        }).then(function (bg) {
           var bal = bg[0], gasPrice = bg[1];
           if (bal.lt(price)) throw mintErr("insufficient", "Not enough ETH for the mint price (" + fmtEth(price) + " Ξ) plus gas.");
           return c.estimateGas.mineCard({ value: price }).catch(function () {
@@ -330,7 +338,20 @@
           });     // close estimateGas().then(est)
         });
       });
+    }).catch(function (e) {
+      if (e && e.kind) throw e;                                // already mapped
+      if (isUserReject(e)) throw mintErr("rejected", "Transaction cancelled.");
+      // never surface a raw fetch error ("Load failed", "Failed to fetch")
+      if (isNetworkError(e)) throw mintErr("network", "A network request failed before anything was sent — no transaction went out. Check your connection (or your wallet's RPC) and try again.");
+      throw mintErr("unknown", "Something unexpected went wrong before sending. Nothing was broadcast. " + ((e && e.message) ? "(" + e.message.slice(0, 70) + ")" : ""));
     });
+  }
+
+  // WebKit reports failed fetches as the bare "Load failed"; Chromium as
+  // "Failed to fetch". Map them all so raw transport errors never reach the UI.
+  function isNetworkError(e) {
+    var s = ((e && e.message) || "") + " " + ((e && e.code) || "");
+    return /load failed|failed to fetch|networkerror|network error|timeout|econn|nonetwork|missing response|could not detect network|SERVER_ERROR|TIMEOUT/i.test(s);
   }
 
   // ---- the wrap flow -------------------------------------------------------
@@ -411,7 +432,9 @@
         });
       }
       function send(contract, method, args, step, label) {
-        return Promise.all([web3().getBalance(wallet.address), web3().getGasPrice()]).then(function (bg) {
+        return Promise.all([web3().getBalance(wallet.address), web3().getGasPrice()]).catch(function () {
+          throw wrapErr("wallet-rpc", "Couldn't reach Ethereum through your wallet's connection. Nothing was sent — check your network and try again.", null, step);
+        }).then(function (bg) {
           var bal = bg[0], gasPrice = bg[1];
           return contract.estimateGas[method].apply(null, args).catch(function () {
             throw wrapErr("would-revert", step === "approve"

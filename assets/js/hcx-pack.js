@@ -271,8 +271,11 @@
       }
     }
     function showMintError(e, hash) {
+      // no tx hash = nothing was ever broadcast — say so, "failed" overstates it
+      var preSend = !(hash || (e && e.txHash));
       statusPanel(h("div", { style: { textAlign: "center" } },
-        h("div", { style: { font: "700 15px/1.4 " + MONO, color: "#d0563a", marginBottom: "8px" } }, "Mint failed"),
+        h("div", { style: { font: "700 15px/1.4 " + MONO, color: "#d0563a", marginBottom: "8px" } },
+          preSend ? "Mint didn't start" : "Mint failed"),
         h("div", { style: { font: "400 13px/1.6 " + SANS, color: "#c3bdae", marginBottom: "16px" } }, (e && e.message) || "Something went wrong."),
         txLink(hash || (e && e.txHash)),
         h("div", { style: { display: "flex", gap: "10px", justifyContent: "center", marginTop: "16px" } },
