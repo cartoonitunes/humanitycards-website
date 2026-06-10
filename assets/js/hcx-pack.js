@@ -146,6 +146,12 @@
     var timers = [];
     function clearTimers() { timers.forEach(clearTimeout); timers = []; }
     function after(ms, fn) { timers.push(setTimeout(fn, ms)); }
+    // While a reveal animation or a mint/resume status panel owns the DOM, mark
+    // the page "busy" so hcx-app's render loop won't tear down this PackOpener on
+    // a same-route wallet.notify() re-render (refreshMinted/loadOwned fire those,
+    // and they land exactly during the reveal). Global so the renderer can read
+    // it; reset on idle and on every real page rebuild.
+    function setBusy(v) { try { window.__hcxPackBusy = !!v; } catch (e) {} }
 
     // --- persistent skeleton ---
     var labelWrap = h("div", { style: { position: "absolute", top: "18px", left: "20px", zIndex: 10 } });
@@ -314,6 +320,7 @@
       if (!window.HCX_CHAIN) { window.toast("Wallet library not ready.", "error"); return; }
       var w = window.useWallet();
       if (!w.connected) { window.HCX_CHAIN.connect(); return; }   // connect first; page re-renders, then Mint again
+      setBusy(true);   // hold the status panel / reveal against refreshMinted re-renders
       onMintStatus("checking");
       window.HCX_CHAIN.mint({ onStatus: onMintStatus }).then(function (res) {
         if (res && res.figure) open(res.figure, { onchain: true, txHash: res.txHash, serial: res.serial });
@@ -327,6 +334,7 @@
     function setStage(ns) {
       stage = ns; setLabel();
       if (ns === "idle") {
+        setBusy(false);   // nothing in flight — re-renders may rebuild freely again
         ambient.style.display = "block";
         headline.style.display = "none";
         clearOverlays();
@@ -372,6 +380,7 @@
 
     // open() with no args = free demo pull; open(figure, meta) = real mint reveal.
     function open(forced, meta) {
+      setBusy(true);   // own the DOM for the full reveal so a re-render can't wipe it
       clearTimers(); clearOverlays();
       if (revealCard) { revealCard.remove(); revealCard = null; }
       onchain = !!(meta && meta.onchain);
@@ -390,11 +399,48 @@
 
     setStage("idle");
 
-    // Resume a mint that was broadcast before the page reloaded (mobile
-    // in-app browsers reload after the wallet confirms; the hash is in
-    // localStorage). The receipt poll runs on public RPCs, wallet untouched.
+    // Poll the chain for the Mined event of a hash-less pending mint (the
+    // Coinbase Wallet case — the page reloaded before we ever saw the hash).
+    // Every read is a public RPC; the wallet is never touched. Keeps checking
+    // every 10s until the event lands, then reveals exactly like a live mint.
+    function resumeEventMint(rec) {
+      var TIMEOUT = 600000;   // 10 min, then declare it not found
+      setBusy(true);   // hold the page through the scan + reveal
+      statusPanel(h("div", null,
+        statusLine("Checking for your mint…", true),
+        h("div", { style: { marginTop: "8px", font: "400 12px/1.5 " + SANS, color: DIM } },
+          "Your transaction confirmed in your wallet. Reading it back from the chain — this can take a few seconds.")));
+      (function poll() {
+        if (!window.HCX_CHAIN) return;
+        window.HCX_CHAIN.resolveEventMint(rec, { onStatus: onMintStatus }).then(function (res) {
+          if (res && res.figure) { open(res.figure, { onchain: true, txHash: res.txHash, serial: res.serial }); return; }
+          if (res && res.humanId != null) {   // mint found but the figure id is unknown (shouldn't happen for the 239 roster)
+            showMintError({ message: "Your mint confirmed, but the revealed card couldn't be read. Check the transaction." }, res.txHash); return;
+          }
+          if ((Date.now() - rec.t) > TIMEOUT) {
+            window.HCX_CHAIN.clearPendingMint();
+            statusPanel(h("div", { style: { textAlign: "center" } },
+              h("div", { style: { font: "700 15px/1.4 " + MONO, color: INK, marginBottom: "8px" } }, "We couldn't find your mint"),
+              h("div", { style: { font: "400 13px/1.6 " + SANS, color: "#c3bdae", marginBottom: "16px" } },
+                "If you completed the transaction, it may still be confirming — check your wallet on Etherscan."),
+              h("div", { style: { display: "flex", gap: "10px", justifyContent: "center" } },
+                h("a", { href: "https://etherscan.io/address/" + rec.wallet, target: "_blank", rel: "noopener noreferrer",
+                  style: { font: "600 12px/1 " + MONO, letterSpacing: ".12em", textTransform: "uppercase", color: COPPER,
+                    textDecoration: "none", border: "1px solid " + RULE, borderRadius: "4px", padding: "12px 18px" } }, "Open Etherscan ↗"),
+                window.Btn({ variant: "ghost", onClick: function () { reset(); } }, "Dismiss"))));
+            return;
+          }
+          setTimeout(poll, 10000);
+        }).catch(function () { setTimeout(poll, 10000); });
+      })();
+    }
+
+    // Resume a mint interrupted by a page reload (mobile in-app browsers reload
+    // the instant the wallet confirms). Two recovery paths from the localStorage
+    // record: a saved hash polls the receipt; no hash scans Mined events.
     var pending = window.HCX_CHAIN && window.HCX_CHAIN.pendingMint && window.HCX_CHAIN.pendingMint();
-    if (pending) {
+    if (pending && pending.hash) {
+      setBusy(true);
       statusPanel(h("div", null, statusLine("Found a pending mint — checking…", true), txLink(pending.hash)));
       window.HCX_CHAIN.resumeMint(pending.hash, { onStatus: onMintStatus }).then(function (res) {
         if (res && res.figure) open(res.figure, { onchain: true, txHash: res.txHash, serial: res.serial });
@@ -402,6 +448,8 @@
       }).catch(function (e) {
         showMintError(e, (e && e.txHash) || pending.hash);
       });
+    } else if (pending && pending.wallet) {
+      resumeEventMint(pending);
     }
     return container;
   }

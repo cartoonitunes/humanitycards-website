@@ -187,27 +187,98 @@
   }
 
   // ---- pending-mint persistence ------------------------------------------
-  // Mobile in-app browsers (Coinbase Wallet especially) reload the page after
-  // the wallet confirms, losing all JS state. The tx hash survives here so
-  // the packs page can resume the reveal on load.
+  // Mobile in-app browsers (Coinbase Wallet especially) reload the page the
+  // instant the wallet confirms — often BEFORE sendUncheckedTransaction
+  // resolves, so the tx hash never reaches our JS to be saved. The fix: write a
+  // "pending" record BEFORE the wallet popup (guaranteed to persist), capturing
+  // the wallet address and the chain height at send time. On reload the packs
+  // page reads this record and, when no hash was captured, recovers the mint by
+  // scanning the contract's Mined(owner, humanId) events from that block
+  // forward. If the hash DID survive (desktop / fast wallets), the faster
+  // receipt path is used instead.
   var PENDING_KEY = "hcx_pending_mint";
-  function savePendingMint(hash) { try { localStorage.setItem(PENDING_KEY, JSON.stringify({ hash: hash, t: now() })); } catch (e) {} }
+  function savePendingMintIntent(addr, fromBlock) {
+    try {
+      localStorage.setItem(PENDING_KEY, JSON.stringify({
+        wallet: (addr || "").toLowerCase(),
+        fromBlock: (fromBlock != null ? fromBlock : null),
+        status: "pending", t: now()
+      }));
+    } catch (e) {}
+  }
+  function markPendingMintSent(hash) {
+    try {
+      var rec = JSON.parse(localStorage.getItem(PENDING_KEY) || "null") || {};
+      rec.hash = hash; rec.status = "sent";
+      localStorage.setItem(PENDING_KEY, JSON.stringify(rec));
+    } catch (e) {}
+  }
   function clearPendingMint() { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} }
   function pendingMint() {
     try {
       var rec = JSON.parse(localStorage.getItem(PENDING_KEY) || "null");
-      if (rec && rec.hash && (now() - rec.t) < 86400000) return rec;
+      // valid for 24h; needs either a broadcast hash (receipt path) or a wallet
+      // address (event-scan path) to be actionable.
+      if (rec && (rec.hash || rec.wallet) && (now() - rec.t) < 86400000) return rec;
     } catch (e) {}
     clearPendingMint();
     return null;
   }
-  // Resume a previously-broadcast mint: poll the public RPCs for the receipt
-  // and resolve with the same shape as mint().
+
+  // Resume a previously-broadcast mint by tx hash: poll the public RPCs for the
+  // receipt and resolve with the same shape as mint().
   function resumeMint(hash, cb) {
     cb = cb || {};
     function status(s, d) { if (cb.onStatus) try { cb.onStatus(s, d); } catch (e) {} }
     status("mining", { hash: hash });
     return waitForReceiptPublic({ hash: hash }, { interface: iface("original") }, status);
+  }
+
+  // Find this wallet's most recent mint by scanning Mined(owner, humanId) logs
+  // from `fromBlock` forward (inclusive). owner is indexed, so the node filters
+  // server-side by topic; humanId (uint16) rides in the log data. Because
+  // `fromBlock` is the chain height captured immediately BEFORE broadcast, any
+  // log at/after it is THIS session's mint — never a stale earlier one.
+  // Resolves with { humanId, txHash, blockNumber } or null if nothing has
+  // landed yet. (Event topic + parsing verified against the live contract:
+  // keccak256("Mined(address,uint16)") = 0x7c1f9d0f…e3d1f894.)
+  function findRecentMint(addr, fromBlock) {
+    if (!ready() || !addr) return Promise.resolve(null);
+    var oi = iface("original");
+    var topics = oi.encodeFilterTopics("Mined", [addr]);   // [topic0, ownerTopic]
+    return withFailover(function (p) {
+      return p.getBlockNumber().then(function (latest) {
+        var from = (fromBlock != null) ? fromBlock : (latest - 250);
+        if (from < 0) from = 0;
+        if (latest - from > 5000) from = latest - 5000;     // bound the scan window
+        return p.getLogs({ address: ORIG, topics: topics, fromBlock: from, toBlock: "latest" });
+      });
+    }).then(function (logs) {
+      if (!logs || !logs.length) return null;
+      logs.sort(function (a, b) { return (a.blockNumber - b.blockNumber) || (a.logIndex - b.logIndex); });
+      var last = logs[logs.length - 1], humanId = null;
+      try { humanId = Number(oi.parseLog(last).args.human); } catch (e) { return null; }
+      return { humanId: humanId, txHash: last.transactionHash, blockNumber: last.blockNumber };
+    });
+  }
+
+  // Event-scan resume (the Coinbase Wallet case): no hash was captured, so look
+  // up the Mined event and build the same result shape mint() returns. Resolves
+  // null when nothing has landed yet (the caller polls again); clears the
+  // pending record only once a mint is actually found.
+  function resolveEventMint(rec, cb) {
+    cb = cb || {};
+    function status(s, d) { if (cb.onStatus) try { cb.onStatus(s, d); } catch (e) {} }
+    if (!rec || !rec.wallet) return Promise.resolve(null);
+    return findRecentMint(rec.wallet, rec.fromBlock).then(function (m) {
+      if (!m) return null;
+      clearPendingMint();
+      var fig = (m.humanId != null) ? H.byId(m.humanId) : null;
+      refreshMinted().then(function () { if (wallet.address) loadOwned(wallet.address); });
+      var serial = fig ? Math.min(fig.maxSupply, fig.minted + 1) : null;
+      status("confirmed", { hash: m.txHash });
+      return { humanId: m.humanId, figure: fig, txHash: m.txHash, serial: serial };
+    });
   }
 
   var _price = null, _priceAt = 0;
@@ -327,11 +398,11 @@
       if (!anyLeft) throw mintErr("sold-out", "Every card is minted out. There is nothing left to mine.");
       // balance first: an underfunded wallet should read as "insufficient",
       // not "would revert" (estimateGas also fails when value > balance).
-      return withFailover(function (p) { return Promise.all([p.getBalance(from), p.getGasPrice()]); }).catch(function (e) {
+      return withFailover(function (p) { return Promise.all([p.getBalance(from), p.getGasPrice(), p.getBlockNumber()]); }).catch(function (e) {
         logStep("mint", "balance/gas read", e);
         throw mintErr("rpc", "Couldn't read your balance and the gas price (step: balance/gas) — the public RPCs aren't responding. Nothing was sent.");
       }).then(function (bg) {
-        var bal = bg[0], gasPrice = bg[1];
+        var bal = bg[0], gasPrice = bg[1], blockAtSend = bg[2];   // height captured BEFORE broadcast — the floor for the Mined-event scan
         if (bal.lt(price)) throw mintErr("insufficient", "Not enough ETH for the mint price (" + fmtEth(price) + " Ξ) plus gas.");
         return withFailover(function (p) { return origAt(p).estimateGas.mineCard({ value: price, from: from }); }).catch(function (e) {
           logStep("mint", "estimate", e);
@@ -343,6 +414,12 @@
           var gasCost = gasLimit.mul(gasPrice), maxCost = price.add(gasCost);
           if (bal.lt(maxCost)) throw mintErr("insufficient", "Not enough ETH. You need about " + fmtEth(maxCost) + " Ξ (mint " + fmtEth(price) + " + gas).");
           status("confirm", { price: price, gasCost: gasCost, total: maxCost });
+          // Persist the pending-mint INTENT before the wallet popup. Coinbase
+          // Wallet's in-app browser frequently reloads the page the instant the
+          // user confirms — before the send below resolves — so the hash may
+          // never reach us. This record (wallet + block height) lets the packs
+          // page recover the mint from chain events on reload.
+          savePendingMintIntent(from, blockAtSend);
           // ---- the ONLY wallet interaction: sign + broadcast. ----
           // sendUncheckedTransaction, not contract.mineCard(): ethers'
           // JsonRpcSigner.sendTransaction pre-fetches eth_blockNumber through
@@ -353,12 +430,16 @@
             to: ORIG, value: price, gasLimit: gasLimit,
             data: oi.encodeFunctionData("mineCard", [])
           }).catch(function (e) {
+            // Reaching this catch means nothing was broadcast (no hash returned),
+            // and the page did NOT reload — so drop the intent we just saved,
+            // otherwise the next load would hunt for a mint that never happened.
+            clearPendingMint();
             logStep("mint", "send", e);
             if (isUserReject(e)) throw mintErr("rejected", "Transaction cancelled.");
             if (/insufficient funds/i.test(e.message || "")) throw mintErr("insufficient", "Not enough ETH for the mint plus gas.");
             throw mintErr("send-failed", "Your wallet couldn't broadcast the transaction (step: send). " + ((e && e.message) ? "(" + e.message.slice(0, 70) + ")" : "Please try again."));
           }).then(function (hash) {
-            savePendingMint(hash);
+            markPendingMintSent(hash);
             status("mining", { hash: hash });
             return waitForReceiptPublic({ hash: hash }, { interface: oi }, status);
           });
@@ -589,6 +670,7 @@
     getCardPrice: getCardPrice, refreshMinted: refreshMinted, ensureMinted: ensureMinted, loadOwned: loadOwned,
     mint: mint, wrapCard: wrapCard, checkWrapApproval: checkWrapApproval,
     pendingMint: pendingMint, resumeMint: resumeMint, clearPendingMint: clearPendingMint,
+    findRecentMint: findRecentMint, resolveEventMint: resolveEventMint,
     getGasGwei: getGasGwei,
     isUserReject: isUserReject, fmtEth: fmtEth, init: init,
     etherscanTx: function (h) { return "https://etherscan.io/tx/" + h; }
