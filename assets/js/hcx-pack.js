@@ -218,19 +218,20 @@
     function hintText() {
       var w = window.useWallet();
       var pl = priceLabel();
-      if (!w.connected) return "Open Pack is free in demo mode. Connect a wallet to mint a real card on-chain" + (pl ? " (" + pl + " + gas)." : ".");
+      if (!w.connected) return "Practice uses the real pull odds but mints nothing — no wallet, no cost, just the ritual. To mint a real card on-chain, connect a wallet" + (pl ? " (" + pl + " + gas)." : ".");
       if (w.chainId != null && w.chainId !== 1) return "You're on the wrong network. Switch to Ethereum Mainnet to mint.";
-      return "Mint sends a real transaction" + (pl ? " · " + pl + " + gas" : "") + ". Open Pack stays free in demo mode.";
+      return "Practice Open is a free demo — nothing is minted. Mint On-Chain sends a real transaction" + (pl ? " · " + pl + " + gas" : "") + ".";
     }
     function idleControls() {
       controls.innerHTML = "";
       var w = window.useWallet();
+      var pl = priceLabel();
       controls.appendChild(h("div", null,
         h("div", { style: { display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" } },
           window.Btn({ onClick: function () { open(); }, style: { fontSize: "14px", padding: "16px 30px",
-            boxShadow: "0 10px 30px -10px " + COPPER + ", 0 0 0 1px #d49a59, 0 0 40px -16px " + COPPER } }, "Open Pack"),
+            boxShadow: "0 10px 30px -10px " + COPPER + ", 0 0 0 1px #d49a59, 0 0 40px -16px " + COPPER } }, "Practice Open · Free"),
           window.Btn({ variant: "ghost", onClick: startMint, style: { fontSize: "14px", padding: "16px 26px" } },
-            w.connected ? "Mint On-Chain" : "Connect to Mint")),
+            w.connected ? ("Mint On-Chain" + (pl ? " · " + pl : "")) : "Connect to Mint for Real")),
         h("div", { style: { marginTop: "16px", font: "400 12px/1.5 " + SANS, color: DIM, maxWidth: "420px", marginLeft: "auto", marginRight: "auto" } }, hintText())));
       // fetch the live price once to enrich the hint
       if (priceWei == null && window.HCX_CHAIN) {

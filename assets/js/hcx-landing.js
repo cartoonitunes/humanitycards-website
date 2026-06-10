@@ -7,16 +7,64 @@
 
   function HeroCards() {
     var H = window.HCX;
-    var picks = [H.byName("Napoleon"), H.byName("Cleopatra"), H.byName("Da Vinci")];
-    var rots = [-9, 0, 9], lifts = [26, -8, 26], z = [1, 3, 1];
-    return h("div", { className: "hero-cards",
-      style: { position: "relative", height: "440px", display: "flex", justifyContent: "center", alignItems: "center" } },
-      picks.map(function (f, i) {
-        return h("div", { style: { position: "absolute", width: "232px",
-          transform: "translateX(" + ((i - 1) * 168) + "px) translateY(" + lifts[i] + "px) rotate(" + rots[i] + "deg)",
-          zIndex: z[i], animation: "floaty " + (5.5 + i) + "s ease-in-out infinite", animationDelay: (i * 0.4) + "s" } },
-          window.Card({ figure: f, badge: i === 1 }));
-      }));
+    // The fan position lives on an OUTER wrapper and the idle bob on an INNER
+    // one: the old single-element version let the floaty keyframes overwrite
+    // the inline translateX, collapsing the fan into one stacked pile a beat
+    // after load (the "Da Vinci flashes behind Cleopatra" glitch).
+    // Swipe (or tap) throws the centre card and cycles the deck.
+    var deck = ["Cleopatra", "Napoleon", "Da Vinci", "Gengis Khan", "Einstein", "Caesar", "Joan of Arc"]
+      .map(H.byName).filter(Boolean);
+    var SLOTS = [
+      { x: -168, y: 26, r: -9, z: 1 },
+      { x: 0,    y: -8, r: 0,  z: 3 },
+      { x: 168,  y: 26, r: 9,  z: 1 }
+    ];
+    var box = h("div", { className: "hero-cards", title: "Swipe to shuffle",
+      style: { position: "relative", height: "440px", display: "flex", justifyContent: "center", alignItems: "center",
+        touchAction: "pan-y", cursor: "grab", userSelect: "none", WebkitUserSelect: "none" },
+      onPointerdown: function (e) { downX = e.clientX; downY = e.clientY; },
+      onPointerup: function (e) {
+        if (downX == null) return;
+        var dx = e.clientX - downX, dy = e.clientY - downY;
+        downX = downY = null;
+        if (Math.abs(dy) > 60) return;                       // vertical scroll, not a swipe
+        if (Math.abs(dx) > 36) throwCard(dx < 0 ? -1 : 1);   // swipe
+        else if (Math.abs(dx) < 8) throwCard(-1);            // tap cycles too
+      } });
+    var downX = null, downY = null, throwing = false;
+
+    function shown() { return [deck[deck.length - 1], deck[0], deck[1]]; }
+    function render() {
+      box.innerHTML = "";
+      shown().forEach(function (f, i) {
+        if (!f) return;
+        var s = SLOTS[i];
+        box.appendChild(h("div", { style: { position: "absolute", width: "232px", zIndex: s.z,
+          transform: "translateX(" + s.x + "px) translateY(" + s.y + "px) rotate(" + s.r + "deg)",
+          transition: "transform .45s cubic-bezier(.2,.7,.2,1), opacity .45s",
+          animation: i === 1 ? "fadeUp .35s ease both" : "none" } },
+          h("div", { style: { animation: "floatybob " + (5.5 + i) + "s ease-in-out infinite", animationDelay: (i * 0.4) + "s" } },
+            window.Card({ figure: f, badge: i === 1 }))));
+      });
+    }
+    function throwCard(dir) {
+      if (throwing || deck.length < 3) return;
+      throwing = true;
+      var center = box.children[1];
+      if (center) {
+        center.style.zIndex = 6;
+        center.style.transform = "translateX(" + (dir * 430) + "px) translateY(-46px) rotate(" + (dir * 26) + "deg)";
+        center.style.opacity = "0";
+      }
+      setTimeout(function () {
+        if (dir < 0) deck.push(deck.shift());   // thrown left → next card steps up
+        else deck.unshift(deck.pop());          // thrown right → previous card returns
+        render();
+        throwing = false;
+      }, 380);
+    }
+    render();
+    return box;
   }
 
   function ProvenanceBand() {
@@ -48,7 +96,7 @@
     var live = !!(window.HCX_CHAIN && window.HCX_CHAIN.mintedLive());
     var items = [{ v: s.humans, l: "Humans" }, { v: (live ? "" : "~") + s.cardsMinted, l: "Cards Minted" },
       { v: s.uniques, l: "1-of-1 Mythics" }, { v: s.genesis, l: "Genesis" }];
-    return h("div", { style: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px",
+    return h("div", { className: "stat-bar", style: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px",
       background: RULE, border: "1px solid " + RULE, borderRadius: "10px", overflow: "hidden" } },
       items.map(function (it) {
         return h("div", { style: { background: BG, padding: "26px 22px", textAlign: "center" } },

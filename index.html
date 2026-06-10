@@ -46,6 +46,12 @@
     0%,100% { transform: translateY(0) rotate(var(--r,0deg)); }
     50% { transform: translateY(-12px) rotate(var(--r,0deg)); }
   }
+  /* translateY-only bob for elements whose parent owns the positioning
+     transform — floaty would overwrite translateX and collapse layouts */
+  @keyframes floatybob {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
   @keyframes rise {
     0% { transform: translateY(0) scale(1); opacity: 0; }
     10% { opacity: 1; }
@@ -209,6 +215,13 @@
     /* hero eyebrow: break at the separator, never mid-phrase */
     .eyebrow-sep { display: none; }
     .eyebrow-line { display: block; }
+    /* provenance band: stack the cells; stat bar: 2x2 grid.
+       flex-basis must reset to auto — the inline "1 1 130px" becomes a
+       HEIGHT basis in column direction and makes every cell 130px+ tall */
+    .prov-band { flex-direction: column !important; align-items: stretch !important; }
+    .prov-band > * { flex: 0 0 auto !important; border-right: none !important; border-bottom: 1px solid #2a2925; }
+    .prov-band > *:last-child { border-bottom: none; }
+    .stat-bar { grid-template-columns: 1fr 1fr !important; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
@@ -222,21 +235,21 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" integrity="sha384-Htz1SE4Sl5aitpvFgr2j0sfsGUIuSXI6t8hEyrlQ93zflEF3a29bH2AvkUROUw7J" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <!-- on-chain-safe data + card generators (plain JS, reused from the design bundle) -->
-<script src="assets/js/card-helpers.js?v=11"></script>
-<script src="assets/js/card-variants.js?v=11"></script>
-<script src="assets/js/bios.js?v=11"></script>
-<script src="assets/js/data.js?v=11"></script>
-<script src="assets/js/relationships.js?v=11"></script>
+<script src="assets/js/card-helpers.js?v=12"></script>
+<script src="assets/js/card-variants.js?v=12"></script>
+<script src="assets/js/bios.js?v=12"></script>
+<script src="assets/js/data.js?v=12"></script>
+<script src="assets/js/relationships.js?v=12"></script>
 
 <!-- vanilla port of the React prototype (no framework, no build step) -->
-<script src="assets/js/hcx-ui.js?v=11"></script>
-<script src="assets/js/hcx-chain.js?v=11"></script>
-<script src="assets/js/hcx-cards.js?v=11"></script>
-<script src="assets/js/hcx-nav.js?v=11"></script>
-<script src="assets/js/hcx-landing.js?v=11"></script>
-<script src="assets/js/hcx-pack.js?v=11"></script>
-<script src="assets/js/hcx-collection.js?v=11"></script>
-<script src="assets/js/hcx-games.js?v=11"></script>
-<script src="assets/js/hcx-app.js?v=11"></script>
+<script src="assets/js/hcx-ui.js?v=12"></script>
+<script src="assets/js/hcx-chain.js?v=12"></script>
+<script src="assets/js/hcx-cards.js?v=12"></script>
+<script src="assets/js/hcx-nav.js?v=12"></script>
+<script src="assets/js/hcx-landing.js?v=12"></script>
+<script src="assets/js/hcx-pack.js?v=12"></script>
+<script src="assets/js/hcx-collection.js?v=12"></script>
+<script src="assets/js/hcx-games.js?v=12"></script>
+<script src="assets/js/hcx-app.js?v=12"></script>
 </body>
 </html>
