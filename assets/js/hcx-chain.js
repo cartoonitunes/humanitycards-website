@@ -273,81 +273,120 @@
   // { humanId, figure, txHash, serial } or rejects with an Error carrying .kind
   // (and .txHash when a tx was broadcast). Never broadcasts without the caller
   // having already gathered explicit user intent (the Mint button).
+  // The wallet provider is used ONLY to switch chains and sign/send — every
+  // read (price, balance, gas price, estimate, receipt) goes through the
+  // public RPCs with failover. Some wallets' internal RPC transport fails from
+  // this page (fetch-based transports surface as Safari's "Load failed"), so
+  // nothing in the flow may depend on the wallet for data.
+  function logStep(flow, step, e) {
+    try { console.warn("[HCX " + flow + "] failed at step '" + step + "':", (e && (e.message || e.code)) || e); } catch (x) {}
+  }
   function mint(cb) {
     cb = cb || {};
     function status(s, d) { if (cb.onStatus) try { cb.onStatus(s, d); } catch (e) {} }
     var E = ethers();
 
     if (!wallet.connected || !injected()) return Promise.reject(mintErr("not-connected", "Connect a wallet to mint on-chain."));
+    var from = wallet.address;
 
     status("checking");
     return ensureMainnet().catch(function (e) {
+      logStep("mint", "network-switch", e);
       throw mintErr("wrong-network", isUserReject(e) ? "Network switch cancelled. Mint needs Ethereum Mainnet." : "Please switch to Ethereum Mainnet to mint.");
     }).then(function () {
-      // public read RPCs first; if they're all down, fall back to reading the
-      // price through the user's own wallet connection
-      return getCardPrice().catch(function () {
-        return origAt(web3()).getCardPrice().then(function (p) { _price = p; _priceAt = now(); return p; });
-      }).catch(function () { throw mintErr("rpc", "Couldn't read the mint price — the Ethereum RPCs aren't responding from your network. Nothing was sent. Check your connection and retry."); });
+      return getCardPrice().catch(function (e) {
+        logStep("mint", "read-price", e);
+        throw mintErr("rpc", "Couldn't read the mint price (step: price read) — the public Ethereum RPCs aren't responding from your network. Nothing was sent.");
+      });
     }).then(function (price) {
       var anyLeft = H.FIGURES.some(function (f) { return f.minted < f.maxSupply; });
       if (!anyLeft) throw mintErr("sold-out", "Every card is minted out. There is nothing left to mine.");
-      var signer = web3().getSigner();
-      return signer.getAddress().catch(function () {
-        throw mintErr("wallet-rpc", "Couldn't read your wallet's account. Re-connect the wallet and try again. Nothing was sent.");
-      }).then(function (from) {
-        var c = new E.Contract(ORIG, ABI.original, signer);
-        // balance first: an underfunded wallet should read as "insufficient",
-        // not "would revert" (estimateGas also fails when value > balance).
-        return Promise.all([web3().getBalance(from), web3().getGasPrice()]).catch(function () {
-          throw mintErr("wallet-rpc", "Couldn't reach Ethereum through your wallet's connection. Nothing was sent — check your network and try again.");
-        }).then(function (bg) {
-          var bal = bg[0], gasPrice = bg[1];
-          if (bal.lt(price)) throw mintErr("insufficient", "Not enough ETH for the mint price (" + fmtEth(price) + " Ξ) plus gas.");
-          return c.estimateGas.mineCard({ value: price }).catch(function () {
-            throw mintErr("would-revert", "This transaction would fail on-chain. The price may have changed or the last cards just minted out.");
-          }).then(function (est) {
-            var gasLimit = est.mul(120).div(100);                 // +20% buffer
-            if (gasLimit.gt(E.BigNumber.from(MAX_GAS))) gasLimit = E.BigNumber.from(MAX_GAS); // cap
-            var gasCost = gasLimit.mul(gasPrice), maxCost = price.add(gasCost);
-            if (bal.lt(maxCost)) throw mintErr("insufficient", "Not enough ETH. You need about " + fmtEth(maxCost) + " Ξ (mint " + fmtEth(price) + " + gas).");
-            status("confirm", { price: price, gasCost: gasCost, total: maxCost });
-          return c.mineCard({ value: price, gasLimit: gasLimit }).then(function (tx) {
-            status("mining", { hash: tx.hash });
-            // race the receipt against a timeout so a stuck tx surfaces clearly
-            var timeout = new Promise(function (_, rej) { setTimeout(function () { rej(mintErr("timeout", "Transaction is taking longer than expected.", tx.hash)); }, 120000); });
-            var waitRcpt = tx.wait(1).catch(function (e) {
-              if (e && e.code === "TRANSACTION_REPLACED") { if (e.receipt && e.receipt.status === 1) return e.receipt; throw mintErr("reverted", "The transaction was replaced or dropped.", tx.hash); }
-              throw mintErr("tx-failed", "Mint failed on-chain. Someone may have taken the last card of that type.", tx.hash);
-            });
-            return Promise.race([waitRcpt, timeout]).then(function (receipt) {
-              if (!receipt || receipt.status === 0) throw mintErr("reverted", "Mint reverted on-chain. Check the transaction on Etherscan.", tx.hash);
-              var humanId = null;
-              receipt.logs.forEach(function (log) {
-                try { var pl = c.interface.parseLog(log); if (pl.name === "Mined") humanId = Number(pl.args.human); } catch (e) {}
-              });
-              status("confirmed", { hash: tx.hash });
-              var fig = humanId != null ? H.byId(humanId) : null;
-              // refresh live state in the background (don't block the reveal)
-              refreshMinted().then(function () { if (wallet.address) loadOwned(wallet.address); });
-              var serial = fig ? Math.min(fig.maxSupply, fig.minted + 1) : null;
-              return { humanId: humanId, figure: fig, txHash: tx.hash, serial: serial };
-            });
+      // balance first: an underfunded wallet should read as "insufficient",
+      // not "would revert" (estimateGas also fails when value > balance).
+      return withFailover(function (p) { return Promise.all([p.getBalance(from), p.getGasPrice()]); }).catch(function (e) {
+        logStep("mint", "balance/gas read", e);
+        throw mintErr("rpc", "Couldn't read your balance and the gas price (step: balance/gas) — the public RPCs aren't responding. Nothing was sent.");
+      }).then(function (bg) {
+        var bal = bg[0], gasPrice = bg[1];
+        if (bal.lt(price)) throw mintErr("insufficient", "Not enough ETH for the mint price (" + fmtEth(price) + " Ξ) plus gas.");
+        return withFailover(function (p) { return origAt(p).estimateGas.mineCard({ value: price, from: from }); }).catch(function (e) {
+          logStep("mint", "estimate", e);
+          if (isNetworkError(e)) throw mintErr("rpc", "Couldn't simulate the mint (step: estimate) — the public RPCs aren't responding. Nothing was sent.");
+          throw mintErr("would-revert", "This transaction would fail on-chain (step: estimate). The price may have changed or the last cards just minted out. Nothing was sent.");
+        }).then(function (est) {
+          var gasLimit = est.mul(120).div(100);                 // +20% buffer
+          if (gasLimit.gt(E.BigNumber.from(MAX_GAS))) gasLimit = E.BigNumber.from(MAX_GAS); // cap
+          var gasCost = gasLimit.mul(gasPrice), maxCost = price.add(gasCost);
+          if (bal.lt(maxCost)) throw mintErr("insufficient", "Not enough ETH. You need about " + fmtEth(maxCost) + " Ξ (mint " + fmtEth(price) + " + gas).");
+          status("confirm", { price: price, gasCost: gasCost, total: maxCost });
+          // ---- the ONLY wallet interaction: sign + broadcast. ----
+          // sendUncheckedTransaction, not contract.mineCard(): ethers'
+          // JsonRpcSigner.sendTransaction pre-fetches eth_blockNumber through
+          // the WALLET, which breaks on wallets with broken RPC transports.
+          // Unchecked sends just eth_accounts + eth_sendTransaction.
+          var oi = iface("original");
+          return web3().getSigner().sendUncheckedTransaction({
+            to: ORIG, value: price, gasLimit: gasLimit,
+            data: oi.encodeFunctionData("mineCard", [])
           }).catch(function (e) {
-            if (e.kind) throw e;                                   // already mapped
+            logStep("mint", "send", e);
             if (isUserReject(e)) throw mintErr("rejected", "Transaction cancelled.");
             if (/insufficient funds/i.test(e.message || "")) throw mintErr("insufficient", "Not enough ETH for the mint plus gas.");
-            throw mintErr("send-failed", "Couldn't send the transaction. " + ((e && e.message) ? e.message.slice(0, 80) : "Please try again."));
+            throw mintErr("send-failed", "Your wallet couldn't broadcast the transaction (step: send). " + ((e && e.message) ? "(" + e.message.slice(0, 70) + ")" : "Please try again."));
+          }).then(function (hash) {
+            status("mining", { hash: hash });
+            return waitForReceiptPublic({ hash: hash }, { interface: oi }, status);
           });
-          });     // close estimateGas().then(est)
         });
       });
     }).catch(function (e) {
       if (e && e.kind) throw e;                                // already mapped
       if (isUserReject(e)) throw mintErr("rejected", "Transaction cancelled.");
-      // never surface a raw fetch error ("Load failed", "Failed to fetch")
-      if (isNetworkError(e)) throw mintErr("network", "A network request failed before anything was sent — no transaction went out. Check your connection (or your wallet's RPC) and try again.");
+      logStep("mint", "unmapped", e);
+      if (isNetworkError(e)) throw mintErr("network", "A network request failed before anything was sent — no transaction went out. Check your connection and try again.");
       throw mintErr("unknown", "Something unexpected went wrong before sending. Nothing was broadcast. " + ((e && e.message) ? "(" + e.message.slice(0, 70) + ")" : ""));
+    });
+  }
+
+  // Receipt via the PUBLIC RPCs (poll every 4s), so confirmation never depends
+  // on the wallet's transport. The wallet's own tx.wait runs in parallel as a
+  // bonus (it detects speed-ups/replacements); its errors are ignored.
+  // Dual-path receipt wait: the wallet's tx.wait runs as best effort (it
+  // detects speed-ups/replacements; its errors are ignored) while public RPC
+  // polling is the dependable path. Rejects only on timeout.
+  function awaitReceipt(tx, mkTimeoutErr) {
+    var deadline = now() + 120000;
+    return new Promise(function (resolve, reject) {
+      var done = false;
+      function settle(fn, v) { if (!done) { done = true; fn(v); } }
+      if (tx.wait) tx.wait(1).then(function (r) { settle(resolve, r); }, function (e) {
+        if (e && e.code === "TRANSACTION_REPLACED" && e.receipt && e.receipt.status === 1) settle(resolve, e.receipt);
+      });
+      (function poll() {
+        if (done) return;
+        if (now() > deadline) { settle(reject, mkTimeoutErr()); return; }
+        withFailover(function (p) { return p.getTransactionReceipt(tx.hash); }).then(function (r) {
+          if (r && r.blockNumber != null) settle(resolve, r);
+          else setTimeout(poll, 4000);
+        }, function () { setTimeout(poll, 4000); });
+      })();
+    });
+  }
+
+  function waitForReceiptPublic(tx, c, status) {
+    return awaitReceipt(tx, function () {
+      return mintErr("timeout", "Transaction is taking longer than expected. It may still confirm — check Etherscan.", tx.hash);
+    }).then(function (receipt) {
+      if (!receipt || receipt.status === 0) throw mintErr("reverted", "Mint reverted on-chain. Check the transaction on Etherscan.", tx.hash);
+      var humanId = null;
+      receipt.logs.forEach(function (log) {
+        try { var pl = c.interface.parseLog(log); if (pl.name === "Mined") humanId = Number(pl.args.human); } catch (e) {}
+      });
+      if (status) status("confirmed", { hash: tx.hash });
+      var fig = humanId != null ? H.byId(humanId) : null;
+      refreshMinted().then(function () { if (wallet.address) loadOwned(wallet.address); });
+      var serial = fig ? Math.min(fig.maxSupply, fig.minted + 1) : null;
+      return { humanId: humanId, figure: fig, txHash: tx.hash, serial: serial };
     });
   }
 
@@ -417,31 +456,34 @@
     }).then(function (info) {
       if ((info.owner || "").toLowerCase() !== wallet.address.toLowerCase())
         throw wrapErr("not-owner", "Card #" + cardId + " isn't owned by the connected wallet — it may have just moved or already been wrapped.");
-      // authoritative approval check through the user's own wallet provider
-      return simulateWrap(cardId, wallet.address, web3()).catch(function () { return false; });
+      // approval check via the public RPCs (revert-aware); the wallet provider
+      // is never used for reads — some wallets' RPC transports fail from here
+      return checkWrapApproval(cardId);
     }).then(function (approved) {
       var signer = web3().getSigner();
       var original = new E.Contract(ORIG, ABI.original, signer);
       var wrapper = new E.Contract(WRAPPER, ABI.wrapper, signer);
 
       function waitFor(tx, step, failMsg) {
-        var timeout = new Promise(function (_, rej) { setTimeout(function () {
-          rej(wrapErr("timeout", "Transaction is taking longer than expected.", tx.hash, step)); }, 120000); });
-        var rcpt = tx.wait(1).catch(function (e) {
-          if (e && e.code === "TRANSACTION_REPLACED") { if (e.receipt && e.receipt.status === 1) return e.receipt; throw wrapErr("reverted", "The transaction was replaced or dropped.", tx.hash, step); }
-          throw wrapErr("tx-failed", failMsg, tx.hash, step);
-        });
-        return Promise.race([rcpt, timeout]).then(function (receipt) {
+        return awaitReceipt(tx, function () {
+          return wrapErr("timeout", "Transaction is taking longer than expected. It may still confirm — check Etherscan.", tx.hash, step);
+        }).then(function (receipt) {
           if (!receipt || receipt.status === 0) throw wrapErr("reverted", failMsg, tx.hash, step);
           return receipt;
         });
       }
       function send(contract, method, args, step, label) {
-        return Promise.all([web3().getBalance(wallet.address), web3().getGasPrice()]).catch(function () {
-          throw wrapErr("wallet-rpc", "Couldn't reach Ethereum through your wallet's connection. Nothing was sent — check your network and try again.", null, step);
+        // reads via public RPCs only; the wallet is just the signer
+        return withFailover(function (p) { return Promise.all([p.getBalance(wallet.address), p.getGasPrice()]); }).catch(function (e) {
+          logStep("wrap", step + ": balance/gas read", e);
+          throw wrapErr("rpc", "Couldn't read your balance and the gas price (step: balance/gas) — the public RPCs aren't responding. Nothing was sent.", null, step);
         }).then(function (bg) {
           var bal = bg[0], gasPrice = bg[1];
-          return contract.estimateGas[method].apply(null, args).catch(function () {
+          return withFailover(function (p) {
+            return contract.connect(p).estimateGas[method].apply(null, args.concat([{ from: wallet.address }]));
+          }).catch(function (e) {
+            logStep("wrap", step + ": estimate", e);
+            if (isNetworkError(e)) throw wrapErr("rpc", "Couldn't simulate the " + label + " (step: estimate) — the public RPCs aren't responding. Nothing was sent.", null, step);
             throw wrapErr("would-revert", step === "approve"
               ? "The approval would fail on-chain — the card may have just moved."
               : "Wrapping would fail on-chain. If you just approved, give it a few seconds and retry.", null, step);
@@ -451,12 +493,18 @@
             var gasCost = gasLimit.mul(gasPrice);
             if (bal.lt(gasCost)) throw wrapErr("insufficient", "Not enough ETH for gas (about " + fmtEth(gasCost) + " Ξ for the " + label + ").", null, step);
             status("confirm-" + step, { gasCost: gasCost });
-            return contract[method].apply(null, args.concat([{ gasLimit: gasLimit }]));
+            // unchecked send: only eth_accounts + eth_sendTransaction touch
+            // the wallet (see the mint flow note about broken wallet RPCs)
+            return web3().getSigner().sendUncheckedTransaction({
+              to: contract.address, gasLimit: gasLimit,
+              data: contract.interface.encodeFunctionData(method, args)
+            }).then(function (hash) { return { hash: hash }; });
           }).catch(function (e) {
             if (e.kind) throw e;
             if (isUserReject(e)) throw wrapErr("rejected", (step === "approve" ? "Approval" : "Wrap") + " cancelled.", null, step);
             if (/insufficient funds/i.test(e.message || "")) throw wrapErr("insufficient", "Not enough ETH for gas.", null, step);
-            throw wrapErr("send-failed", "Couldn't send the " + label + ". " + ((e && e.message) ? e.message.slice(0, 80) : "Please try again."), null, step);
+            logStep("wrap", step + ": send", e);
+            throw wrapErr("send-failed", "Your wallet couldn't broadcast the " + label + " (step: send). " + ((e && e.message) ? "(" + e.message.slice(0, 70) + ")" : "Please try again."), null, step);
           });
         });
       }
