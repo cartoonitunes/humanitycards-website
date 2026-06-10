@@ -7,7 +7,12 @@
   "use strict";
   var h = window.h, INK = window.INK, DIM = window.DIM, FAINT = window.FAINT,
       PANEL = window.PANEL, RULE = window.RULE, COPPER = window.COPPER, MONO = window.MONO, SANS = window.SANS;
-  var API = "/api/scores";
+  // On Vercel the API is same-origin (/api/scores). Served from IPFS — the
+  // eth.limo gateway (humanitycards.eth.limo) or any *.ipfs.* gateway host —
+  // there is no same-origin backend, so point at the canonical Vercel API.
+  var host = location.hostname;
+  var ON_IPFS = host.indexOf("eth.limo") !== -1 || host.indexOf("ipfs") !== -1;
+  var API = ON_IPFS ? "https://humanitycards.vercel.app/api/scores" : "/api/scores";
   var GAME_LABEL = { timeline: "Timeline", battle: "Battle", draft: "Draft", assassination: "Assassination" };
 
   function addr() { var w = window.useWallet(); return (w.connected && w.address) ? w.address : null; }

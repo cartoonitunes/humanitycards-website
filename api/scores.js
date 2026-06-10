@@ -61,6 +61,31 @@ function json(body, status, extra) {
   });
 }
 
+// The IPFS build (humanitycards.eth.limo) is a different origin than this API,
+// so it needs CORS. Reflect only origins we trust: the Vercel deployment, the
+// ENS gateway and its subdomains, and IPFS gateway hosts (e.g. <cid>.ipfs.dweb.link).
+function corsOrigin(origin) {
+  if (!origin) return null;
+  let host;
+  try { host = new URL(origin).hostname; } catch (e) { return null; }
+  if (host === "humanitycards.vercel.app") return origin;
+  if (host === "eth.limo" || host.endsWith(".eth.limo")) return origin;
+  if (host.includes(".ipfs.")) return origin;
+  return null;
+}
+
+function corsHeaders(origin) {
+  const allow = corsOrigin(origin);
+  if (!allow) return {};
+  return {
+    "Access-Control-Allow-Origin": allow,
+    "Vary": "Origin",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
+  };
+}
+
 async function handleGet(url) {
   const game = url.searchParams.get("game");
   const wallet = (url.searchParams.get("wallet") || "").toLowerCase();
@@ -171,12 +196,17 @@ async function handlePost(req) {
 }
 
 export default async function handler(req) {
+  const ch = corsHeaders(req.headers.get("origin"));
   try {
     const url = new URL(req.url);
-    if (req.method === "GET") return await handleGet(url);
-    if (req.method === "POST") return await handlePost(req);
-    return json({ error: "method not allowed" }, 405);
+    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: ch });
+    let res;
+    if (req.method === "GET") res = await handleGet(url);
+    else if (req.method === "POST") res = await handlePost(req);
+    else res = json({ error: "method not allowed" }, 405);
+    for (const k in ch) res.headers.set(k, ch[k]);
+    return res;
   } catch (e) {
-    return json({ error: "server error" }, 500);
+    return json({ error: "server error" }, 500, ch);
   }
 }
