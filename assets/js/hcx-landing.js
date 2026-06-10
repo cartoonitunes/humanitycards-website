@@ -79,7 +79,10 @@
         h("div", { style: { display: "inline-flex", alignItems: "center", gap: "9px", marginBottom: "26px",
           border: "1px solid " + RULE, padding: "7px 14px 7px 11px", borderRadius: "30px" } },
           h("span", { style: { width: "6px", height: "6px", borderRadius: "50%", background: COPPER, boxShadow: "0 0 8px " + COPPER } }),
-          h("span", { style: { font: "600 11px/1 " + MONO, letterSpacing: ".18em", textTransform: "uppercase", color: DIM } }, "Ethereum genesis NFT · Minted March 2018")),
+          h("span", { style: { font: "600 11px/1.5 " + MONO, letterSpacing: ".18em", textTransform: "uppercase", color: DIM, textAlign: "center" } },
+            h("span", { style: { whiteSpace: "nowrap" } }, "Ethereum Pre-ERC721"),
+            h("span", { className: "eyebrow-sep" }, " · "),
+            h("span", { className: "eyebrow-line", style: { whiteSpace: "nowrap" } }, "Deployed March 2018"))),
         h("div", { style: { margin: "0 0 16px", font: "700 clamp(19px,3.2vw,28px)/1 " + MONO, letterSpacing: ".16em", textTransform: "uppercase", color: INK } },
           "Humanity", h("span", { style: { color: COPPER } }, "Cards")),
         // paddingBottom: with background-clip:text the gradient only paints the
