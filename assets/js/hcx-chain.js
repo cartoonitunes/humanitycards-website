@@ -29,7 +29,17 @@
   ];
   var CHAIN_ID = 1;
   var ORIG = H.CA, WRAPPER = H.WRAPPER, MC3 = "0xcA11bde05977b3631167028862bE2a173976CA11";
-  var MAX_GAS = 1000000;            // hard cap so a malformed estimate can't set millions
+  var MAX_GAS = 1000000;            // hard cap for the simple wrap/approve sends so a malformed estimate can't set millions
+  // mineCard() picks its card with a loop over up to humanNumber (239) humans,
+  // seeded by block.timestamp — so its gas is pseudo-random PER BLOCK and the
+  // estimate from one block badly mispredicts the gas the tx needs a block or
+  // two later. Measured across 120 blocks at current state: ~130k–1.27M, hard
+  // ceiling ~239 iterations (~1.3M). The old est×1.2 capped at 1,000,000 sat
+  // below the p90 (~1.16M) → frequent out-of-gas reverts that burned the whole
+  // limit (Julian's failed mint at 1.12M needed). Send a fixed, generous limit
+  // instead; unused gas is refunded, so over-providing only matters on a revert
+  // (which this prevents). FLOOR comfortably clears the 239-iteration worst case.
+  var MINT_GAS_FLOOR = 1900000, MINT_GAS_CAP = 2500000;
   var MINTED_TTL = 60000, PRICE_TTL = 30000;
 
   var ABI = {
@@ -409,8 +419,16 @@
           if (isNetworkError(e)) throw mintErr("rpc", "Couldn't simulate the mint (step: estimate) — the public RPCs aren't responding. Nothing was sent.");
           throw mintErr("would-revert", "This transaction would fail on-chain (step: estimate). The price may have changed or the last cards just minted out. Nothing was sent.");
         }).then(function (est) {
-          var gasLimit = est.mul(120).div(100);                 // +20% buffer
-          if (gasLimit.gt(E.BigNumber.from(MAX_GAS))) gasLimit = E.BigNumber.from(MAX_GAS); // cap
+          // estimateGas above already served its real purpose: it's the
+          // would-revert / sold-out / wrong-price check (mineCard throws on
+          // those). Its returned VALUE, though, is the gas for one block's
+          // random card pick and can't predict the tx's actual block — so size
+          // the limit off a fixed floor that clears the 239-iteration worst
+          // case, taking est×1.5 only when that happens to be larger (capped).
+          var buffered = est.mul(150).div(100);
+          var floor = E.BigNumber.from(MINT_GAS_FLOOR);
+          var gasLimit = buffered.gt(floor) ? buffered : floor;
+          if (gasLimit.gt(E.BigNumber.from(MINT_GAS_CAP))) gasLimit = E.BigNumber.from(MINT_GAS_CAP);
           var gasCost = gasLimit.mul(gasPrice), maxCost = price.add(gasCost);
           if (bal.lt(maxCost)) throw mintErr("insufficient", "Not enough ETH. You need about " + fmtEth(maxCost) + " Ξ (mint " + fmtEth(price) + " + gas).");
           status("confirm", { price: price, gasCost: gasCost, total: maxCost });
