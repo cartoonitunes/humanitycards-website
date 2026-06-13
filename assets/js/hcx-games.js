@@ -54,6 +54,26 @@
   function tlGet(k, d) { var v = localStorage.getItem(k); return v == null ? d : v; }
   function seededShuffle(a, rng) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 
+  // Puzzle number: days since the launch epoch (2026-06-01 = #1), local time.
+  var TL_EPOCH = Date.UTC(2026, 5, 1);
+  function tlDayNumber() {
+    var n = new Date(), todayUTC = Date.UTC(n.getFullYear(), n.getMonth(), n.getDate());
+    return Math.floor((todayUTC - TL_EPOCH) / 86400000) + 1;
+  }
+  // Wordle-style share card. 🟩 = right spot, 🟫 = misplaced (copper, our spin).
+  function tlShareText(solved, attempts) {
+    var grid = attempts.map(function (a) {
+      return a.map(function (ok) { return ok ? "🟩" : "🟫"; }).join("");
+    }).join("\n");
+    return "HumanityCards Timeline #" + tlDayNumber() + "\n" +
+      (solved ? attempts.length : "X") + "/" + TL_MAX + " tries\n\n" +
+      grid + "\n\nhumanitycards.vercel.app/#timeline";
+  }
+  function tlShare(solved, attempts) {
+    var url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(tlShareText(solved, attempts));
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
   function tlStat(label, value) {
     return h("div", null,
       h("div", { style: { font: "700 20px/1 " + MONO, color: INK } }, String(value)),
@@ -200,7 +220,25 @@
                 window.Btn({ onClick: lockIn }, "Lock In Order"),
                 showResult ? h("div", { style: { font: "400 13px/1.5 " + SANS, color: DIM } },
                   h("strong", { style: { color: INK, fontWeight: 700 } }, lastScore + " / 5 in place"),
-                  " · " + attemptsLeft + (attemptsLeft === 1 ? " try left — make it count" : " tries left")) : null)));
+                  " · " + attemptsLeft + (attemptsLeft === 1 ? " try left — make it count" : " tries left")) : null)),
+        record.finished ? TLBios(solvedOrder) : null);
+    }
+
+    // After the game ends, teach: who these five were, earliest birth first.
+    function TLBios(figs) {
+      return h("div", { style: { marginTop: "40px", borderTop: "1px solid " + RULE, paddingTop: "26px", animation: "fadeUp .4s ease both" } },
+        h("div", { style: { font: "600 10px/1 " + MONO, letterSpacing: ".18em", color: DIM, marginBottom: "18px" } }, "MEET THE FIVE · EARLIEST TO LATEST"),
+        h("div", { style: { display: "grid", gap: "12px" } },
+          figs.map(function (f) {
+            return h("div", { style: { display: "grid", gridTemplateColumns: "84px 1fr", gap: "16px", alignItems: "start", padding: "14px 16px", background: PANEL, border: "1px solid " + RULE, borderRadius: "9px" } },
+              h("div", { style: { textAlign: "center" } },
+                h("div", { style: { font: "700 17px/1.1 " + MONO, color: COPPER } }, window.HCX.eraLabel(f.born)),
+                h("div", { style: { marginTop: "5px", font: "400 10px/1.3 " + MONO, color: FAINT } }, window.HCX.lifespan(f))),
+              h("div", null,
+                h("div", { style: { font: "700 16px/1.2 " + MONO, color: INK } }, f.name),
+                f.role ? h("div", { style: { margin: "3px 0 7px", font: "600 12px/1.3 " + SANS, color: "#9c8cf0" } }, f.role) : null,
+                f.bio ? h("div", { style: { font: "400 13px/1.55 " + SANS, color: DIM } }, f.bio) : null));
+          })));
     }
 
     function TLDone(solved, attempts, stats) {
@@ -211,7 +249,15 @@
           h("div", { style: { display: "flex", flexDirection: "column", gap: "6px", marginBottom: "6px" } }, attempts.map(function (a) { return TLPips(a); })),
           h("div", { style: { font: "400 13px/1.5 " + SANS, color: DIM } },
             daily ? (solved ? "Nicely done. Streak now " + stats.streak + "." : "The order is revealed above. Streak reset.")
-                  : (solved ? "Nicely done. Deal another five?" : "The order is revealed above. No harm done — it's free play."))),
+                  : (solved ? "Nicely done. Deal another five?" : "The order is revealed above. No harm done — it's free play.")),
+          h("div", { style: { marginTop: "14px", display: "flex", gap: "10px", flexWrap: "wrap" } },
+            window.Btn({ size: "sm", onClick: function () { tlShare(solved, attempts); } }, "Share on 𝕏"),
+            window.Btn({ size: "sm", variant: "ghost", onClick: function (e) {
+              var btn = e.currentTarget, txt = tlShareText(solved, attempts);
+              function done() { var prev = btn.textContent; btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = prev; }, 1600); }
+              if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done, function () {}); }
+              else { try { var ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); done(); } catch (err) {} }
+            } }, "Copy"))),
         daily
           ? h("div", { style: { paddingLeft: "30px", borderLeft: "1px solid " + RULE } },
               h("div", { style: { font: "600 10px/1 " + MONO, letterSpacing: ".16em", color: DIM, marginBottom: "10px" } }, "NEXT PUZZLE IN"),
