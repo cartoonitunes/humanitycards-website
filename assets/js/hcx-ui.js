@@ -64,6 +64,29 @@
   function useWallet() { return wallet; }
   function shortAddr(a) { return a ? a.slice(0, 6) + "…" + a.slice(-4) : ""; }
 
+  // Auth: Google Sign-In is the primary identity for games + leaderboards.
+  // The Google Identity Services logic lives in hcx-auth.js (real GSI library);
+  // this store holds the session state + subscribers so the rest of the UI can
+  // read it. notify() re-renders subscribers, exactly like the wallet store.
+  //   signedIn   — a valid Google session is active
+  //   sub        — Google's stable user id (identity; never the email)
+  //   googleName — display name from Google (default leaderboard name)
+  //   picture    — Google avatar URL (nav chip)
+  //   displayName— the chosen leaderboard name (may differ from googleName)
+  //   token      — the raw ID-token JWT (sent to the API as a Bearer token)
+  //   ready      — the GSI library has loaded and initialised
+  //   needsName  — first sign-in: prompt the player to choose a leaderboard name
+  var authSubs = [];
+  var auth = {
+    signedIn: false, sub: null, googleName: null, picture: null,
+    displayName: null, token: null, ready: false, needsName: false,
+    signOut: function () { if (window.HCX_AUTH) window.HCX_AUTH.signOut(); },
+    set: function (patch) { Object.assign(auth, patch); auth.notify(); },
+    notify: function () { authSubs.forEach(function (f) { try { f(); } catch (e) {} }); },
+    subscribe: function (fn) { authSubs.push(fn); }
+  };
+  function useAuth() { return auth; }
+
   // ---- toast (transient status) ----
   function toast(msg, kind, ms) {
     var t = document.getElementById("hcx-toast");
@@ -170,7 +193,7 @@
 
   Object.assign(window, {
     h: h, INK: INK, DIM: DIM, FAINT: FAINT, BG: BG, PANEL: PANEL, RULE: RULE, COPPER: COPPER,
-    SANS: SANS, MONO: MONO, useWallet: useWallet, useRouter: useRouter,
+    SANS: SANS, MONO: MONO, useWallet: useWallet, useAuth: useAuth, useRouter: useRouter,
     Kicker: Kicker, Btn: Btn, Stat: Stat, Section: Section, DottedRule: DottedRule, Tile: Tile,
     toast: toast, shortAddr: shortAddr
   });

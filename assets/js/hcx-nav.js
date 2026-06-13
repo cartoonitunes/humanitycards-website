@@ -35,6 +35,34 @@
       wrongNet ? "Wrong Network" : window.shortAddr(w.address));
   }
 
+  // Primary auth control. Google Sign-In is the identity for games/leaderboards;
+  // the wallet is a secondary, blockchain-only action (offered inside the
+  // profile menu when signed in, and on the collection/packs pages). A legacy
+  // wallet-only session (no Google) still shows its wallet chip here so nothing
+  // that worked before breaks.
+  function AuthControl() {
+    var a = window.useAuth ? window.useAuth() : null;
+    var w = window.useWallet();
+    if (a && a.signedIn) {
+      var label = a.displayName || a.googleName || "Account";
+      var initial = (label.charAt(0) || "H").toUpperCase();
+      return h("button", { onClick: function (e) { if (window.HCX_AUTH) window.HCX_AUTH.openProfileMenu(e.currentTarget); }, title: "Account menu",
+        style: { display: "inline-flex", alignItems: "center", gap: "9px", cursor: "pointer",
+          background: PANEL, border: "1px solid " + RULE, borderRadius: "30px", padding: "5px 12px 5px 6px",
+          font: "600 12px/1 " + MONO, letterSpacing: ".04em", color: INK } },
+        a.picture
+          ? h("img", { src: a.picture, alt: "", width: "24", height: "24", referrerpolicy: "no-referrer",
+              style: { width: "24px", height: "24px", borderRadius: "50%", display: "block" } })
+          : h("span", { style: { width: "24px", height: "24px", borderRadius: "50%", background: COPPER, color: "#160d04",
+              font: "700 12px/24px " + MONO, textAlign: "center" } }, initial),
+        h("span", { className: "nav-name", style: { maxWidth: "130px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, label),
+        h("span", { style: { color: DIM, font: "400 9px/1 " + MONO } }, "▾"));
+    }
+    if (w.connected) return WalletButton();              // legacy wallet-only session
+    if (window.HCX_AUTH) return window.HCX_AUTH.signInButton();
+    return window.Btn({ size: "sm", disabled: true }, "Sign in");
+  }
+
   function Nav() {
     var r = window.useRouter();
     var routeBase = r.route;
@@ -86,7 +114,7 @@
               onMouseLeave: function (e) { e.currentTarget.style.color = active ? INK : DIM; } }, l.label);
           })),
         h("div", { className: "nav-right", style: { display: "flex", alignItems: "center", gap: "12px", minWidth: 0 } },
-          h("span", { className: "nav-wallet" }, WalletButton()), burger)),
+          h("span", { className: "nav-wallet" }, AuthControl()), burger)),
       mobileDrop);
   }
 

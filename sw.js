@@ -8,7 +8,7 @@
  * Bump CACHE_VERSION whenever shipping changed assets (kept in step with the
  * ?v= query on the <script> tags in index.html) so old caches are evicted.
  */
-var CACHE_VERSION = "v22";
+var CACHE_VERSION = "v23";
 var CACHE = "hcx-" + CACHE_VERSION;
 
 // Version-less shell: enough to boot the app offline. Versioned JS is picked up

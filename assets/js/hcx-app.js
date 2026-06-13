@@ -88,6 +88,7 @@
 
     router.subscribe(renderAll);
     wallet.subscribe(renderAll);
+    if (window.useAuth) window.useAuth().subscribe(renderAll);
 
     root.appendChild(navHost);
     root.appendChild(mainHost);

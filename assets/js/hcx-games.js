@@ -126,10 +126,12 @@
 
   function TimelinePage() {
     var wallet = window.useWallet();
-    // Signed in: one shared, date-seeded puzzle (Wordle-style; streak saved).
-    // Signed out: FREE PLAY — a fresh random set every round, nothing saved,
-    // so the daily answer can't be previewed before signing in.
-    var daily = wallet.connected;
+    var authS = window.useAuth ? window.useAuth() : null;
+    // Signed in (Google, or a legacy connected wallet): one shared, date-seeded
+    // puzzle (Wordle-style; streak saved). Signed out: FREE PLAY — a fresh
+    // random set every round, nothing saved, so the daily answer can't be
+    // previewed before signing in.
+    var daily = (authS && authS.signedIn) || wallet.connected;
     var today = tlDateKey();
     var base, solvedOrder, record, order, showResult;
     var countdownTimer = null;
@@ -235,9 +237,9 @@
         : h("div", { style: { display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center", padding: "14px 20px", background: PANEL, border: "1px solid " + RULE, borderRadius: "9px", marginBottom: "26px" } },
             h("div", null,
               h("div", { style: { font: "700 13px/1 " + MONO, letterSpacing: ".1em", color: "#9c8cf0", marginBottom: "6px" } }, "FREE PLAY"),
-              h("div", { style: { font: "400 12.5px/1.5 " + SANS, color: DIM } }, "Random figures, new round every time, nothing saved. Connect for the shared daily and a streak.")),
+              h("div", { style: { font: "400 12.5px/1.5 " + SANS, color: DIM } }, "Random figures, new round every time, nothing saved. Sign in for the shared daily and a streak.")),
             h("div", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: "14px" } },
-              window.Btn({ size: "sm", variant: "ghost", onClick: wallet.toggle }, "Connect for the Daily"),
+              window.Btn({ size: "sm", variant: "ghost", onClick: function () { if (window.HCX_AUTH) window.HCX_AUTH.promptSignIn(); } }, "Sign in for the Daily"),
               attemptChip));
 
       return GameShell({
