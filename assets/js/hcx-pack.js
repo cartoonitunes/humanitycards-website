@@ -245,12 +245,25 @@
       if (!gasTimer) { pollGas(); gasTimer = setInterval(pollGas, 15000); }
       return gasEl;
     }
-    function hintText() {
+    // Unmissable side-by-side: what each button actually does. Free practice vs
+    // a real on-chain mint is the one thing a newcomer must not get wrong.
+    function distinction() {
       var w = window.useWallet();
       var pl = priceLabel();
-      if (!w.connected) return "Practice uses the real pull odds but mints nothing — no wallet, no cost, just the ritual. To mint a real card on-chain, connect a wallet" + (pl ? " (" + pl + " + gas)." : ".");
-      if (w.chainId != null && w.chainId !== 1) return "You're on the wrong network. Switch to Ethereum Mainnet to mint.";
-      return "Practice Open is a free demo — nothing is minted. Mint On-Chain sends a real transaction" + (pl ? " · " + pl + " + gas" : "") + ".";
+      var cell = function (label, labelColor, lead, body) {
+        return h("div", { style: { flex: "1 1 200px", minWidth: 0, padding: "13px 15px", background: PANEL, border: "1px solid " + RULE, borderRadius: "9px" } },
+          h("div", { style: { font: "700 11px/1.4 " + MONO, letterSpacing: ".1em", color: labelColor, marginBottom: "6px" } }, label),
+          h("div", { style: { font: "400 14px/1.5 " + SANS, color: "#c3bdae" } },
+            h("strong", { style: { color: INK, fontWeight: 700 } }, lead), " " + body));
+      };
+      return h("div", null,
+        h("div", { style: { display: "flex", gap: "10px", flexWrap: "wrap", maxWidth: "480px", margin: "16px auto 0" } },
+          cell("PRACTICE OPEN", COPPER, "Free.", "Uses the real pull odds — but mints nothing."),
+          cell("MINT ON-CHAIN", "#9c8cf0", "Costs ETH" + (pl ? " (" + pl + " + gas)" : " + gas") + ".", "A real transaction that gives you a real card you own.")),
+        (w.connected && w.chainId != null && w.chainId !== 1)
+          ? h("div", { style: { maxWidth: "480px", margin: "12px auto 0", padding: "10px 14px", borderRadius: "8px", background: "#d0563a18", border: "1px solid #d0563a55", font: "600 13px/1.45 " + SANS, color: "#e8927d", textAlign: "center" } },
+              "Wrong network — switch to Ethereum Mainnet to mint.")
+          : null);
     }
     function idleControls() {
       controlsMode = "idle";
@@ -263,7 +276,7 @@
             boxShadow: "0 10px 30px -10px " + COPPER + ", 0 0 0 1px #d49a59, 0 0 40px -16px " + COPPER } }, "Practice Open · Free"),
           window.Btn({ variant: "ghost", onClick: startMint, style: { fontSize: "14px", padding: "16px 26px" } },
             w.connected ? ("Mint On-Chain" + (pl ? " · " + pl : "")) : "Connect to Mint for Real")),
-        h("div", { style: { marginTop: "16px", font: "400 12px/1.5 " + SANS, color: DIM, maxWidth: "420px", marginLeft: "auto", marginRight: "auto" } }, hintText()),
+        distinction(),
         gasLine()));
       // fetch the live price once to enrich the hint — but never clobber a
       // mint/resume status panel that went up while the fetch was in flight

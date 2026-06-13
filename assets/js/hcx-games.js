@@ -6,6 +6,15 @@
       BG = window.BG, PANEL = window.PANEL, RULE = window.RULE, COPPER = window.COPPER, MONO = window.MONO, SANS = window.SANS;
   var PlayingWith = window.PlayingWith;
 
+  // Compact, always-visible "how to play" strip — one punchy line, Wordle-style.
+  function HowTo(text) {
+    return h("div", { className: "howto", style: { display: "flex", gap: "11px", alignItems: "baseline",
+        maxWidth: "560px", margin: "0 0 26px", padding: "12px 15px", background: PANEL,
+        border: "1px solid " + RULE, borderRadius: "9px" } },
+      h("span", { style: { flex: "0 0 auto", font: "700 11px/1.5 " + MONO, letterSpacing: ".12em", color: "#9c8cf0" } }, "HOW TO PLAY"),
+      h("span", { style: { font: "400 14px/1.55 " + SANS, color: "#c3bdae" } }, text));
+  }
+
   function GameShell(opts) {
     var children = Array.prototype.slice.call(arguments, 1);
     return window.Section({ style: { paddingTop: "40px" } },
@@ -15,6 +24,7 @@
           h("h1", { style: { margin: "14px 0 8px", font: "700 clamp(32px,5vw,48px)/1 " + MONO, color: INK } }, opts.title),
           h("p", { style: { margin: 0, maxWidth: "520px", font: "400 14px/1.6 " + SANS, color: DIM } }, opts.body)),
         PlayingWith(true)),
+      opts.howto ? HowTo(opts.howto) : null,
       children);
   }
   function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
@@ -98,10 +108,10 @@
         background: ok ? "#5fae6e" : "#2e2c28", boxShadow: ok ? "0 0 8px -2px #5fae6e" : "none" } }); }));
   }
   function arrowBtn(ch, fn, disabled) {
-    return h("button", { onClick: disabled ? null : fn, disabled: disabled, style: {
-      width: "38px", height: "32px", borderRadius: "5px", cursor: disabled ? "default" : "pointer",
+    return h("button", { className: "tl-arrow", onClick: disabled ? null : fn, disabled: disabled, style: {
+      borderRadius: "6px", cursor: disabled ? "default" : "pointer",
       background: disabled ? "transparent" : PANEL, border: "1px solid " + RULE, color: disabled ? FAINT : INK,
-      font: "400 13px/1 " + MONO, opacity: disabled ? 0.4 : 1 } }, ch);
+      font: "400 15px/1 " + MONO, opacity: disabled ? 0.4 : 1 } }, ch);
   }
 
   // Pick 5 figures with distinct birth years so the ordering is unambiguous.
@@ -233,8 +243,9 @@
       return GameShell({
         kicker: daily ? "Daily Puzzle · " + new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "Free Play",
         title: "Timeline",
-        body: daily ? "Use the arrows to order these five, earliest birth on the left. Four tries — your streak's on the line."
-                    : "Use the arrows to order these five, earliest birth on the left. Four tries — then a fresh random round." },
+        body: daily ? "Put these 5 historical figures in order, earliest born to latest. You get 4 tries."
+                    : "Put these 5 figures in order, earliest born to latest. Four tries, then a fresh round.",
+        howto: "Use the arrows to slide each figure left or right, then Lock In to score the row. Green means right spot. Crack it within four guesses" + (daily ? " to grow your streak." : ".") },
         headerBar,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", font: "600 11px/1 " + MONO, letterSpacing: ".14em", color: DIM, textTransform: "uppercase", marginBottom: "14px" } },
           h("span", null, "← Earliest"), h("span", null, "Latest →")),
@@ -341,11 +352,13 @@
     var deck = deckFor(wallet);
     var round = drawRound(deck);
     var scoreV = [0, 0];
+    var picks = { influence: 0, intellect: 0, dominion: 0, legacy: 0 };  // stats already used this match
     var result = null;
     var host = h("div", null);
     function rr() { host.innerHTML = ""; host.appendChild(build()); }
     function pick(stat) {
       if (result) return;
+      picks[stat] = (picks[stat] || 0) + 1;
       var mine = round.mine.stats[stat], theirs = round.theirs.stats[stat];
       var win = mine > theirs, tie = mine === theirs;
       if (!tie) { if (win) scoreV[0]++; else scoreV[1]++; }
@@ -354,7 +367,9 @@
     }
     function next() { round = drawRound(deck); result = null; rr(); }
     function build() {
-      return GameShell({ kicker: "1v1 · Best of 9", title: "Battle", body: "Your card is face-up, the house's is hidden. Choose the stat you trust, then see if it holds." },
+      return GameShell({ kicker: "1v1 · Best of 9", title: "Battle",
+        body: "Pick a stat. Higher number beats the house's hidden card and wins the round.",
+        howto: "Your card is face-up, the house's is hidden. Pick the stat you trust and the house flips — higher number takes the trick. Best of nine; you can reuse stats, and your tally shows on each." },
         h("div", { style: { display: "flex", justifyContent: "center", gap: "30px", marginBottom: "24px", font: "700 18px/1 " + MONO } },
           h("span", { style: { color: COPPER } }, "You " + scoreV[0]),
           h("span", { style: { color: FAINT } }, "·"),
@@ -384,13 +399,18 @@
                     "How are these scored?")),
                 h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" } },
                   STATS.map(function (s) {
-                    return h("button", { onClick: function () { pick(s[0]); },
-                      style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px",
-                        background: PANEL, border: "1px solid " + RULE, borderRadius: "7px", cursor: "pointer",
-                        font: "600 13px/1 " + MONO, color: INK, letterSpacing: ".06em", transition: "border-color .18s" },
+                    var used = picks[s[0]] || 0;
+                    return h("button", { className: "stat-btn", onClick: function () { pick(s[0]); },
+                      style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", padding: "15px 16px",
+                        background: PANEL, border: "1px solid " + RULE, borderRadius: "8px", cursor: "pointer",
+                        font: "600 14px/1 " + MONO, color: INK, letterSpacing: ".04em", transition: "border-color .18s" },
                       onMouseEnter: function (e) { e.currentTarget.style.borderColor = COPPER; },
                       onMouseLeave: function (e) { e.currentTarget.style.borderColor = RULE; } },
-                      h("span", null, s[1]), h("span", { style: { color: COPPER } }, String(round.mine.stats[s[0]])));
+                      h("span", { style: { display: "flex", alignItems: "center", gap: "8px" } },
+                        h("span", null, s[1]),
+                        used ? h("span", { title: "you've used this stat " + used + "×",
+                          style: { font: "700 9px/1 " + MONO, letterSpacing: ".08em", color: "#9c8cf0", background: "#9c8cf01f", border: "1px solid #9c8cf04d", borderRadius: "20px", padding: "3px 6px" } }, "USED " + used + "×") : null),
+                      h("span", { style: { color: COPPER } }, String(round.mine.stats[s[0]])));
                   })))));
     }
     rr();
@@ -441,7 +461,8 @@
       var total = sum(st.picked), r = st.result;
       var verdict = r ? (r.you > r.them ? "win" : r.you === r.them ? "tie" : "loss") : null;
       return GameShell({ kicker: "Council · Daily Category", title: "Draft",
-        body: "Twelve cards, you keep five — the house drafts the best of the seven you leave. Highest " + st.cat[1] + " total wins." },
+        body: "Pick the 5 strongest cards for today's category — " + st.cat[1] + ". The house drafts the best of the seven you leave behind.",
+        howto: "Each card shows its " + st.cat[1] + " points (top-right). Tap five to build your council; highest total wins. Whatever you pass on, the house gets the best of — so don't leave a strong card behind." },
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "14px", padding: "16px 20px", background: PANEL, border: "1px solid " + RULE, borderRadius: "9px", marginBottom: "24px" } },
           h("div", null, window.Kicker({ color: "#9c8cf0" }, "Today's brief"),
             h("div", { style: { marginTop: "6px", font: "700 18px/1 " + MONO, color: INK } }, "Highest total " + st.cat[1])),
@@ -540,15 +561,22 @@
       rr();
     }
 
-    function cardCell(f, dim, tag, tagColor, selected, onClick) {
+    // hint: when set (a short verb like "KILLED"), the selected hand card has a
+    // real historical edge over this target — flag it green so the instant
+    // strike is obvious without opening the ties panel.
+    function cardCell(f, dim, tag, tagColor, selected, onClick, hint) {
       return h("div", { onClick: onClick || null,
         style: { position: "relative", cursor: onClick ? "pointer" : "default", borderRadius: "8px",
           opacity: dim ? 0.38 : 1, transform: selected ? "translateY(-8px)" : "none", transition: "transform .2s, opacity .3s",
-          boxShadow: selected ? "0 0 0 2px " + (tagColor || COPPER) + ", 0 0 26px -8px " + (tagColor || COPPER) : "none" } },
+          boxShadow: selected ? "0 0 0 2px " + (tagColor || COPPER) + ", 0 0 26px -8px " + (tagColor || COPPER)
+                   : hint ? "0 0 0 2px #5fae6e, 0 0 22px -9px #5fae6e" : "none" } },
         window.Card({ figure: f, badge: false, glow: false }),
         h("div", { style: { position: "absolute", left: 0, right: 0, bottom: 0, padding: "7px 9px", display: "flex", justifyContent: "space-between",
           background: "linear-gradient(transparent,#000d)", font: "700 11px/1 " + MONO, color: "#fff", borderRadius: "0 0 7px 7px" } },
           h("span", null, "INF"), h("span", { style: { color: "#e8c89a" } }, String(f.stats.influence))),
+        (hint && !tag) ? h("div", { title: "instant strike — a documented historical edge",
+          style: { position: "absolute", top: "8px", left: "8px", maxWidth: "calc(100% - 16px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            font: "700 9px/1.4 " + MONO, letterSpacing: ".06em", color: "#0c1a0f", background: "#5fae6e", borderRadius: "20px", padding: "4px 7px" } }, hint) : null,
         tag ? h("div", { style: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
           font: "700 13px/1 " + MONO, letterSpacing: ".1em", color: tagColor || "#d0563a", background: "#000a", borderRadius: "7px" } }, tag) : null);
     }
@@ -588,16 +616,19 @@
     function build() {
       var ready = st.sel && st.target && !st.over;
       return GameShell({ kicker: "Connections · 1v1", title: "Assassination",
-        body: "Every edge here is real: 165 documented kill / defeat / succession / rivalry / influence links among the 239. Play a card with a direct edge over the target and the strike is instant; otherwise higher influence wins, and the defender takes ties." },
+        body: "Play a card with a historical connection to the target to strike instantly. No connection? Higher influence wins.",
+        howto: "Pick a card from your hand, then a target on the council. A real historical tie (killed, defeated, succeeded…) is an instant strike — targets you can hit light up green. Otherwise higher influence wins and ties go to the defender. Clear the council before your hand runs out." },
         h("div", { className: "assassin-board", style: { display: "grid", gridTemplateColumns: "1fr", gap: "22px" } },
           h("div", null,
             h("div", { style: { font: "600 11px/1 " + MONO, letterSpacing: ".14em", color: DIM, marginBottom: "14px" } },
               "OPPONENT'S COUNCIL — " + st.council.filter(function (c) { return !st.struck[c.humanId]; }).length + " STANDING"),
-            h("div", { style: { display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "16px", maxWidth: "760px" } },
+            h("div", { className: "assassin-cards", style: { display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "16px", maxWidth: "760px" } },
               st.council.map(function (f) {
                 var down = !!st.struck[f.humanId];
+                var e = (st.sel && !down && !st.over) ? REL.edge(st.sel.humanId, f.humanId) : null;
                 return cardCell(f, down, down ? "STRUCK" : null, "#d0563a", st.target === f,
-                  down || st.over ? null : function () { st.target = (st.target === f ? null : f); rr(); });
+                  down || st.over ? null : function () { st.target = (st.target === f ? null : f); rr(); },
+                  e ? (REL_VERB[e.type] || "edge").toUpperCase() : null);
               }))),
           h("div", { style: { position: "relative", padding: "20px 0", textAlign: "center" } },
             window.DottedRule({ style: { position: "absolute", left: 0, right: 0, top: "50%" } }),
@@ -606,7 +637,7 @@
               ready ? (REL.edge(st.sel.humanId, st.target.humanId) ? "HISTORY FAVOURS THIS STRIKE" : "NO EDGE — INFLUENCE DECIDES") : "PICK A CARD AND A TARGET")),
           h("div", null,
             h("div", { style: { font: "600 11px/1 " + MONO, letterSpacing: ".14em", color: DIM, marginBottom: "14px" } }, "YOUR HAND"),
-            h("div", { style: { display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "16px", maxWidth: "760px" } },
+            h("div", { className: "assassin-cards", style: { display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "16px", maxWidth: "760px" } },
               st.hand.map(function (f) {
                 var gone = st.lost[f.humanId], used = st.spent[f.humanId];
                 return cardCell(f, gone || used, gone ? "FALLEN" : used ? "SPENT" : null, gone ? "#d0563a" : "#8d8678", st.sel === f,

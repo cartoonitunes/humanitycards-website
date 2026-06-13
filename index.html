@@ -7,6 +7,13 @@
 <meta name="description" content="HumanityCards — pre-ERC721 NFTs from 2018 on Ethereum. 239 historical figures with fully on-chain art, minted to a single contract in March 2018. Open packs, collect the catalogue, and play four games built on real historical data."/>
 <meta name="theme-color" content="#0b0b0e"/>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='11' y='3' width='42' height='58' rx='6' fill='%230c0d0f' stroke='%23c98a4b' stroke-width='3'/%3E%3Ctext x='32' y='41' font-family='Menlo,Consolas,monospace' font-size='24' font-weight='700' text-anchor='middle' fill='%23ece7d8'%3EH%3Ctspan fill='%23c98a4b'%3EC%3C/tspan%3E%3C/text%3E%3C/svg%3E"/>
+<!-- PWA: installable, offline-capable (manifest.json + sw.js) -->
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="HCX"/>
+<meta name="mobile-web-app-capable" content="yes"/>
 <!-- NOTE: update the base URL below if the production domain differs -->
 <link rel="canonical" href="https://humanitycards.vercel.app/"/>
 <meta property="og:site_name" content="HumanityCards"/>
@@ -233,6 +240,20 @@
     .prov-band > *:last-child { border-bottom: none; }
     .stat-bar { grid-template-columns: 1fr 1fr !important; }
   }
+  /* ---------- touch targets & mobile readability ---------- */
+  .tl-arrow { width: 44px; height: 40px; }
+  @media (pointer: coarse) {
+    /* every interactive control clears the 44px tap-target floor */
+    button, .tl-arrow, .stat-btn { min-height: 44px; min-width: 44px; }
+    .tl-arrow { width: 52px; height: 48px; font-size: 17px; }
+    .stat-btn { min-height: 52px; }
+  }
+  @media (max-width: 620px) {
+    /* never let a card force a horizontal scroll on a 375px phone */
+    .hc-card svg, .hc-card { max-width: 100%; }
+    .assassin-cards { gap: 9px !important; }
+    .howto { margin-bottom: 20px; flex-wrap: wrap; }
+  }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
   }
@@ -245,22 +266,25 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" integrity="sha384-Htz1SE4Sl5aitpvFgr2j0sfsGUIuSXI6t8hEyrlQ93zflEF3a29bH2AvkUROUw7J" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <!-- on-chain-safe data + card generators (plain JS, reused from the design bundle) -->
-<script src="assets/js/card-helpers.js?v=21"></script>
-<script src="assets/js/card-variants.js?v=21"></script>
-<script src="assets/js/bios.js?v=21"></script>
-<script src="assets/js/data.js?v=21"></script>
-<script src="assets/js/relationships.js?v=21"></script>
+<script src="assets/js/card-helpers.js?v=22"></script>
+<script src="assets/js/card-variants.js?v=22"></script>
+<script src="assets/js/bios.js?v=22"></script>
+<script src="assets/js/data.js?v=22"></script>
+<script src="assets/js/relationships.js?v=22"></script>
 
 <!-- vanilla port of the React prototype (no framework, no build step) -->
-<script src="assets/js/hcx-ui.js?v=21"></script>
-<script src="assets/js/hcx-chain.js?v=21"></script>
-<script src="assets/js/hcx-scores.js?v=21"></script>
-<script src="assets/js/hcx-cards.js?v=21"></script>
-<script src="assets/js/hcx-nav.js?v=21"></script>
-<script src="assets/js/hcx-landing.js?v=21"></script>
-<script src="assets/js/hcx-pack.js?v=21"></script>
-<script src="assets/js/hcx-collection.js?v=21"></script>
-<script src="assets/js/hcx-games.js?v=21"></script>
-<script src="assets/js/hcx-app.js?v=21"></script>
+<script src="assets/js/hcx-ui.js?v=22"></script>
+<script src="assets/js/hcx-chain.js?v=22"></script>
+<script src="assets/js/hcx-scores.js?v=22"></script>
+<script src="assets/js/hcx-cards.js?v=22"></script>
+<script src="assets/js/hcx-nav.js?v=22"></script>
+<script src="assets/js/hcx-landing.js?v=22"></script>
+<script src="assets/js/hcx-pack.js?v=22"></script>
+<script src="assets/js/hcx-collection.js?v=22"></script>
+<script src="assets/js/hcx-games.js?v=22"></script>
+<script src="assets/js/hcx-app.js?v=22"></script>
+
+<!-- register the offline service worker (external file: CSP blocks inline scripts) -->
+<script src="assets/js/sw-register.js?v=22"></script>
 </body>
 </html>

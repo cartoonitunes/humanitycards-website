@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0b0b0e"/>
+  <rect x="148" y="86" width="216" height="340" rx="26" fill="#0c0d0f" stroke="#c98a4b" stroke-width="14"/>
+  <text x="256" y="312" font-family="Menlo,Consolas,monospace" font-size="150" font-weight="700" text-anchor="middle" fill="#ece7d8">H<tspan fill="#c98a4b">C</tspan></text>
+</svg>
