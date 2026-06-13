@@ -53,6 +53,11 @@
   function tlSave(key, rec) { localStorage.setItem("hcx_tl_" + key, JSON.stringify(rec)); }
   function tlGet(k, d) { var v = localStorage.getItem(k); return v == null ? d : v; }
   function seededShuffle(a, rng) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  // The pip grid (which slots were right, per guess) travels to/from the server
+  // as compact "0/1" strings so the completed state and share card survive a
+  // cache clear. Internally it's arrays of booleans.
+  function attEncode(att) { return att.map(function (a) { return a.map(function (ok) { return ok ? "1" : "0"; }).join(""); }); }
+  function attDecode(g) { return (g || []).map(function (s) { return String(s).split("").map(function (c) { return c === "1"; }); }); }
 
   // Puzzle number: days since the launch epoch (2026-06-01 = #1), local time.
   var TL_EPOCH = Date.UTC(2026, 5, 1);
@@ -165,8 +170,34 @@
         // fewer attempts, more points: 100 / 75 / 50 / 25, miss = 0
         if (window.HCX_SCORES) window.HCX_SCORES.submit("timeline",
           isSolved ? (TL_MAX + 1 - att.length) * 25 : 0, isSolved,
-          { day: today, attempts: att.length, solved: isSolved, streak: +tlGet("hcx_tl_streak", 0) });
+          { day: today, attempts: att.length, solved: isSolved, streak: +tlGet("hcx_tl_streak", 0), att: attEncode(att) });
       }
+      rr();
+    }
+
+    // Reconcile to the server's record for today: rebuild the finished state
+    // (pips, revealed order, bios, share) from a result this browser no longer
+    // has locally. The answer order is deterministic from the date seed, so we
+    // reveal solvedOrder; the green/red rings only show on a solve (truthful —
+    // the win was all-correct), while a miss just reveals the order without
+    // claiming it. The pip history comes from the server's stored grid.
+    function applyServerResult(res) {
+      var grid = attDecode(res.att);
+      if (!grid.length && res.attempts) {                 // older rows pre-date the stored grid
+        grid = [];
+        for (var i = 0; i < res.attempts; i++) {
+          var lastRow = i === res.attempts - 1;
+          grid.push([0, 0, 0, 0, 0].map(function () { return !!res.solved && lastRow; }));
+        }
+      }
+      order = solvedOrder.slice();
+      record = { order: order.map(function (f) { return f.humanId; }), att: grid, finished: true, solved: !!res.solved };
+      showResult = !!res.solved;
+      if (res.streak != null) localStorage.setItem("hcx_tl_streak", String(res.streak));
+      if (res.played != null) localStorage.setItem("hcx_tl_played", String(res.played));
+      if (res.wins != null) localStorage.setItem("hcx_tl_wins", String(res.wins));
+      localStorage.setItem("hcx_tl_last", today);
+      tlSave(today, record);
       rr();
     }
 
@@ -277,6 +308,14 @@
     }
 
     rr();
+    // After a cache clear localStorage is empty, so setup() would happily let a
+    // connected wallet replay today's puzzle. The server is the source of truth:
+    // if it already has a result for this wallet+day, rebuild the done state.
+    if (daily && !record.finished && window.HCX_SCORES && window.HCX_SCORES.checkDaily) {
+      window.HCX_SCORES.checkDaily("timeline", today).then(function (res) {
+        if (res && res.alreadyPlayed && !record.finished) applyServerResult(res);
+      });
+    }
     return h("div", null, host,
       window.HCX_SCORES ? window.Section(null, window.HCX_SCORES.widget("timeline")) : null);
   }

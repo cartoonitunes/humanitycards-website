@@ -3,6 +3,7 @@
  *   POST { wallet, game, score, win, meta }                    record one result
  *   POST { wallet, game, action:"sync", streak, played, wins } one-shot localStorage sync
  *   GET  ?game=timeline[&wallet=0x…]                           top 20 (+ caller's row/rank)
+ *   GET  ?game=timeline&wallet=0x…&checkDaily=1&day=Y-M-D      has this wallet played today?
  *
  * Auth (v1): the connected wallet address IS the identity — no signature yet.
  * TURSO_URL / TURSO_TOKEN are Vercel env vars; the token never lives in the repo.
@@ -91,6 +92,29 @@ async function handleGet(url) {
   const wallet = (url.searchParams.get("wallet") || "").toLowerCase();
   if (!GAMES.includes(game)) return json({ error: "unknown game" }, 400);
 
+  // Daily completion check: has this wallet already finished today's puzzle?
+  // The puzzle day is the caller's LOCAL date, so it's passed in rather than
+  // derived server-side (the function runs in UTC). This is the server-side
+  // guard that stops a cache clear from resetting the daily — never cache it.
+  if (url.searchParams.get("checkDaily")) {
+    const day = url.searchParams.get("day") || "";
+    if (!ADDR.test(wallet) || !DAY.test(day)) return json({ alreadyPlayed: false }, 200, { "cache-control": "no-store" });
+    const res = await turso([{
+      sql: `SELECT d.solved, d.attempts, d.score, d.att, s.streak, s.played, s.wins
+            FROM daily_results d LEFT JOIN streaks s ON s.wallet = d.wallet AND s.game = d.game
+            WHERE d.wallet = ? AND d.game = ? AND d.day = ?`,
+      args: [wallet, game, day],
+    }]);
+    const r = rows(res[0])[0];
+    if (!r) return json({ alreadyPlayed: false }, 200, { "cache-control": "no-store" });
+    let att = null;
+    try { att = r.att ? JSON.parse(r.att) : null; } catch (e) {}
+    return json(
+      { alreadyPlayed: true, solved: !!r.solved, attempts: r.attempts, score: r.score, att: att,
+        streak: r.streak, played: r.played, wins: r.wins },
+      200, { "cache-control": "no-store" });
+  }
+
   const stmts = [{
     sql: `SELECT l.wallet, l.total_score, l.best_score, l.games_played, l.wins, s.streak, s.best_streak
           FROM leaderboard l LEFT JOIN streaks s ON s.wallet = l.wallet AND s.game = l.game
@@ -150,6 +174,25 @@ async function handlePost(req) {
     if (meta.length > 500) return json({ error: "meta too large" }, 400);
   }
 
+  const m = (b.meta && typeof b.meta === "object") ? b.meta : {};
+  const isDaily = game === "timeline" && typeof m.day === "string" && DAY.test(m.day);
+
+  // The daily is one-shot per wallet+day. If this wallet already has a result
+  // for today (e.g. it's replaying after clearing its cache), don't re-score:
+  // leave scores/leaderboard/streaks untouched and echo back the recorded row.
+  if (isDaily) {
+    const prevRes = await turso([{
+      sql: "SELECT solved, attempts, score, att FROM daily_results WHERE wallet = ? AND game = ? AND day = ?",
+      args: [wallet, game, m.day],
+    }]);
+    const prev = rows(prevRes[0])[0];
+    if (prev) {
+      let att = null;
+      try { att = prev.att ? JSON.parse(prev.att) : null; } catch (e) {}
+      return json({ ok: true, alreadyPlayed: true, solved: !!prev.solved, attempts: prev.attempts, score: prev.score, att: att });
+    }
+  }
+
   const stmts = [
     {
       sql: "INSERT INTO scores (wallet, game, score, win, meta) VALUES (?, ?, ?, ?, ?)",
@@ -169,14 +212,20 @@ async function handlePost(req) {
   ];
 
   // the daily (Timeline) also lands in daily_results + streaks
-  const m = (b.meta && typeof b.meta === "object") ? b.meta : {};
-  if (game === "timeline" && typeof m.day === "string" && DAY.test(m.day)) {
+  if (isDaily) {
     const attempts = Math.max(0, Math.min(10, Math.trunc(Number(m.attempts) || 0)));
     const solved = m.solved ? 1 : 0;
     const streak = Math.max(0, Math.min(100000, Math.trunc(Number(m.streak) || 0)));
+    // per-attempt pip grid (compact "0/1" strings) so the completed state and
+    // share card can be rebuilt server-side after a cache clear
+    let att = null;
+    if (Array.isArray(m.att)) {
+      const g = m.att.filter((s) => typeof s === "string" && /^[01]{1,8}$/.test(s)).slice(0, 10);
+      if (g.length) att = JSON.stringify(g);
+    }
     stmts.push({
-      sql: "INSERT OR IGNORE INTO daily_results (wallet, game, day, solved, attempts, score) VALUES (?, ?, ?, ?, ?, ?)",
-      args: [wallet, game, m.day, solved, attempts, score],
+      sql: "INSERT OR IGNORE INTO daily_results (wallet, game, day, solved, attempts, score, att) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      args: [wallet, game, m.day, solved, attempts, score, att],
     });
     stmts.push({
       sql: `INSERT INTO streaks (wallet, game, streak, best_streak, played, wins, updated_at)

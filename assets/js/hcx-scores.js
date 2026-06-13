@@ -41,6 +41,19 @@
       .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); });
   }
 
+  // Ask the server whether the connected wallet already finished the daily for
+  // `day` (the caller's local date). Resolves to null when signed out or on any
+  // error — callers fall back to localStorage. The server is authoritative so a
+  // cache clear can't reset the daily. Returns { alreadyPlayed, solved,
+  // attempts, score, att, streak, played, wins } when a result exists.
+  function checkDaily(game, day) {
+    var a = addr();
+    if (!a) return Promise.resolve(null);
+    return fetch(API + "?game=" + encodeURIComponent(game) + "&wallet=" + a + "&checkDaily=1&day=" + encodeURIComponent(day))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
+  }
+
   function row(rank, r, mine, game) {
     return h("div", { style: { display: "flex", alignItems: "baseline", gap: "12px", padding: "9px 0",
         borderBottom: "1px dotted " + RULE, font: "600 12.5px/1 " + MONO, color: mine ? COPPER : INK } },
@@ -109,5 +122,5 @@
   }
   window.useWallet().subscribe(syncLocal);
 
-  window.HCX_SCORES = { submit: submit, widget: widget, refresh: refresh, syncLocal: syncLocal };
+  window.HCX_SCORES = { submit: submit, widget: widget, refresh: refresh, syncLocal: syncLocal, checkDaily: checkDaily };
 })();
