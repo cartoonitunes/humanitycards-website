@@ -24,9 +24,10 @@ export const config = { runtime: "edge" };
 const GAMES = ["timeline", "battle", "draft", "assassination"];
 const ADDR = /^0x[0-9a-fA-F]{40}$/;
 const DAY = /^\d{4}-\d{1,2}-\d{1,2}$/;
-// 3–20 chars; letters, numbers, space, _ and - (kept tame so it can't spoof a
-// rank/address or smuggle markup into the board).
-const NAME_OK = /^[A-Za-z0-9 _-]{3,20}$/;
+// 3–20 chars; letters, numbers, space, _ - and . (the dot lets ENS names like
+// "julian.eth" through; still tame enough not to spoof a rank/address or
+// smuggle markup into the board).
+const NAME_OK = /^[A-Za-z0-9 _.-]{3,20}$/;
 const PLACEHOLDER_CLIENT_ID = "PLACEHOLDER_GOOGLE_CLIENT_ID";
 
 function arg(v) {

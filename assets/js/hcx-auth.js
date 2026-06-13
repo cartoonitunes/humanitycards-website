@@ -121,7 +121,7 @@
   }
 
   // ---- name (leaderboard display name) ----
-  var NAME_RE = /^[A-Za-z0-9 _-]{3,20}$/;
+  var NAME_RE = /^[A-Za-z0-9 _.-]{3,20}$/;
   function randomHistorian() { return "Historian_" + Math.floor(1000 + Math.random() * 9000); }
 
   function setName(name) {
@@ -155,7 +155,7 @@
     function save() {
       if (saving) return;
       var name = (input.value || "").trim();
-      if (!NAME_RE.test(name)) { setMsg("3–20 characters: letters, numbers, spaces, _ or -.", "#d0563a"); return; }
+      if (!NAME_RE.test(name)) { setMsg("3–20 characters: letters, numbers, spaces, _, -, or .", "#d0563a"); return; }
       saving = true; setMsg("Saving…", DIM);
       setName(name).then(function (res) {
         saving = false;
