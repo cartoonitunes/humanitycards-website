@@ -75,8 +75,16 @@
       grid + "\n\nhumanitycards.vercel.app/#timeline";
   }
   function tlShare(solved, attempts) {
-    var url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(tlShareText(solved, attempts));
-    window.open(url, "_blank", "noopener,noreferrer");
+    var enc = encodeURIComponent(tlShareText(solved, attempts));
+    var web = "https://twitter.com/intent/tweet?text=" + enc;
+    // On mobile (incl. Coinbase Wallet's in-app browser) open the native X app
+    // directly; fall back to the web intent after 500ms if it isn't installed.
+    if (/iPhone|iPad|Android/i.test(navigator.userAgent)) {
+      setTimeout(function () { window.location.href = web; }, 500);
+      window.location.href = "twitter://post?message=" + enc;
+    } else {
+      window.open(web, "_blank", "noopener,noreferrer");
+    }
   }
 
   function tlStat(label, value) {
