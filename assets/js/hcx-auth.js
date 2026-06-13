@@ -12,12 +12,14 @@
  * how hcx-chain.js backs the wallet store. Everything degrades quietly: if the
  * library never loads (offline, blocked), the games still play signed-out.
  *
- * NOTE: GOOGLE_CLIENT_ID is injected at deploy time. Until Julian provides it,
- * the placeholder below is the single string to find-and-replace.
+ * NOTE: the OAuth client ID is public by design (it's exposed to every browser
+ * that signs in), so embedding it is safe. It lives in this one CONFIG constant
+ * so it's easy to find; the matching server-side GOOGLE_CLIENT_ID env var (used
+ * to verify the JWT `aud`) must be kept in step with it.
  */
 (function () {
   "use strict";
-  var CLIENT_ID = "PLACEHOLDER_GOOGLE_CLIENT_ID";
+  var CLIENT_ID = "316184838132-03rs2kuu774tjtts2gf8dje1vr59hiq3.apps.googleusercontent.com";
 
   var h = window.h, INK = window.INK, DIM = window.DIM, FAINT = window.FAINT,
       PANEL = window.PANEL, RULE = window.RULE, COPPER = window.COPPER, MONO = window.MONO, SANS = window.SANS;
