@@ -23,11 +23,14 @@
   // ---- rarity tiers (mapped onto the real contract supply distribution:
   // 1,3,5,10,20,30,50,100,200). Spec colours; thresholds adapted so every
   // real maxSupply lands in a tier. ----
+  // Supply tiers drive only the VISUAL treatment (glow/border colour). There are
+  // no tier names — cards show their real supply fraction ("1 of N"); filters use
+  // a representative fraction per tier. `frac` is that filter label.
   var TIERS = {
-    legendary: { key: "legendary", name: "Legendary", color: "#FFD700", text: "#0B0B0E", score: 100, rank: 0 },
-    epic:      { key: "epic",      name: "Epic",      color: "#A855F7", text: "#ffffff", score: 40,  rank: 1 },
-    rare:      { key: "rare",      name: "Rare",      color: "#3B82F6", text: "#ffffff", score: 15,  rank: 2 },
-    common:    { key: "common",    name: "Common",    color: "#8A8475", text: "#0B0B0E", score: 5,   rank: 3 }
+    legendary: { key: "legendary", color: "#FFD700", text: "#0B0B0E", score: 100, rank: 0, frac: "1/3" },
+    epic:      { key: "epic",      color: "#A855F7", text: "#ffffff", score: 40,  rank: 1, frac: "1/10" },
+    rare:      { key: "rare",      color: "#3B82F6", text: "#ffffff", score: 15,  rank: 2, frac: "1/20" },
+    common:    { key: "common",    color: "#8A8475", text: "#0B0B0E", score: 5,   rank: 3, frac: "1/50" }
   };
   var TIER_ORDER = ["legendary", "epic", "rare", "common"];
   function tierOf(maxSupply) {
@@ -36,6 +39,7 @@
     if (maxSupply <= 30) return TIERS.rare;
     return TIERS.common;
   }
+  function supplyOf(f) { return "1 of " + f.maxSupply; }   // honest per-card label
 
   var MILESTONES = [
     [10, "Curious Collector"], [25, "Dedicated Historian"], [50, "History Enthusiast"],
@@ -43,7 +47,7 @@
   ];
 
   var SORTS = [
-    { id: "rarity", label: "By Rarity" },
+    { id: "rarity", label: "By Supply" },
     { id: "name", label: "By Name (A–Z)" },
     { id: "human", label: "By Human Number" },
     { id: "era", label: "By Era" }
@@ -108,14 +112,14 @@
     var wrap = h("div", {
       className: "card-wrap card-wrap--" + t.key + (opts.stacked ? " stacked" : ""),
       tabIndex: "0", role: "button",
-      "aria-label": f.name + " — " + t.name + " HumanityCard" + (f.cardId != null ? ", token " + f.cardId : ""),
+      "aria-label": f.name + " — " + supplyOf(f) + " HumanityCard" + (f.cardId != null ? ", token " + f.cardId : ""),
       onClick: function () { openDetail(f, opts); },
       onKeyDown: function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDetail(f, opts); } }
     },
       opts.stacked ? h("div", { className: "phantom p2" }) : null,
       opts.stacked ? h("div", { className: "phantom p1" }) : null,
       window.Card({ figure: f, badge: false, glow: false }),
-      h("div", { className: "rarity-badge " + t.key }, t.name),
+      h("div", { className: "rarity-badge " + t.key }, supplyOf(f)),
       (opts.token && f.cardId != null) ? h("div", { className: "token-chip" }, "#" + f.cardId) : null,
       (opts.count && opts.count > 1) ? h("div", { className: "count-badge" }, "×" + opts.count) : null
     );
@@ -254,8 +258,6 @@
     return h("div", { className: "stats reveal", role: "group", "aria-label": "Collection statistics" },
       statCard("Cards", st.total, "owned"),
       statCard("Unique", st.uniques, "figures"),
-      statCard("Legendary", st.tiers.legendary, "cards", "leg"),
-      statCard("Epic", st.tiers.epic, "cards", "epic"),
       h("div", { className: "stat score", role: "group", "aria-label": "Score: " + st.score },
         h("div", { className: "top" }, "Score"),
         h("div", { className: "val", "data-count": String(st.score) }, reduceMotion ? fmt(st.score) : "0"),
@@ -325,7 +327,7 @@
         }
         menu.appendChild(opt("All", !Object.keys(S.filters).length, null, function () { S.filters = {}; }));
         TIER_ORDER.forEach(function (k) {
-          menu.appendChild(opt(TIERS[k].name, !!S.filters[k], k, function () {
+          menu.appendChild(opt(TIERS[k].frac, !!S.filters[k], k, function () {
             if (S.filters[k]) delete S.filters[k]; else S.filters[k] = true;
           }));
         });
@@ -394,7 +396,7 @@
       h("div", { className: "meter-track" }, h("div", { className: "meter-fill", "data-pct": String(pct) })),
       next
         ? h("div", { className: "meter-next" }, "Next milestone: " + next[0] + " humans — ", h("b", null, "“" + next[1] + "”"))
-        : h("div", { className: "meter-next" }, h("b", null, "“The Completionist”"), " — every human collected. Legendary."));
+        : h("div", { className: "meter-next" }, h("b", null, "“The Completionist”"), " — every human collected."));
   }
 
   // ---------------------------------------------------------------- footer cta
@@ -447,7 +449,7 @@
   // ---------------------------------------------------------------- loading / error / invalid
   function LoadingView() {
     var stats = h("div", { className: "stats" });
-    for (var i = 0; i < 5; i++) stats.appendChild(h("div", { className: "skeleton skel-stat" + (i === 4 ? " score" : "") }));
+    for (var i = 0; i < 3; i++) stats.appendChild(h("div", { className: "skeleton skel-stat" }));
     var grid = h("div", { className: "card-grid", style: { marginTop: "32px" } });
     var n = window.innerWidth < 768 ? 6 : 12;
     for (var j = 0; j < n; j++) grid.appendChild(h("div", { className: "skeleton skel-card" }));
@@ -491,16 +493,16 @@
     var cardBox = h("div", { className: "m-card" },
       h("div", { className: "card-wrap card-wrap--" + t.key, style: { cursor: "default" } },
         window.Card({ figure: f, badge: false, glow: false }),
-        h("div", { className: "rarity-badge " + t.key }, t.name)));
+        h("div", { className: "rarity-badge " + t.key }, supplyOf(f))));
 
-    var rarityLine = t.name + (f.cardId != null ? "  ·  Token #" + f.cardId : "")
+    var rarityLine = supplyOf(f) + (f.cardId != null ? "  ·  Token #" + f.cardId : "")
       + (opts.count && opts.count > 1 ? "  ·  ×" + opts.count + " owned" : "");
 
     var cells = [
       ["Human Number", f.humanId],
       ["Max Supply", f.maxSupply],
       ["Minted", (f.minted != null ? f.minted : "?") + " / " + f.maxSupply],
-      [f.cardId != null ? "Token ID" : "Rarity", f.cardId != null ? "#" + f.cardId : t.name],
+      [f.cardId != null ? "Token ID" : "Supply", f.cardId != null ? "#" + f.cardId : supplyOf(f)],
       ["Era", f.era || (HCX.lifespan ? HCX.lifespan(f) : "")],
       ["Status", f.wrapped ? "Wrapped (wHCX)" : (f.owned ? "Unwrapped (2018)" : "—")]
     ];
@@ -550,7 +552,7 @@
     // top 5 rarest figures (scarcest first), de-duped by figure
     var seen = {}, top = [];
     S.owned.slice().sort(function (a, b) { return a.maxSupply - b.maxSupply || a.humanId - b.humanId; }).forEach(function (f) {
-      if (!seen[f.humanId] && top.length < 5) { seen[f.humanId] = 1; top.push(f.name + "|" + tierOf(f.maxSupply).key); }
+      if (!seen[f.humanId] && top.length < 5) { seen[f.humanId] = 1; top.push(f.name + "|" + f.maxSupply); }
     });
     var q = "wallet=" + encodeURIComponent(S.address || "")
       + "&label=" + encodeURIComponent(S.label || shortAddr(S.address || ""))
@@ -569,8 +571,8 @@
     var who = S.isOwner ? "My" : ((S.label || shortAddr(S.address)) + "'s");
     // The link rides inside the tweet text (the twitter:// deep link has no
     // separate url param), so the share URL is appended to the message.
-    var text = who + " HumanityCards collection — " + st.total + " cards, "
-      + st.tiers.legendary + " Legendary 👑\n\nScore: " + fmt(st.score) + "\n\n" + shareUrl();
+    var text = who + " HumanityCards collection — " + st.total + " cards · "
+      + st.uniques + " unique 👑\n\nScore: " + fmt(st.score) + "\n\n" + shareUrl();
     var enc = encodeURIComponent(text);
     var web = "https://x.com/intent/tweet?text=" + enc;
     // On mobile — especially wallet in-app browsers (Coinbase Wallet, MetaMask)
@@ -618,8 +620,7 @@
   function updateMeta(st) {
     var who = S.isOwner ? "My" : ((S.label || shortAddr(S.address)) + "'s");
     var title = who + " HumanityCards Collection";
-    var desc = st.total + " cards · " + st.uniques + " unique figures · "
-      + st.tiers.legendary + " Legendary · Score " + fmt(st.score);
+    var desc = st.total + " cards · " + st.uniques + " unique figures · Score " + fmt(st.score);
     var img = ogImageUrl(st);
     document.title = title + " — HumanityCards";
     setMeta("property", "og:title", title);

@@ -23,11 +23,13 @@ import { ImageResponse } from "@vercel/og";
 export const config = { runtime: "edge" };
 
 const BG = "#0B0B0E", RULE = "#2A2925", INK = "#ECE7D8", DIM = "#8A8475", MUTED = "#5A5549", COPPER = "#C98A4B";
+// Supply tiers drive only the card's glow/border colour — no tier names; the
+// label is the real supply fraction ("1 OF N").
 const TIER = {
-  legendary: { name: "LEGENDARY", color: "#FFD700" },
-  epic: { name: "EPIC", color: "#A855F7" },
-  rare: { name: "RARE", color: "#3B82F6" },
-  common: { name: "COMMON", color: "#8A8475" },
+  legendary: { color: "#FFD700" },
+  epic: { color: "#A855F7" },
+  rare: { color: "#3B82F6" },
+  common: { color: "#8A8475" },
 };
 const MONO = "IBM Plex Mono";
 
@@ -134,7 +136,7 @@ async function scanWallet(address) {
   if (counts.legendary && counts.epic && counts.rare && counts.common && owned.length) score += 200;
   enriched.sort((a, b) => a.max - b.max || a.human - b.human);
   return { n: owned.length, u: uniques, l: counts.legendary, e: counts.epic, r: counts.rare, c: counts.common,
-    score, top: enriched.slice(0, 5).map((x) => [x.name, x.tier]) };
+    score, top: enriched.slice(0, 5).map((x) => [x.name, x.max]) };
 }
 
 // ---- satori element helpers ----
@@ -147,8 +149,8 @@ function clampStr(s, max) { s = String(s || ""); return s.length > max ? s.slice
 function commas(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 function shortAddr(a) { a = String(a || ""); return a.length >= 12 ? a.slice(0, 6) + "…" + a.slice(-4) : a; }
 
-function miniCard(name, tierKey) {
-  const t = TIER[tierKey] || TIER.common;
+function miniCard(name, supply) {
+  const t = TIER[tierOf(Number(supply) || 50)];
   const display = clampStr(String(name || "").toUpperCase(), 11);
   return col({
     width: "132px", height: "186px", borderRadius: "8px", border: "2px solid " + t.color,
@@ -157,7 +159,7 @@ function miniCard(name, tierKey) {
   }, [
     txt({ fontSize: "11px", letterSpacing: "3px", color: DIM, fontFamily: MONO }, "HCX"),
     txt({ fontSize: display.length > 8 ? "16px" : "20px", fontWeight: 600, color: INK, fontFamily: MONO, textAlign: "center", lineHeight: 1.1, padding: "0 4px" }, display),
-    txt({ fontSize: "10px", letterSpacing: "1.5px", fontWeight: 600, color: t.color, fontFamily: MONO, padding: "3px 8px", borderRadius: "3px", border: "1px solid " + t.color + "66" }, t.name),
+    txt({ fontSize: "11px", letterSpacing: "1px", fontWeight: 600, color: t.color, fontFamily: MONO, padding: "3px 8px", borderRadius: "3px", border: "1px solid " + t.color + "66" }, "1 OF " + (Number(supply) || "?")),
   ]);
 }
 function statPart(label, value, color) {
@@ -177,9 +179,9 @@ function buildTree(d) {
     children.push(row({ gap: "16px", marginTop: "30px" }, d.top.map((t) => miniCard(t[0], t[1]))));
   } else if (!d.hasData) {
     children.push(txt({ fontSize: "22px", color: DIM, fontFamily: MONO, marginTop: "20px", lineHeight: 1.5 },
-      "A premium trophy case for any wallet — Legendary, Epic, Rare and Common cards, scored and ranked."));
+      "A premium trophy case for any wallet — every card shown by its real on-chain supply, scored and ranked."));
     children.push(row({ gap: "16px", marginTop: "30px" },
-      [["Cleopatra", "legendary"], ["Tesla", "epic"], ["Einstein", "epic"], ["Napoleon", "legendary"], ["Da Vinci", "epic"]].map((t) => miniCard(t[0], t[1]))));
+      [["Cleopatra", 10], ["Tesla", 10], ["Einstein", 20], ["Napoleon", 3], ["Da Vinci", 10]].map((t) => miniCard(t[0], t[1]))));
   }
 
   if (d.hasData) {
@@ -187,8 +189,6 @@ function buildTree(d) {
       statPart("Cards", commas(d.n), INK),
       txt({ fontSize: "20px", color: RULE, fontFamily: MONO }, "·"),
       statPart("Unique", commas(d.u), DIM),
-      txt({ fontSize: "20px", color: RULE, fontFamily: MONO }, "·"),
-      statPart("Legendary", commas(d.l), "#FFD700"),
       txt({ fontSize: "20px", color: RULE, fontFamily: MONO }, "·"),
       statPart("Score", commas(d.score), COPPER),
     ]));
@@ -217,7 +217,7 @@ export default async function handler(req) {
     const explicit = !!(q.get("n") || q.get("score") || q.get("top"));
     if (explicit) {
       const top = (q.get("top") || "").split(",").map((s) => s.trim()).filter(Boolean).slice(0, 5)
-        .map((s) => { const i = s.lastIndexOf("|"); return i > 0 ? [s.slice(0, i), s.slice(i + 1)] : [s, "common"]; });
+        .map((s) => { const i = s.lastIndexOf("|"); return i > 0 ? [s.slice(0, i), Number(s.slice(i + 1)) || 50] : [s, 50]; });
       d = { hasData: true, label, n: num(q.get("n")), u: num(q.get("u")), l: num(q.get("l")), e: num(q.get("e")), r: num(q.get("r")), c: num(q.get("c")), score: num(q.get("score")), top };
     } else if (ADDR_RE.test(wallet)) {
       const scan = await Promise.race([scanWallet(wallet), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 9500))]).catch(() => null);

@@ -136,7 +136,7 @@ img, svg { display: block; }
 }
 
 /* ---------------- stats bar ---------------- */
-.stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 8px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 8px; }
 .stat {
   background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 8px;
   padding: 20px 16px; min-width: 0;
