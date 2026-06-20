@@ -6,7 +6,9 @@
 
   var NAV_LINKS = [
     { id: "packs", label: "Packs" },
-    { id: "collection", label: "Collection" },
+    // Collection is the standalone shareable showcase page (collection.html),
+    // not an in-SPA hash route — link out so it's a full, screenshot-ready page.
+    { id: "collection", label: "Collection", href: "/collection" },
     { id: "roster", label: "Roster" },
     { id: "play", label: "Play" }
   ];
@@ -79,7 +81,7 @@
       h("div", { style: { padding: "10px clamp(16px,4vw,40px) 18px", display: "flex", flexDirection: "column" } },
         NAV_LINKS.map(function (l) {
           var active = linkActive(l);
-          return h("a", { href: "#" + l.id, onClick: function (e) { e.preventDefault(); r.go(l.id); },
+          return h("a", { href: l.href || ("#" + l.id), onClick: l.href ? null : function (e) { e.preventDefault(); r.go(l.id); },
             style: { font: "600 14px/1 " + MONO, letterSpacing: ".1em", textTransform: "uppercase",
               color: active ? COPPER : INK, textDecoration: "none", padding: "15px 4px", borderBottom: "1px solid " + RULE } }, l.label);
         })));
@@ -106,7 +108,7 @@
         h("nav", { className: "nav-links", style: { display: "flex", gap: "4px", alignItems: "center" } },
           NAV_LINKS.map(function (l) {
             var active = linkActive(l);
-            return h("a", { href: "#" + l.id, onClick: function (e) { e.preventDefault(); r.go(l.id); },
+            return h("a", { href: l.href || ("#" + l.id), onClick: l.href ? null : function (e) { e.preventDefault(); r.go(l.id); },
               style: { font: "600 12.5px/1 " + MONO, letterSpacing: ".1em", textTransform: "uppercase",
                 color: active ? INK : DIM, textDecoration: "none", padding: "9px 13px", borderRadius: "4px",
                 background: active ? "#ffffff0a" : "transparent", transition: "color .18s, background .18s" },
@@ -123,7 +125,8 @@
       window.Kicker({ color: DIM, style: { marginBottom: "16px" } }, title),
       h("div", { style: { display: "flex", flexDirection: "column", gap: "11px" } },
         links.map(function (l) {
-          return h("a", { href: "#" + l[1], onClick: function (e) { e.preventDefault(); r.go(l[1]); },
+          var ext = l[1].charAt(0) === "/";          // external full-page link (e.g. /collection)
+          return h("a", { href: ext ? l[1] : ("#" + l[1]), onClick: ext ? null : function (e) { e.preventDefault(); r.go(l[1]); },
             style: { font: "400 13px/1 " + SANS, color: INK, textDecoration: "none", opacity: 0.82 },
             onMouseEnter: function (e) { e.currentTarget.style.color = COPPER; },
             onMouseLeave: function (e) { e.currentTarget.style.color = INK; } }, l[0]);
@@ -203,7 +206,7 @@
               onMouseLeave: function (e) { e.currentTarget.style.color = DIM; } },
               "HOW SCORES WORK"))),
         h("div", { style: { display: "flex", gap: "56px", flexWrap: "wrap" } },
-          navCol("Collect", [["Open a Pack", "packs"], ["My Collection", "collection"], ["Roster", "roster"]], r),
+          navCol("Collect", [["Open a Pack", "packs"], ["My Collection", "/collection"], ["Roster", "roster"]], r),
           navCol("Play", [["Timeline", "timeline"], ["Battle", "battle"], ["Draft", "draft"], ["Assassination", "assassination"]], r))));
   }
 

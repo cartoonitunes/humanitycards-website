@@ -1,5 +1,8 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/collection", "destination": "/api/collection" }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",
