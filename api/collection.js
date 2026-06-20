@@ -28,7 +28,7 @@ function meta(wallet) {
   const who = shortAddr(wallet);
   return {
     title: who + "'s HumanityCards Collection",
-    desc: "A trophy case of HumanityCards — Legendary, Epic, Rare and Common figures, scored and ranked. 239 figures on-chain since 2018.",
+    desc: "A trophy case of HumanityCards — every card shown by its real on-chain supply, scored and ranked. 239 figures on-chain since 2018.",
     img: SITE + "/api/og-collection?wallet=" + encodeURIComponent(wallet),
     url: SITE + "/collection?wallet=" + encodeURIComponent(wallet),
   };
