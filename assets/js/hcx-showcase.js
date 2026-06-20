@@ -567,10 +567,22 @@
   function shareTwitter() {
     var st = computeStats();
     var who = S.isOwner ? "My" : ((S.label || shortAddr(S.address)) + "'s");
+    // The link rides inside the tweet text (the twitter:// deep link has no
+    // separate url param), so the share URL is appended to the message.
     var text = who + " HumanityCards collection — " + st.total + " cards, "
-      + st.tiers.legendary + " Legendary 👑\n\nScore: " + fmt(st.score);
-    var url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text) + "&url=" + encodeURIComponent(shareUrl());
-    window.open(url, "_blank", "noopener");
+      + st.tiers.legendary + " Legendary 👑\n\nScore: " + fmt(st.score) + "\n\n" + shareUrl();
+    var enc = encodeURIComponent(text);
+    var web = "https://x.com/intent/tweet?text=" + enc;
+    // On mobile — especially wallet in-app browsers (Coinbase Wallet, MetaMask)
+    // where a plain window.open stays trapped in the webview — open the native
+    // X app via the twitter:// deep link; fall back to the web intent after
+    // 500ms if the app isn't installed. (Same idiom as hcx-games.js tlShare.)
+    if (/iPhone|iPad|Android/i.test(navigator.userAgent)) {
+      setTimeout(function () { window.location.href = web; }, 500);
+      window.location.href = "twitter://post?message=" + enc;
+    } else {
+      window.open(web, "_blank", "noopener,noreferrer");
+    }
   }
   function copyLink(btn) {
     copyText(shareUrl());

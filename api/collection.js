@@ -103,7 +103,7 @@ function page(m) {
 <script src="/assets/js/hcx-ui.js?v=24"></script>
 <script src="/assets/js/hcx-chain.js?v=24"></script>
 <script src="/assets/js/hcx-cards.js?v=24"></script>
-<script src="/assets/js/hcx-showcase.js?v=1"></script>
+<script src="/assets/js/hcx-showcase.js?v=2"></script>
 <script src="/assets/js/sw-register.js?v=24"></script>
 </body>
 </html>`;
