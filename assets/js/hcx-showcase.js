@@ -16,6 +16,7 @@
   "use strict";
   var h = window.h, HCX = window.HCX, CH = window.HCX_CHAIN;
   var DIM = window.DIM, COPPER = window.COPPER, MONO = window.MONO, SANS = window.SANS;
+  var INK = window.INK, RULE = window.RULE;
 
   var SITE = "https://humanitycards.vercel.app";
   var OPENSEA = HCX.OPENSEA;
@@ -64,7 +65,11 @@
     view: "collection",   // collection | card
     sort: "rarity",
     filters: {},          // tier-key -> true (empty = all)
-    status: "loading"     // loading | ready | empty | error | invalid | connect
+    status: "loading",    // loading | ready | empty | error | invalid | connect
+    profile: null,        // { display_name, ens_name, name } from /api/profile
+    serverNamed: false,   // server returned an authoritative name (ENS or custom)
+    editingName: false,   // owner is editing their display name
+    savingName: false     // a name save is in flight
   };
 
   var root;               // main host below the nav
@@ -100,6 +105,64 @@
     var p = ensProvider();
     if (!p) return Promise.resolve(null);
     return p.lookupAddress(addr).then(function (n) { return n || null; }, function () { return null; });
+  }
+
+  // ---------------------------------------------------------------- profile API
+  function onIpfs() { return /\.eth(\.limo)?$/.test(location.hostname) || location.hostname.indexOf(".ipfs.") >= 0; }
+  function profileApi() { return onIpfs() ? "https://humanitycards.vercel.app/api/profile" : "/api/profile"; }
+
+  // Pull the wallet's stored profile (custom name + server-resolved ENS, with
+  // ENS already taking priority in `name`). Becomes the authoritative label when
+  // present; the client-side reverseEns above is just the fast first paint.
+  function fetchProfile(addr) {
+    if (!addr) return;
+    fetch(profileApi() + "?address=" + encodeURIComponent(addr))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j) return;
+        S.profile = j;
+        if (j.name) {
+          S.serverNamed = true;
+          S.label = j.name;
+        }
+        if (S.status === "ready" || S.status === "empty") { render(); updateMeta(computeStats()); }
+      })
+      .catch(function () {});
+  }
+
+  // Owner-only: set/change the custom display name. Proves wallet control with a
+  // personal_sign over a message binding the name, address and a timestamp; the
+  // server recovers the signer and verifies it matches before storing.
+  function saveDisplayName(name) {
+    var E = window.ethers;
+    if (!E || !window.ethereum) { window.toast && window.toast("Connect a wallet to set a name", "error"); return; }
+    var addr = S.address;
+    var ts = Date.now();
+    var message = "HumanityCards — set display name\n\nName: " + name + "\nAddress: " + addr.toLowerCase() + "\nTime: " + ts;
+    S.savingName = true; render();
+    var signer;
+    try { signer = new E.providers.Web3Provider(window.ethereum, "any").getSigner(); }
+    catch (e) { S.savingName = false; window.toast && window.toast("Couldn't access your wallet", "error"); render(); return; }
+    signer.signMessage(message)
+      .then(function (sig) {
+        return fetch(profileApi(), { method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ action: "set_name", address: addr, name: name, message: message, signature: sig }) })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); });
+      })
+      .then(function (res) {
+        S.savingName = false; S.editingName = false;
+        if (!res.ok) { window.toast && window.toast((res.j && res.j.error) || "Couldn't save name", "error"); render(); return; }
+        S.profile = res.j;
+        if (res.j.name) S.label = res.j.name;       // ENS still wins if present
+        window.toast && window.toast("Display name saved", "ok");
+        render(); updateMeta(computeStats());
+      })
+      .catch(function (e) {
+        S.savingName = false;
+        var rej = window.HCX_CHAIN && window.HCX_CHAIN.isUserReject && window.HCX_CHAIN.isUserReject(e);
+        window.toast && window.toast(rej ? "Signature cancelled" : "Couldn't save name", "error");
+        render();
+      });
   }
 
   // ---------------------------------------------------------------- helpers
@@ -241,12 +304,18 @@
   // ---------------------------------------------------------------- hero
   function Hero(st) {
     var copyBtn;
+    // headline: a resolved name (ENS or custom) reads nicest; owners always see
+    // their name (or a prompt to set one) rather than a bare "Your collection".
+    var title = S.label
+      ? (S.isOwner ? S.label : ("Collection of " + S.label))
+      : (S.isOwner ? "Your collection" : ("Collection of " + shortAddr(S.address)));
     var hero = h("div", { className: "hero reveal" },
       h("div", { className: "kicker" }, S.isOwner ? "My Collection" : "Collection"),
-      h("h1", null, S.isOwner ? "Your collection" : ("Collection of " + (S.label || shortAddr(S.address)))),
+      h("h1", null, title),
       h("button", { className: "addr", title: "Copy address",
         onClick: function () { copyText(S.address); window.toast && window.toast("Address copied", "ok"); } },
         S.isOwner ? [h("span", { className: "dot" }), "Connected · " + shortAddr(S.address)] : shortAddr(S.address)),
+      S.isOwner ? NameEditor() : null,
       h("div", { className: "share-row" },
         h("button", { className: "share-btn", onClick: shareTwitter }, "Share on 𝕏"),
         copyBtn = h("button", { className: "share-btn", onClick: function () { copyLink(copyBtn); } }, "Copy Link"),
@@ -254,6 +323,46 @@
     );
     return hero;
   }
+
+  // ---------------------------------------------------------------- name editor
+  // Inline display-name editor for the collection owner (styled inline to avoid
+  // a CSS dependency). ENS, when present, always wins — so we say so.
+  function NameEditor() {
+    var prof = S.profile || {};
+    var hasEns = !!prof.ens_name;
+    var custom = prof.display_name || null;
+
+    if (!S.editingName) {
+      var label = custom ? ("“" + custom + "”") : "Set a display name";
+      var row = h("div", { style: { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", margin: "10px 0 4px" } },
+        h("button", { className: "share-btn",
+          onClick: function () { S.editingName = true; render(); setTimeout(focusNameInput, 0); } },
+          custom ? "Edit name" : "+ Set display name"),
+        custom ? h("span", { style: { font: "400 13px/1.4 " + SANS, color: DIM } }, label) : null,
+        hasEns ? h("span", { style: { font: "400 12px/1.4 " + SANS, color: DIM } },
+          "ENS name " + prof.ens_name + " is shown when set.") : null);
+      return row;
+    }
+
+    var input = h("input", { id: "sc-name-input", type: "text", maxLength: "20",
+      placeholder: "Display name", value: custom || "",
+      style: { background: "#16151b", color: INK, border: "1px solid " + RULE, borderRadius: "6px",
+        font: "500 14px/1.2 " + SANS, padding: "10px 12px", minWidth: "180px", outline: "none" },
+      onKeyDown: function (e) { if (e.key === "Enter") submit(); if (e.key === "Escape") cancel(); } });
+    function submit() {
+      var v = (input.value || "").trim();
+      if (v.length < 3) { window.toast && window.toast("Use at least 3 characters", "error"); return; }
+      saveDisplayName(v);
+    }
+    function cancel() { S.editingName = false; render(); }
+    return h("div", { style: { display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", margin: "10px 0 4px" } },
+      input,
+      h("button", { className: "share-btn", disabled: S.savingName, onClick: submit }, S.savingName ? "Signing…" : "Save"),
+      h("button", { className: "share-btn", onClick: cancel }, "Cancel"),
+      h("span", { style: { font: "400 12px/1.4 " + SANS, color: DIM, width: "100%" } },
+        "You'll sign a message to prove this wallet is yours — no gas, no transaction."));
+  }
+  function focusNameInput() { var el = document.getElementById("sc-name-input"); if (el) { el.focus(); el.select(); } }
 
   // ---------------------------------------------------------------- stats bar
   function statCard(label, value, bottom, cls) {
@@ -741,9 +850,10 @@
       var w = window.useWallet();
       if (w.connected && w.address) {
         S.address = w.address; S.isOwner = true;
-        S.label = null;
+        S.label = null; S.profile = null; S.serverNamed = false;
         history.replaceState(null, "", "/collection?wallet=" + w.address);
-        reverseEns(w.address).then(function (n) { if (n) { S.label = n; if (S.status === "ready" || S.status === "empty") render(); } });
+        reverseEns(w.address).then(function (n) { if (n && !S.serverNamed) { S.label = n; if (S.status === "ready" || S.status === "empty") render(); } });
+        fetchProfile(w.address);
         loadData();
       }
     });
@@ -773,10 +883,12 @@
       S.isOwner = !!(w.connected && w.address && w.address.toLowerCase() === addr.toLowerCase());
       S.label = ADDR_RE.test(walletParam || "") ? null : (looksEns(walletParam || "") ? walletParam : null);
       render();
-      // resolve a nicer label in the background
+      // resolve a nicer label in the background (fast path); the server profile
+      // (ENS + custom name) is authoritative once it lands.
       reverseEns(addr).then(function (n) {
-        if (n) { S.label = n; if (S.status === "ready" || S.status === "empty" || S.status === "loading") render(); updateMetaMaybe(); }
+        if (n && !S.serverNamed) { S.label = n; if (S.status === "ready" || S.status === "empty" || S.status === "loading") render(); updateMetaMaybe(); }
       });
+      fetchProfile(addr);
       loadData();
     }
     function updateMetaMaybe() { if (S.status === "ready" || S.status === "empty") updateMeta(computeStats()); }
@@ -798,7 +910,8 @@
           S.address = w2.address; S.isOwner = true;
           history.replaceState(null, "", "/collection?wallet=" + w2.address);
           loadData();
-          reverseEns(w2.address).then(function (n) { if (n) { S.label = n; render(); } });
+          fetchProfile(w2.address);
+          reverseEns(w2.address).then(function (n) { if (n && !S.serverNamed) { S.label = n; render(); } });
         }
       });
     }

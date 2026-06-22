@@ -109,7 +109,7 @@ function page(m) {
 <script src="/assets/js/hcx-auth.js?v=24"></script>
 <script src="/assets/js/hcx-cards.js?v=24"></script>
 <script src="/assets/js/hcx-gamify.js?v=1"></script>
-<script src="/assets/js/hcx-showcase.js?v=4"></script>
+<script src="/assets/js/hcx-showcase.js?v=5"></script>
 <script src="/assets/js/sw-register.js?v=24"></script>
 </body>
 </html>`;

@@ -11,9 +11,12 @@
   if (!h || !HCX || !SCORE) return;
   var SITE = "https://humanitycards.vercel.app";
 
+  function onIpfs() { return /\.eth(\.limo)?$/.test(location.hostname) || location.hostname.indexOf(".ipfs.") >= 0; }
   function apiBase() {
-    var onIpfs = /\.eth(\.limo)?$/.test(location.hostname) || location.hostname.indexOf(".ipfs.") >= 0;
-    return onIpfs ? "https://humanitycards.vercel.app/api/leaderboard-hc" : "/api/leaderboard-hc";
+    return onIpfs() ? "https://humanitycards.vercel.app/api/leaderboard-hc" : "/api/leaderboard-hc";
+  }
+  function profileApi() {
+    return onIpfs() ? "https://humanitycards.vercel.app/api/profile" : "/api/profile";
   }
   function fmt(n) { return String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
   function shortAddr(a) { return a && a.length >= 12 ? a.slice(0, 6) + "…" + a.slice(-4) : (a || ""); }
@@ -100,7 +103,7 @@
       var bd = row.breakdown ? safeJson(row.breakdown) : null;
       wrap.appendChild(h("div", { className: "lb-trophy p" + place + " " + rk.key + (rk.prismatic ? " prismatic" : ""), style: { "--accent": rk.color } },
         h("div", { className: "lb-place" }, "#" + place),
-        avatar(row.wallet || row.name, nameOf(row), "big"),
+        avatar(row.wallet || row.name, row.name, "big"),
         h("div", { className: "lb-tname" }, nameOf(row)),
         h("div", { className: "lb-trank" }, crest(rk), h("span", { style: { color: rk.color } }, rk.title)),
         h("div", { className: "lb-tscore" }, fmt(metricValue(row, S.tab))),
@@ -132,7 +135,7 @@
       return h("a", { className: "lb-row" + (me ? " me" : ""), style: { "--accent": rk.color },
           href: "/collection?wallet=" + encodeURIComponent(row.wallet || "") },
         h("span", { className: "lb-r-place" }, place),
-        avatar(row.wallet || row.name, nameOf(row)),
+        avatar(row.wallet || row.name, row.name),
         h("span", { className: "lb-r-name" }, nameOf(row),
           h("span", { className: "lb-r-rank", style: { color: rk.color } }, rk.title)),
         h("span", { className: "lb-r-fig" }, (row.unique_count || 0) + "/" + SETS.TOTAL),
@@ -151,7 +154,7 @@
     return h("div", { className: "lb-youpin", style: { "--accent": rk.color } },
       h("span", { className: "lb-yp-tag" }, "You"),
       h("span", { className: "lb-yp-place" }, you.rank ? "#" + you.rank : "—"),
-      avatar(you.wallet || you.name, nameOf(you)),
+      avatar(you.wallet || you.name, you.name),
       h("span", { className: "lb-yp-name" }, nameOf(you), h("span", { className: "lb-yp-rank", style: { color: rk.color } }, rk.title)),
       h("span", { className: "lb-yp-score" }, fmt(metricValue(you, S.tab))),
       onBoard ? null : h("a", { className: "lb-yp-link", href: "/collection" + (S.address ? "?wallet=" + encodeURIComponent(S.address) : "") }, "Your collection ↗"));
@@ -177,8 +180,31 @@
     var url = apiBase() + "?tab=" + S.tab + "&limit=50" + ((!t && S.address) ? "&wallet=" + encodeURIComponent(S.address) : "");
     var headers = {}; if (t) headers["Authorization"] = "Bearer " + t;
     fetch(url, { headers: headers }).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
-      .then(function (j) { S.top = j.top || []; S.you = j.you || null; S.loading = false; render(); })
+      .then(function (j) { S.top = j.top || []; S.you = j.you || null; S.loading = false; render(); fillNames(); })
       .catch(function () { S.loading = false; S.error = true; render(); });
+  }
+
+  // Backfill ENS / custom names for board rows the server didn't already have a
+  // name for. One POST resolves them server-side (ENS forward-confirmed there)
+  // and caches for 24h, so the board fills in for everyone over time.
+  function fillNames() {
+    var need = {};
+    (S.top || []).concat(S.you ? [S.you] : []).forEach(function (r) {
+      if (r && r.wallet && !r.name && /^0x[0-9a-fA-F]{40}$/.test(r.wallet)) need[r.wallet.toLowerCase()] = 1;
+    });
+    var addrs = Object.keys(need);
+    if (!addrs.length) return;
+    fetch(profileApi(), { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "resolve", addresses: addrs }) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j || !j.names) return;
+        var changed = false;
+        function apply(r) { if (!r || !r.wallet) return; var nm = j.names[r.wallet.toLowerCase()]; if (nm && !r.name) { r.name = nm; changed = true; } }
+        (S.top || []).forEach(apply); if (S.you) apply(S.you);
+        if (changed) render();
+      })
+      .catch(function () {});
   }
 
   // Compute the connected/queried wallet's Historian Score from chain + publish,

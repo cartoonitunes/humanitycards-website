@@ -69,6 +69,9 @@ async function ensureSchema() {
   // LEFT JOIN below can never fail if this endpoint is hit first on a cold DB.
   await turso([
     { sql: `CREATE TABLE IF NOT EXISTS users (uid TEXT PRIMARY KEY, google_sub TEXT, display_name TEXT, name_lower TEXT UNIQUE, updated_at TEXT)` },
+    // hc_profiles is normally created by /api/profile; create it here too so the
+    // LEFT JOIN below (wallet -> ENS / custom name) can't fail on a cold DB.
+    { sql: `CREATE TABLE IF NOT EXISTS hc_profiles (address TEXT PRIMARY KEY, display_name TEXT, ens_name TEXT, ens_updated_at TEXT, updated_at TEXT)` },
   ]);
   await turso([{
     sql: `CREATE TABLE IF NOT EXISTS historian_scores (
@@ -218,10 +221,12 @@ async function handleGet(req, url) {
   if (isWeek) topArgs.push(wk);
   topArgs.push(limit);
   const top = await turso([{
-    sql: `SELECT h.wallet, u.display_name AS name, h.total, h.collection_score, h.game_points,
+    sql: `SELECT h.wallet, COALESCE(p.ens_name, p.display_name, u.display_name) AS name, h.total, h.collection_score, h.game_points,
                  h.achievement_points, h.unique_count, h.breakdown,
                  ${weeklyCol} AS weekly, ${metric} AS metric
-          FROM historian_scores h LEFT JOIN users u ON u.uid = h.uid
+          FROM historian_scores h
+          LEFT JOIN users u ON u.uid = h.uid
+          LEFT JOIN hc_profiles p ON p.address = h.wallet
           ORDER BY metric DESC, h.total DESC, h.updated_at ASC LIMIT ?`,
     args: topArgs,
   }]);
@@ -231,10 +236,13 @@ async function handleGet(req, url) {
     // caller's row (with its metric value), then a simple count for the rank
     const meArgs = [wk]; if (isWeek) meArgs.push(wk); meArgs.push(ident.uid);
     const meRes = await turso([{
-      sql: `SELECT h.wallet, u.display_name AS name, h.total, h.collection_score, h.game_points,
+      sql: `SELECT h.wallet, COALESCE(p.ens_name, p.display_name, u.display_name) AS name, h.total, h.collection_score, h.game_points,
                    h.achievement_points, h.unique_count, h.breakdown,
                    ${weeklyCol} AS weekly, ${metric} AS metric
-            FROM historian_scores h LEFT JOIN users u ON u.uid = h.uid WHERE h.uid = ?`,
+            FROM historian_scores h
+            LEFT JOIN users u ON u.uid = h.uid
+            LEFT JOIN hc_profiles p ON p.address = h.wallet
+            WHERE h.uid = ?`,
       args: meArgs,
     }]);
     you = rows(meRes[0])[0] || null;
