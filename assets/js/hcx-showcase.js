@@ -204,6 +204,14 @@
 
     frag.appendChild(StatsBar(st));
 
+    // gamification layer — Historian Score, rank, sets, achievements. Mounts
+    // into a detached host (re-renders itself async once game points load).
+    if (window.HCX_GAMIFY) {
+      var gxHost = h("div", { className: "gx-host" });
+      frag.appendChild(gxHost);
+      window.HCX_GAMIFY.mount(gxHost, S.owned, S);
+    }
+
     // trophy shelf — legendary + epic only
     var trophies = S.owned.filter(function (f) { var k = tierOf(f.maxSupply).key; return k === "legendary" || k === "epic"; });
     // de-dupe by figure for the shelf, scarcest first, cap 8
@@ -255,12 +263,17 @@
       h("div", { className: "bot" }, bottom));
   }
   function StatsBar(st) {
+    // The headline score is owned by the gamification hero (Historian Score)
+    // rendered just below; here we show the Collection Score from the SAME
+    // engine so the two never disagree (falls back to the legacy tally).
+    var collScore = st.score;
+    if (window.HCX_SCORE) { try { collScore = window.HCX_SCORE.compute(S.owned, {}).collectionScore; } catch (e) {} }
     return h("div", { className: "stats reveal", role: "group", "aria-label": "Collection statistics" },
       statCard("Cards", st.total, "owned"),
       statCard("Unique", st.uniques, "figures"),
-      h("div", { className: "stat score", role: "group", "aria-label": "Score: " + st.score },
-        h("div", { className: "top" }, "Score"),
-        h("div", { className: "val", "data-count": String(st.score) }, reduceMotion ? fmt(st.score) : "0"),
+      h("div", { className: "stat score", role: "group", "aria-label": "Collection score: " + collScore },
+        h("div", { className: "top" }, "Collection"),
+        h("div", { className: "val", "data-count": String(collScore) }, reduceMotion ? fmt(collScore) : "0"),
         h("div", { className: "bot" }, "points")));
   }
 
@@ -750,7 +763,7 @@
     // in production: it only fires on the explicit query flag.
     if (params.get("demo")) {
       S.address = "0xDE3010000000000000000000000000000000A1ce";
-      S.label = "demo.eth"; S.isOwner = false; S.owned = buildDemo(); S.status = "ready";
+      S.label = "demo.eth"; S.isOwner = false; S.isDemo = true; S.owned = buildDemo(); S.status = "ready";
       render(); updateMeta(computeStats());
       return;
     }

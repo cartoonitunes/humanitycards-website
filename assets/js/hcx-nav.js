@@ -9,6 +9,8 @@
     // Collection is the standalone shareable showcase page (collection.html),
     // not an in-SPA hash route — link out so it's a full, screenshot-ready page.
     { id: "collection", label: "Collection", href: "/collection" },
+    // Leaderboard is its own standalone page (leaderboard.html), like Collection.
+    { id: "leaderboard", label: "Leaderboard", href: "/leaderboard" },
     { id: "roster", label: "Roster" },
     { id: "play", label: "Play" }
   ];
@@ -206,7 +208,7 @@
               onMouseLeave: function (e) { e.currentTarget.style.color = DIM; } },
               "HOW SCORES WORK"))),
         h("div", { style: { display: "flex", gap: "56px", flexWrap: "wrap" } },
-          navCol("Collect", [["Open a Pack", "packs"], ["My Collection", "/collection"], ["Roster", "roster"]], r),
+          navCol("Collect", [["Open a Pack", "packs"], ["My Collection", "/collection"], ["Leaderboard", "/leaderboard"], ["Roster", "roster"]], r),
           navCol("Play", [["Timeline", "timeline"], ["Battle", "battle"], ["Draft", "draft"], ["Assassination", "assassination"]], r))));
   }
 
