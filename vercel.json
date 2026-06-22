@@ -1,7 +1,8 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/collection", "destination": "/api/collection" }
+    { "source": "/collection", "destination": "/api/collection" },
+    { "source": "/card/:id", "destination": "/api/card?id=:id" }
   ],
   "headers": [
     {

@@ -642,6 +642,9 @@
         h("div", { className: "m-grid" }, cells.map(function (c) {
           return h("div", { className: "m-cell" }, h("div", { className: "k" }, c[0]), h("div", { className: "v" }, String(c[1])));
         })),
+        f.cardId != null
+          ? h("div", { className: "m-share" }, h("button", { className: "share-btn", onClick: function () { shareCard(f); } }, "Share on 𝕏"))
+          : null,
         h("div", { className: "m-links" },
           h("a", { href: OPENSEA, target: "_blank", rel: "noopener noreferrer" }, "View on OpenSea ↗"),
           h("a", { href: "https://etherscan.io/address/" + (f.wrapped ? HCX.WRAPPER : f.contract), target: "_blank", rel: "noopener noreferrer" },
@@ -701,6 +704,29 @@
     // where a plain window.open stays trapped in the webview — open the native
     // X app via the twitter:// deep link; fall back to the web intent after
     // 500ms if the app isn't installed. (Same idiom as hcx-games.js tlShare.)
+    if (/iPhone|iPad|Android/i.test(navigator.userAgent)) {
+      setTimeout(function () { window.location.href = web; }, 500);
+      window.location.href = "twitter://post?message=" + enc;
+    } else {
+      window.open(web, "_blank", "noopener,noreferrer");
+    }
+  }
+  // ---- single-card share ----------------------------------------------------
+  function cardShareUrl(tokenId) {
+    return SITE + "/card/" + encodeURIComponent(tokenId);   // includes https:// via SITE
+  }
+  function shareCard(f) {
+    if (f == null || f.cardId == null) return;
+    var lead = S.isOwner ? "From my collection:"
+      : ("From " + (S.label || shortAddr(S.address)) + "'s collection:");
+    var text = lead + "\n\n" + f.name
+      + "\nToken ID #" + f.cardId
+      + "\nHumanityCards\nDeployed March 2018, pre-ERC721\n\n"
+      + cardShareUrl(f.cardId);
+    var enc = encodeURIComponent(text);
+    var web = "https://x.com/intent/tweet?text=" + enc;
+    // Same idiom as shareTwitter: on mobile open the native X app via the
+    // twitter:// deep link, falling back to the web intent if it isn't installed.
     if (/iPhone|iPad|Android/i.test(navigator.userAgent)) {
       setTimeout(function () { window.location.href = web; }, 500);
       window.location.href = "twitter://post?message=" + enc;

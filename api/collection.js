@@ -67,7 +67,7 @@ function page(m) {
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/assets/css/collection.css?v=2"/>
+<link rel="stylesheet" href="/assets/css/collection.css?v=3"/>
 <link rel="stylesheet" href="/assets/css/leaderboard.css?v=1"/>
 </head>
 <body>
@@ -109,7 +109,7 @@ function page(m) {
 <script src="/assets/js/hcx-auth.js?v=24"></script>
 <script src="/assets/js/hcx-cards.js?v=24"></script>
 <script src="/assets/js/hcx-gamify.js?v=1"></script>
-<script src="/assets/js/hcx-showcase.js?v=5"></script>
+<script src="/assets/js/hcx-showcase.js?v=6"></script>
 <script src="/assets/js/sw-register.js?v=24"></script>
 </body>
 </html>`;

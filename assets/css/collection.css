@@ -442,6 +442,8 @@ img, svg { display: block; }
 .modal .m-cell { background: var(--bg-elevated); padding: 12px 14px; }
 .modal .m-cell .k { font: 600 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-secondary); }
 .modal .m-cell .v { margin-top: 6px; font: 600 14px/1 var(--mono); color: var(--text-primary); }
+.modal .m-share { margin-bottom: 18px; }
+.modal .m-share .share-btn { width: 100%; }
 .modal .m-links { display: flex; flex-direction: column; gap: 4px; }
 .modal .m-links a {
   font: 600 13px/1 var(--mono); color: var(--accent-copper); text-decoration: none; padding: 8px 0;
