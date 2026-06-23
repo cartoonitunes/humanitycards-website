@@ -49,7 +49,12 @@ function rows(result) {
   return result.rows.map((row) => {
     const o = {};
     row.forEach((cell, i) => {
-      o[cols[i]] = cell.value === null ? null
+      // A NULL cell is `{type:"null"}` with no `value` (undefined, not null), so
+      // a strict `=== null` check misses it and leaves `undefined` — which
+      // JSON.stringify then DROPS from the row entirely. Normalise to real null
+      // so e.g. a nameless wallet still serialises `"name": null` (the client
+      // then renders its truncated address) instead of the key vanishing.
+      o[cols[i]] = cell.type === "null" || cell.value === null || cell.value === undefined ? null
         : cell.type === "integer" || cell.type === "float" ? Number(cell.value) : cell.value;
     });
     return o;
