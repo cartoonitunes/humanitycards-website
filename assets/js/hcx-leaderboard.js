@@ -93,8 +93,8 @@
   }
 
   function Podium(top3) {
-    // order visually: 2nd, 1st, 3rd (1st centered + tallest)
-    var order = top3.length === 3 ? [top3[1], top3[0], top3[2]] : top3;
+    // render left-to-right in rank order: #1, #2, #3 (#1 stays largest/most prominent)
+    var order = top3;
     var wrap = h("div", { className: "lb-podium" });
     order.forEach(function (row) {
       if (!row) return;
