@@ -227,7 +227,7 @@ async function handleGet(req, url) {
           FROM historian_scores h
           LEFT JOIN users u ON u.uid = h.uid
           LEFT JOIN hc_profiles p ON p.address = h.wallet
-          ORDER BY metric DESC, h.total DESC, h.updated_at ASC LIMIT ?`,
+          ORDER BY metric DESC, h.total DESC, h.updated_at ASC, h.uid ASC LIMIT ?`,
     args: topArgs,
   }]);
 
